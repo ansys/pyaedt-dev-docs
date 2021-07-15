@@ -1,0 +1,1483 @@
+
+<!DOCTYPE html>
+
+<html lang="Python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pyaedt.edb_core.EDB_Data &#8212; PyAEDT 0.3.dev0
+ documentation</title>
+    
+  <link href="../../../_static/css/theme.css" rel="stylesheet" />
+  <link href="../../../_static/css/index.c5995385ac14fb8791e8eb36b4908be2.css" rel="stylesheet" />
+
+    
+  <link rel="stylesheet"
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+  <link rel="preload" as="script" href="../../../_static/js/index.1c5a1a01449ed65a7b51.js">
+
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/clipboard.min.js"></script>
+    <script src="../../../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en" />
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><style>
+    .navbar-light {
+        background-color: black !important;
+    }
+</style>
+
+<div class="container-xl">
+
+    <a class="navbar-brand" href="../../../index.html">
+    
+      <img src="../../../_static/pyansys-logo-black-cropped.png" class="logo" alt="logo" />
+    
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon" >
+        <i class="fas fa-bars" style="color:#fff; font-size:28px;"></i>
+      </span>
+    </button>
+    
+    <div id="navbar-menu" class="col-lg-9 collapse navbar-collapse">
+      <ul id="navbar-main-elements" class="navbar-nav mr-auto">
+        
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../Resources/Installation.html">Installation</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../API/index.html">API Documentation</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../Resources/Code_Guidelines.html">Code Guidelines</a>
+        </li>
+        
+        <li class="nav-item ">
+            <a class="nav-link" href="../../../Resources/Contributing.html">Contributing</a>
+        </li>
+        
+        
+      </ul>
+
+
+      
+
+      <ul class="navbar-nav">
+        
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/pyansys/PyAEDT" target="_blank" rel="noopener">
+              <span><i class="fab fa-github-square" style="font-size:24px"></i></span>
+            </a>
+          </li>
+        
+        
+        
+      </ul>
+    </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for pyaedt.edb_core.EDB_Data</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span><span class="p">,</span> <span class="n">convert_net_list_to_py_list</span><span class="p">,</span> <span class="n">convert_pydict_to_netdict</span><span class="p">,</span> <span class="n">convert_netdict_to_pydict</span>
+<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">clr</span>
+    <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">Double</span><span class="p">,</span> <span class="n">Array</span>
+    <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The clr is missing. Install Python.NET or use an IronPython version if you want to use the EDB module.&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="EDBLayer"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayer.html#pyaedt.edb_core.EDB_Data.EDBLayer">[docs]</a><span class="k">class</span> <span class="nc">EDBLayer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;EDBLayer class.&quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edblayer</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="o">=</span> <span class="n">edblayer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_upper_elevation</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_top_bottom_association</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">_edb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">_active_layout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_vals</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_stackup_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_stackup_methods</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_builder</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_messenger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_messenger</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Layer name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Layer ID.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            ID of the layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetLayerId</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layer_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Layer type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Type of the layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span>
+
+    <span class="nd">@layer_type</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">layer_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_layers</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">material_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the material name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the material.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetMaterial</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span>
+
+    <span class="nd">@material_name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">material_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_layers</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">thickness_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the thickness value.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Thickness value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetThicknessValue</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span>
+
+    <span class="nd">@thickness_value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">thickness_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_layers</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filling_material_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the filling material.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the filling material if it exists.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetFillMaterial</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="nd">@filling_material_name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">filling_material_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_layers</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">top_bottom_association</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Top/bottom association layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Top/bottom association layer, where:</span>
+
+<span class="sd">            * 0 - Top associated</span>
+<span class="sd">            * 1 - No association</span>
+<span class="sd">            * 2 - Bottom associated</span>
+<span class="sd">            * 4 - Number of top/bottom associations</span>
+<span class="sd">            * -1 -  Undefined.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_top_bottom_association</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetTopBottomAssociation</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_bottom_association</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lower_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the lower elevation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Lower elevation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span>
+
+    <span class="nd">@lower_elevation</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">lower_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_layers</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">upper_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Upper elevation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Upper elevation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_upper_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upper_elevation</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">etch_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the etch factor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Etch factor if it exists, 0 otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetEtchFactor</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="nd">@etch_factor</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">etch_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_layers</span><span class="p">()</span>
+
+<div class="viewcode-block" id="EDBLayer.init_vals"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayer.init_vals.html#pyaedt.edb_core.EDB_Data.EDBLayer.init_vals">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">init_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetThicknessValue</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetEtchFactor</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetFillMaterial</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetMaterial</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_upper_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_top_bottom_association</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetTopBottomAssociation</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="EDBLayer.update_layer_vals"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayer.update_layer_vals.html#pyaedt.edb_core.EDB_Data.EDBLayer.update_layer_vals">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">update_layer_vals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layerName</span><span class="p">,</span> <span class="n">newLayer</span><span class="p">,</span> <span class="n">etchMap</span><span class="p">,</span> <span class="n">materialMap</span><span class="p">,</span> <span class="n">fillMaterialMap</span><span class="p">,</span> <span class="n">thicknessMap</span><span class="p">,</span> <span class="n">layerTypeMap</span><span class="p">):</span>
+        <span class="n">newLayer</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">layerName</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">newLayer</span><span class="o">.</span><span class="n">SetLayerType</span><span class="p">(</span><span class="n">layerTypeMap</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s1">&#39;Layer </span><span class="si">{0}</span><span class="s1"> has unknown type </span><span class="si">{1}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">layerName</span><span class="p">,</span> <span class="n">layerTypeMap</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">newLayer</span><span class="o">.</span><span class="n">SetThickness</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">thicknessMap</span><span class="p">))</span>
+        <span class="n">newLayer</span><span class="o">.</span><span class="n">SetMaterial</span><span class="p">(</span><span class="n">materialMap</span><span class="p">)</span>
+        <span class="n">newLayer</span><span class="o">.</span><span class="n">SetFillMaterial</span><span class="p">(</span><span class="n">fillMaterialMap</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">etchMap</span> <span class="ow">and</span> <span class="n">layerTypeMap</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">layerTypeMap</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">etchVal</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">etchMap</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">etchVal</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">etchVal</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">newLayer</span><span class="o">.</span><span class="n">SetEtchFactorEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">newLayer</span><span class="o">.</span><span class="n">SetEtchFactor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">etchVal</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">newLayer</span></div>
+
+<div class="viewcode-block" id="EDBLayer.set_elevation"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayer.set_elevation.html#pyaedt.edb_core.EDB_Data.EDBLayer.set_elevation">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">elev</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the layer elevation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layer :</span>
+<span class="sd">            Layer object.</span>
+<span class="sd">        elev : float</span>
+<span class="sd">            Layer elevation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        type</span>
+<span class="sd">            Layer</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">elev</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">layer</span></div>
+
+<div class="viewcode-block" id="EDBLayer.update_layers"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayer.update_layers.html#pyaedt.edb_core.EDB_Data.EDBLayer.update_layers">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">update_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update all layers.</span>
+<span class="sd">      </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">thisLC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">())</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">thisLC</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">)))</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">newLayers</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">]()</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
+                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
+                <span class="k">continue</span>
+            <span class="n">layerName</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">layerName</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_layer_vals</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">newLayer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span><span class="p">)</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+            <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+
+        <span class="n">lcNew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
+        <span class="n">newLayers</span><span class="o">.</span><span class="n">Reverse</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">newLayers</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">lcNew</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s1">&#39;Failed to set new layers when updating the stackup information.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_update_edb_objects</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
+
+
+<div class="viewcode-block" id="EDBLayers"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayers.html#pyaedt.edb_core.EDB_Data.EDBLayers">[docs]</a><span class="k">class</span> <span class="nc">EDBLayers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;EDBLayers object.</span>
+
+<span class="sd">    This class manages all primitives.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stackup_mode</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">defaultdict</span><span class="p">(</span><span class="n">EDBLayer</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_edb_objects</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve a layer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layername : str</span>
+<span class="sd">            Name of the layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        type</span>
+<span class="sd">            EDB Layer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">layername</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_messenger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_messenger</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_stackup_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_stackup_methods</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_edb</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_builder</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_active_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_active_layout</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_edb_objects</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edb_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of EDB layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of EDB layers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">allLayers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_collection</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">)))</span>
+        <span class="n">allStckuplayers</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">lyr</span><span class="p">:</span> <span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">DielectricLayer</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="n">lyr</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span> <span class="ow">or</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">ConductingLayer</span><span class="p">),</span> <span class="n">allLayers</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">allStckuplayers</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">lyr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">:</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">signal_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionry of signal layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of signal layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">edblayer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">edblayer</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span> <span class="ow">or</span> <span class="n">edblayer</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">ConductingLayer</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layers</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span><span class="o">=</span> <span class="n">edblayer</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layers</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layer_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Collection of layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        type</span>
+<span class="sd">            Collection of layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layer_collection_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollectionMode</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layer_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Layer types.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        type</span>
+<span class="sd">            Types of layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stackup_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the stackup mode.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Stackup mode, where:</span>
+
+<span class="sd">            * 0 - Laminate</span>
+<span class="sd">            * 1 - Overlapping</span>
+<span class="sd">            * 2 - Multizone</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stackup_mode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_collection</span><span class="o">.</span><span class="n">GetMode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stackup_mode</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_messenger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_messenger</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_int_to_layer_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">SignalLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">DielectricLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">ConductingLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">AirlinesLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">ErrorsLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">SymbolLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">MeasureLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">AssemblyLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">SilkscreenLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">SolderMaskLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">SolderPasteLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">12</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">GlueLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">13</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">WirebondLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">14</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">UserLayer</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">16</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">SIwaveHFSSSolverRegions</span>
+        <span class="k">elif</span> <span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">18</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">OutlineLayer</span>
+
+    <span class="nd">@stackup_mode</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">stackup_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_collection_mode</span><span class="o">.</span><span class="n">Laminate</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_collection</span><span class="o">.</span><span class="n">SetMode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_collection_mode</span><span class="o">.</span><span class="n">Laminate</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_collection_mode</span><span class="o">.</span><span class="n">Overlapping</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_collection</span><span class="o">.</span><span class="n">SetMode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_collection_mode</span><span class="o">.</span><span class="n">Overlapping</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">value</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_collection_mode</span><span class="o">.</span><span class="n">MultiZone</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_collection</span><span class="o">.</span><span class="n">SetMode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_collection_mode</span><span class="o">.</span><span class="n">MultiZone</span><span class="p">)</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_update_edb_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">defaultdict</span><span class="p">(</span><span class="n">EDBLayer</span><span class="p">))</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_layers</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">layers</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">layers</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="EDBLayers.add_layer"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayers.add_layer.html#pyaedt.edb_core.EDB_Data.EDBLayers.add_layer">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">add_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layerName</span><span class="p">,</span> <span class="n">start_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span> <span class="n">fillMaterial</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="s2">&quot;35um&quot;</span><span class="p">,</span> <span class="n">layerType</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                  <span class="n">etchMap</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add an additional layer after a specific layer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layerName : str</span>
+<span class="sd">            Name of the layer to add.</span>
+<span class="sd">        start_layer : str, optional</span>
+<span class="sd">            Name of the layer after which to add the new layer.</span>
+<span class="sd">            The default is ``None``.</span>
+<span class="sd">        material : str, optional</span>
+<span class="sd">            Name of the material. The default is ``&quot;copper&quot;``.</span>
+<span class="sd">        fillMaterial : str, optional</span>
+<span class="sd">            Name of the fill material. The default is ``&quot;&quot;``.)</span>
+<span class="sd">        thickness : str, optional</span>
+<span class="sd">            Thickness value, including units. The default is ``&quot;35um&quot;``.</span>
+<span class="sd">        layerType :</span>
+<span class="sd">            Type of the layer. The default is ``0``, which is a signal layer.</span>
+<span class="sd">        etchMap : optional</span>
+<span class="sd">            Etch value if any. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">thisLC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">()</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">thisLC</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">)))</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">newLayers</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">]()</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">layers</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">start_layer</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">layerType</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="n">layerName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">))</span>
+                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">(</span><span class="n">layerName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">),</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">)</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">update_layer_vals</span><span class="p">(</span><span class="n">layerName</span><span class="p">,</span> <span class="n">newLayer</span><span class="p">,</span> <span class="n">etchMap</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span>
+                                                                         <span class="n">fillMaterial</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">))</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
+                    <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="n">start_layer</span><span class="p">:</span>
+                    <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                    <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+                    <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+
+                    <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">(</span><span class="n">layerName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">),</span>
+                                                                  <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                                                                  <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">)</span>
+                    <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">update_layer_vals</span><span class="p">(</span><span class="n">layerName</span><span class="p">,</span> <span class="n">newLayer</span><span class="p">,</span> <span class="n">etchMap</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span>
+                                                                            <span class="n">fillMaterial</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">))</span>
+                    <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                    <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                    <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                    <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+        <span class="n">lcNew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
+        <span class="n">newLayers</span><span class="o">.</span><span class="n">Reverse</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">newLayers</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">lcNew</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s1">&#39;Failed to set new layers when updating the stackup information.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_edb_objects</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EDBLayers.add_outline_layer"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayers.add_outline_layer.html#pyaedt.edb_core.EDB_Data.EDBLayers.add_outline_layer">[docs]</a>    <span class="k">def</span> <span class="nf">add_outline_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outline_name</span><span class="o">=</span><span class="s2">&quot;Outline&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds an Outline Layer named &quot;Outline&quot; if not present</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            &quot;True&quot; if succeeded</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">outlineLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">(),</span> <span class="n">outline_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">outlineLayer</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">outline_name</span><span class="p">,</span> <span class="n">layerType</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span><span class="o">.</span><span class="n">OutlineLayer</span><span class="p">,</span> <span class="n">material</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="EDBLayers.remove_layer"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.EDB_Data.EDBLayers.remove_layer.html#pyaedt.edb_core.EDB_Data.EDBLayers.remove_layer">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">remove_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a layer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layername : str</span>
+<span class="sd">            Name of the layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">thisLC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">())</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">thisLC</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">)))</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">newLayers</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">]()</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
+                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">layername</span> <span class="o">==</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()):</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+        <span class="n">lcNew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
+        <span class="n">newLayers</span><span class="o">.</span><span class="n">Reverse</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">newLayers</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">lcNew</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s1">&#39;Failed to set new layers when updating the stackup information.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_edb_objects</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
+
+
+<div class="viewcode-block" id="EDBPadProperties"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPadProperties.html#pyaedt.edb_core.EDB_Data.EDBPadProperties">[docs]</a><span class="k">class</span> <span class="nc">EDBPadProperties</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;EDBPadProperties class.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edb_padstack</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">pad_type</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span> <span class="o">=</span> <span class="n">edb_padstack</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span> <span class="o">=</span> <span class="n">layer_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span> <span class="o">=</span> <span class="n">pad_type</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_padstack_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_padstack_methods</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_stackup_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_stackup_layers</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_builder</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_edb</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_edb_value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">geometry_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Geometry type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Type of the geometry.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">padparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">padparams</span><span class="o">.</span><span class="n">Item1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update a list of parameters.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item2</span><span class="p">]</span>
+
+    <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">propertylist</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">propertylist</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">propertylist</span> <span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">propertylist</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">propertylist</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">propertylist</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_pad_parameters_parameters</span><span class="p">(</span><span class="n">params</span><span class="o">=</span> <span class="n">propertylist</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">offset_x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the offset for the X axis.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Offset for the X axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item3</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+
+    <span class="nd">@offset_x</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">offset_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset_value</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_pad_parameters_parameters</span><span class="p">(</span><span class="n">offsetx</span><span class="o">=</span> <span class="n">offset_value</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">offset_y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the offset for the Y axis.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Offset for the Y axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item4</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+
+    <span class="nd">@offset_y</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">offset_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset_value</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_pad_parameters_parameters</span><span class="p">(</span><span class="n">offsety</span><span class="o">=</span><span class="n">offset_value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rotation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rotation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Value for the rotation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item5</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+
+    <span class="nd">@rotation</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">rotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotation_value</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_pad_parameters_parameters</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="n">rotation_value</span><span class="p">)</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_update_pad_parameters_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pad_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">geom_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offsetx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offsety</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update padstack parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layer_name : str, optional</span>
+<span class="sd">            Name of the layer. The default is ``None``.</span>
+<span class="sd">        pad_type :</span>
+<span class="sd">            Type of the pad. The default is ``None``.</span>
+<span class="sd">        geom_type :</span>
+<span class="sd">            Type of the geometry. The default is ``None``.</span>
+<span class="sd">        params :</span>
+<span class="sd">            The default is ``None``.</span>
+<span class="sd">        offsetx : float, optional</span>
+<span class="sd">            Offset value for the X axis. The default is ``None``.</span>
+<span class="sd">        offsety :  float, optional</span>
+<span class="sd">            Offset value for the Y axis. The default is ``None``.</span>
+<span class="sd">        rotation: float, optional</span>
+<span class="sd">            Rotation value. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">originalPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+        <span class="n">newPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDefData</span><span class="p">(</span><span class="n">originalPadstackDefinitionData</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pad_type</span><span class="p">:</span>
+            <span class="n">pad_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">geom_type</span><span class="p">:</span>
+            <span class="n">geom_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry_type</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">offsetx</span><span class="p">:</span>
+            <span class="n">offsetx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_x</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">offsety</span><span class="p">:</span>
+            <span class="n">offsety</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset_y</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rotation</span><span class="p">:</span>
+            <span class="n">rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">layer_name</span><span class="p">:</span>
+            <span class="n">layer_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span>
+        <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetPadParameters</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pad_type</span><span class="p">,</span> <span class="n">geom_type</span><span class="p">,</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">params</span><span class="p">),</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">offsetx</span><span class="p">),</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">offsety</span><span class="p">),</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">rotation</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">newPadstackDefinitionData</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EDBPadstack"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPadstack.html#pyaedt.edb_core.EDB_Data.EDBPadstack">[docs]</a><span class="k">class</span> <span class="nc">EDBPadstack</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;EDBPadstacks object.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edb_padstack</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span> <span class="o">=</span> <span class="n">edb_padstack</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">antipad_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thermalpad_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_layers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBPadProperties</span><span class="p">(</span><span class="n">edb_padstack</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">antipad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBPadProperties</span><span class="p">(</span><span class="n">edb_padstack</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thermalpad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBPadProperties</span><span class="p">(</span><span class="n">edb_padstack</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_padstack_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_padstack_methods</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_stackup_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_stackup_layers</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_builder</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_edb</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_edb_value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">via_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">via_start_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Starting layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the starting layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">via_stop_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Stopping layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the stopping layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_hole_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">viaData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;IronPython&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span> <span class="ow">or</span> <span class="s2">&quot;.NETFramework&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">viaData</span><span class="o">.</span><span class="n">GetHoleParametersValue</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="s2">&quot;0.0&quot;</span><span class="p">)</span>
+            <span class="n">ptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Circle</span>
+            <span class="n">HoleParam</span> <span class="o">=</span> <span class="n">Array</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">value0</span><span class="p">)]([])</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">viaData</span><span class="o">.</span><span class="n">GetHoleParametersValue</span><span class="p">(</span><span class="n">ptype</span><span class="p">,</span> <span class="n">HoleParam</span><span class="p">,</span> <span class="n">value0</span><span class="p">,</span> <span class="n">value0</span><span class="p">,</span> <span class="n">value0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hole parameters.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of the hole parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_parameters</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_update_hole_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hole_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offsetx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">offsety</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update hole parameters.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        hole_type :</span>
+<span class="sd">            Type of the hole. The default is ``None``.</span>
+<span class="sd">        params :</span>
+<span class="sd">            The default is ``None``.</span>
+<span class="sd">        offsetx : float, optional</span>
+<span class="sd">            Offset value for the X axis. The default is ``None``.</span>
+<span class="sd">        offsety :  float, optional</span>
+<span class="sd">            Offset value for the Y axis. The default is ``None``.</span>
+<span class="sd">        rotation: float, optional</span>
+<span class="sd">            Rotation value. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">originalPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+        <span class="n">newPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDefData</span><span class="p">(</span><span class="n">originalPadstackDefinitionData</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hole_type</span><span class="p">:</span>
+            <span class="n">hole_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_type</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_parameters</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">offsetx</span><span class="p">:</span>
+            <span class="n">offsetx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_offset_x</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">offsety</span><span class="p">:</span>
+            <span class="n">offsety</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_offset_y</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rotation</span><span class="p">:</span>
+            <span class="n">rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_rotation</span>
+        <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetHoleParameters</span><span class="p">(</span><span class="n">hole_type</span><span class="p">,</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">params</span><span class="p">),</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">offsetx</span><span class="p">),</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">offsety</span><span class="p">),</span>
+                                                      <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">rotation</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">newPadstackDefinitionData</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the hole properties.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of float values for hole properties.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_properties</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_params</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_properties</span>
+
+    <span class="nd">@hole_properties</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">hole_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">propertylist</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">propertylist</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">propertylist</span> <span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">propertylist</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">propertylist</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">propertylist</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_hole_parameters</span><span class="p">(</span><span class="n">params</span><span class="o">=</span> <span class="n">propertylist</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hole type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Type of the hole.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_type</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_offset_x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the hole offset for the X axis.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Hole offset value for the X axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_offset_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_params</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_offset_x</span>
+
+    <span class="nd">@hole_offset_x</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">hole_offset_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_offset_x</span> <span class="o">=</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_hole_parameters</span><span class="p">(</span><span class="n">offsetx</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_offset_y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the hole offset for the Y axis.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Hole offset value for the Y axis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_offset_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_params</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_offset_y</span>
+
+    <span class="nd">@hole_offset_y</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">hole_offset_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_offset_y</span> <span class="o">=</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_hole_parameters</span><span class="p">(</span><span class="n">offsety</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_rotation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the hole rotation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Value for the hole rotation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_params</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hole_rotation</span>
+
+    <span class="nd">@hole_rotation</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">hole_rotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotation</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hole_rotation</span><span class="o">=</span> <span class="n">rotation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_hole_parameters</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="n">rotation</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_plating_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the hole plating ratio.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Percentage for the hole plating.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetHolePlatingPercentage</span><span class="p">()</span>
+
+    <span class="nd">@hole_plating_ratio</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">hole_plating_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio</span><span class="p">):</span>
+
+        <span class="n">originalPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+        <span class="n">newPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDefData</span><span class="p">(</span><span class="n">originalPadstackDefinitionData</span><span class="p">)</span>
+        <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetHolePlatingPercentage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">ratio</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">newPadstackDefinitionData</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_plating_thickness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hole plating thickness.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Thickness of the hole plating if present.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_properties</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_properties</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_plating_ratio</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hole_finished_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finished hole size.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Finished size of the hole (Total Size + PlatingThickess*2).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_properties</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_properties</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_plating_thickness</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve or update the hole material</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Material of the hole.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetMaterial</span><span class="p">()</span>
+
+    <span class="nd">@material</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">materialname</span><span class="p">):</span>
+
+        <span class="n">originalPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+        <span class="n">newPadstackDefinitionData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDefData</span><span class="p">(</span><span class="n">originalPadstackDefinitionData</span><span class="p">)</span>
+        <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetMaterial</span><span class="p">(</span><span class="n">materialname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">newPadstackDefinitionData</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EDBPinInstances"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPinInstances.html#pyaedt.edb_core.EDB_Data.EDBPinInstances">[docs]</a><span class="k">class</span> <span class="nc">EDBPinInstances</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;EDBPinInstances class.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pin</span> <span class="o">=</span> <span class="n">pin</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">placement_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pingroups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pin groups to which the pin belongs.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of pin groups to which the pin belongs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetPinGroups</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pin position.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of the pin position in the format ``[x, y]``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rotation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pin rotation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Rotatation value for the pin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">placement_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Placement layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lower_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lower elevation of the placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Lower elavation of the placement layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">upper_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Upper elevation of the placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">           Upper elevation of the placement layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">top_bottom_association</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Top/bottom association of the placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Top/bottom association of the placement layer.</span>
+
+<span class="sd">            * 0 Top associated.</span>
+<span class="sd">            * 1 No association.</span>
+<span class="sd">            * 2 Bottom associated.</span>
+<span class="sd">            * 4 Number of top/bottom association type.</span>
+<span class="sd">            * -1 Undefined.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetTopBottomAssociation</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="EDBComponent"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBComponent.html#pyaedt.edb_core.EDB_Data.EDBComponent">[docs]</a><span class="k">class</span> <span class="nc">EDBComponent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;EDBComponent class.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span> <span class="o">=</span> <span class="n">component</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refdes</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partname</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">PartName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">numpins</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">NumPins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">PartType</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">get_pin_from_component</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">get_nets_from_pin_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pins</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">EDBPinInstances</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pins</span><span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPinInstances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">res_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="n">RValue</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">res_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cap_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="n">CValue</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cap_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ind_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="n">LValue</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ind_value</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb_value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">_edb</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">placement_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">           Name of the placement layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lower_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lower elevation of the placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Lower elevation of the placement layer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">upper_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Upper elevation of the placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Upper elevation of the placement layer.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">top_bottom_association</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Top/bottom association of the placement layer.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Top/bottom association of the placement layer, where:</span>
+
+<span class="sd">            * 0 - Top associated</span>
+<span class="sd">            * 1 - No association</span>
+<span class="sd">            * 2 - Bottom associated</span>
+<span class="sd">            * 4 - Number of top/bottom associations.</span>
+<span class="sd">            * -1 - Undefined</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetTopBottomAssociation</span><span class="p">()</span></div>
+</pre></div>
+
+              </div>
+              
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <script src="../../../_static/js/index.1c5a1a01449ed65a7b51.js"></script>
+
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright (c) 2021 ANSYS, Inc. All rights reserved.<br/>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.3.<br/>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
