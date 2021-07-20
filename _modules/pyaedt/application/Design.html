@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pyaedt.application.Design &#8212; PyAEDT 0.3.dev0
+    <title>pyaedt.application.Design &#8212; PyAEDT 0.4.dev0
  documentation</title>
     
   <link href="../../../_static/css/theme.css" rel="stylesheet" />
@@ -1196,7 +1196,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">proj_name</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">GetActiveProject</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">proj_name</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">proj_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">GetProjectList</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">SetActiveProject</span><span class="p">(</span><span class="n">proj_name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">proj_name</span><span class="p">):</span>
                 <span class="k">if</span> <span class="s2">&quot;.aedtz&quot;</span> <span class="ow">in</span> <span class="n">proj_name</span><span class="p">:</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_unique_project_name</span><span class="p">()</span>
 
@@ -1215,8 +1217,6 @@
                     <span class="n">proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">OpenProject</span><span class="p">(</span><span class="n">proj_name</span><span class="p">)</span>
                     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="n">proj</span>
-            <span class="k">elif</span> <span class="n">proj_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">GetProjectList</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">SetActiveProject</span><span class="p">(</span><span class="n">proj_name</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">NewProject</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_path</span><span class="p">,</span> <span class="n">proj_name</span><span class="o">+</span><span class="s2">&quot;.aedt&quot;</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
@@ -2203,19 +2203,16 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">DeleteDesign</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">fallback_design</span><span class="p">:</span>
-                <span class="n">new_designname</span> <span class="o">=</span> <span class="n">fallback_design</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetActiveDesign</span><span class="p">():</span>
-                    <span class="n">new_designname</span> <span class="o">=</span> <span class="kc">None</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_designname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetActiveDesign</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_active_design</span><span class="p">(</span><span class="n">new_designname</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
-
+        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">fallback_design</span> <span class="ow">and</span> <span class="p">(</span><span class="n">fallback_design</span> <span class="ow">in</span>
+                                <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetDesigns</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">i</span><span class="o">.</span><span class="n">GetName</span><span class="p">()[</span><span class="mi">2</span><span class="p">:])]):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_active_design</span><span class="p">(</span><span class="n">fallback_design</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="kc">True</span>
 
 
@@ -2392,7 +2389,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="c1"># check if the requested design exists in the origin project</span>
-        <span class="k">if</span> <span class="n">design_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">proj_from</span><span class="o">.</span><span class="n">GetDesigns</span><span class="p">())]:</span>
+        <span class="k">if</span> <span class="n">design_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">proj_from</span><span class="o">.</span><span class="n">GetDesigns</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">i</span><span class="o">.</span><span class="n">GetName</span><span class="p">()[</span><span class="mi">2</span><span class="p">:])]:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="c1"># copy the source design</span>
         <span class="n">proj_from</span><span class="o">.</span><span class="n">CopyDesign</span><span class="p">(</span><span class="n">design_name</span><span class="p">)</span>
@@ -2404,9 +2401,9 @@
         <span class="c1"># close the source project</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">CloseProject</span><span class="p">(</span><span class="n">proj_from_name</span><span class="p">)</span>
         <span class="c1"># reset the active design (very important)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">active_design</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_project</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">new_designname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">active_design</span><span class="p">)</span>
 
         <span class="c1"># return the pasted design name</span>
         <span class="k">return</span> <span class="n">new_designname</span>

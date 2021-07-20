@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pyaedt.modeler.Modeler &#8212; PyAEDT 0.3.dev0
+    <title>pyaedt.modeler.Modeler &#8212; PyAEDT 0.4.dev0
  documentation</title>
     
   <link href="../../../_static/css/theme.css" rel="stylesheet" />
@@ -179,6 +179,8 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">.Primitives2D</span> <span class="kn">import</span> <span class="n">Primitives2D</span>
 <span class="kn">from</span> <span class="nn">.Primitives3D</span> <span class="kn">import</span> <span class="n">Primitives3D</span>
@@ -631,7 +633,7 @@
 
     <span class="c1"># Properties derived from internal parent data</span>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_desktop</span>
 
@@ -672,7 +674,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">materials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.MaterialLib.Materials`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">materials</span>
 
 
@@ -996,7 +1003,11 @@
 
 <div class="viewcode-block" id="GeometryModeler.add_workbench_link"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modeler.Modeler.GeometryModeler.add_workbench_link.html#pyaedt.modeler.Modeler.GeometryModeler.add_workbench_link">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">add_workbench_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">ambient_temp</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">create_project_var</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">enable_deformation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Assign Temperature and Deformation Objects for WorkBench Link. From 2020R2 Material needs to have Thermal Modifier</span>
+        <span class="sd">&quot;&quot;&quot;Assign Temperature and Deformation Objects for WorkBench Link.</span>
+
+<span class="sd">        .. deprecated:: 0.3.1</span>
+<span class="sd">           Use :func:`GeometryModeler.set_objects_deformation` and :func:`GeometryModeler.set_objects_temperature`</span>
+<span class="sd">           instead.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1011,42 +1022,39 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
+<span class="sd">        bool</span>
+<span class="sd">            `True` if operation succeeded, `False` otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;add_workbench_link is deprecated. &#39;</span>
+                      <span class="s1">&#39;Please use set_objects_temperature and set_objects_deformation instead.&#39;</span><span class="p">,</span>
+                      <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_objects_temperature</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="n">ambient_temp</span><span class="p">,</span> <span class="n">create_project_var</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">enable_deformation</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_debug_message</span><span class="p">(</span><span class="s2">&quot;Set model temperature and enabling temperature and deformation feedback&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_debug_message</span><span class="p">(</span><span class="s2">&quot;Set model temperature and enabling temperature feedback&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">create_project_var</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">variable_manager</span><span class="p">[</span><span class="s2">&quot;$AmbientTemp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ambient_temp</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel&quot;</span>
-            <span class="n">var</span> <span class="o">=</span> <span class="s2">&quot;$AmbientTemp&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">var</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ambient_temp</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel&quot;</span>
-        <span class="n">vargs1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:TemperatureSettings&quot;</span><span class="p">,</span> <span class="s2">&quot;IncludeTemperatureDependence:=&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;EnableFeedback:=&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span>
-                  <span class="s2">&quot;Temperatures:=&quot;</span><span class="p">]</span>
-        <span class="n">vargs2</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">vdef</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
-            <span class="n">mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Material&quot;</span> <span class="o">+</span> <span class="n">mat</span><span class="p">)</span>
-            <span class="n">th</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">check_thermal_modifier</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">th</span><span class="p">:</span>
-                <span class="n">vargs2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-                <span class="n">vargs2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">vargs2</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">vargs1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vargs2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_objects_deformation</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="GeometryModeler.set_objects_deformation"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modeler.Modeler.GeometryModeler.set_objects_deformation.html#pyaedt.modeler.Modeler.GeometryModeler.set_objects_deformation">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_objects_deformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objects</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign Deformation Objects for WorkBench Link.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objects :</span>
+<span class="sd">            list of the object to be included</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            `True` if operation succeeded, `False` otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_debug_message</span><span class="p">(</span><span class="s2">&quot;Enabling deformation feedback&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetObjectTemperature</span><span class="p">(</span><span class="n">vargs1</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">enable_deformation</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetObjectDeformation</span><span class="p">([</span><span class="s2">&quot;EnabledObjects:=&quot;</span><span class="p">,</span> <span class="n">vdef</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetObjectDeformation</span><span class="p">([</span><span class="s2">&quot;EnabledObjects:=&quot;</span><span class="p">,</span> <span class="n">objects</span><span class="p">])</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Failed to enable the temperature and deformation dependence&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Failed to enable the deformation dependence&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_debug_message</span><span class="p">(</span>
-                <span class="s2">&quot;Assigned objects temperature and enabled temperature and deformation feedback&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_debug_message</span><span class="p">(</span><span class="s2">&quot;Successfully enabled deformation feedback&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="GeometryModeler.set_objects_temperature"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modeler.Modeler.GeometryModeler.set_objects_temperature.html#pyaedt.modeler.Modeler.GeometryModeler.set_objects_temperature">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -1065,7 +1073,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
+<span class="sd">        bool</span>
+<span class="sd">            `True` if operation succeeded, `False` otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_debug_message</span><span class="p">(</span><span class="s2">&quot;Set model temperature and enabling Thermal Feedback&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">create_project_var</span><span class="p">:</span>
@@ -1399,7 +1408,7 @@
 
 <div class="viewcode-block" id="GeometryModeler.get_objects_in_group"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modeler.Modeler.GeometryModeler.get_objects_in_group.html#pyaedt.modeler.Modeler.GeometryModeler.get_objects_in_group">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_objects_in_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;return objects belonging to a group</span>
+        <span class="sd">&quot;&quot;&quot;Get list of objects belonging to a group.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1408,8 +1417,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        type</span>
-<span class="sd">            array of 6 elements representing bounding box</span>
+<span class="sd">        list</span>
+<span class="sd">            Objects that belong to the group.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">:</span>
@@ -1442,7 +1451,8 @@
         <span class="n">all_objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">object_names</span>
         <span class="n">objs_to_unmodel</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_objs</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">group_objs</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">objs_to_unmodel</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_object_model_state</span><span class="p">(</span><span class="n">objs_to_unmodel</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Model&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_change_geometry_property</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">objs_to_unmodel</span><span class="p">)</span>
             <span class="n">bounding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_model_bounding_box</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">Undo</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1681,7 +1691,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Object3d</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objid</span><span class="p">)</span>
 
@@ -1708,7 +1718,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        Object3d</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
         <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;NAME:Selections&#39;</span><span class="p">,</span> <span class="s1">&#39;Selections:=&#39;</span><span class="p">,</span> <span class="n">selections</span><span class="p">,</span> <span class="s1">&#39;NewPartsModelFlag:=&#39;</span><span class="p">,</span> <span class="s1">&#39;Model&#39;</span><span class="p">]</span>
