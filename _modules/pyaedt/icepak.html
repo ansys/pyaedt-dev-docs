@@ -86,6 +86,12 @@
 </li>
 
 <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../Resources/User_Guide.html">
+  User Guide
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../API/index.html">
   API Documentation
  </a>
@@ -295,6 +301,8 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
+<span class="sd">        Create an opening boundary for the faces of the &quot;USB_GND&quot; object.</span>
+
 <span class="sd">        &gt;&gt;&gt; faces = icepak.modeler.primitives[&quot;USB_GND&quot;].faces</span>
 <span class="sd">        &gt;&gt;&gt; face_names = [face.id for face in faces]</span>
 <span class="sd">        &gt;&gt;&gt; boundary = icepak.assign_openings(face_names)</span>
@@ -339,6 +347,12 @@
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; icepak.assign_2way_coupling(&quot;Setup1&quot;, 1, True, 10)</span>
+<span class="sd">        True</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setups</span><span class="p">:</span>
@@ -371,8 +385,21 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        type</span>
+<span class="sd">        list</span>
 <span class="sd">            List of boundaries inserted.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Create block boundaries from each box in the list. </span>
+
+<span class="sd">        &gt;&gt;&gt; box1 = icepak.modeler.primitives.create_box([1, 1, 1], [3, 3, 3], &quot;BlockBox1&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; box2 = icepak.modeler.primitives.create_box([2, 2, 2], [4, 4, 4], &quot;BlockBox2&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; blocks = icepak.create_source_blocks_from_list([[&quot;BlockBox1&quot;, 2], [&quot;BlockBox2&quot;, 4]])</span>
+<span class="sd">        &gt;&gt;&gt; blocks[1].props</span>
+<span class="sd">        {&#39;Objects&#39;: [&#39;BlockBox1&#39;], &#39;Block Type&#39;: &#39;Solid&#39;, &#39;Use External Conditions&#39;: False, &#39;Total Power&#39;: &#39;2W&#39;}</span>
+<span class="sd">        &gt;&gt;&gt; blocks[3].props</span>
+<span class="sd">        {&#39;Objects&#39;: [&#39;BlockBox2&#39;], &#39;Block Type&#39;: &#39;Solid&#39;, &#39;Use External Conditions&#39;: False, &#39;Total Power&#39;: &#39;4W&#39;}</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">oObjects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">solid_names</span>
@@ -414,8 +441,16 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        type</span>
-<span class="sd">            Bound object when successful or ``None`` when failed.</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object when successful or ``None`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; box = icepak.modeler.primitives.create_box([5, 5, 5], [1, 2, 3], &quot;BlockBox3&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; block = icepak.create_source_block(&quot;BlockBox3&quot;, &quot;1W&quot;, False)</span>
+<span class="sd">        &gt;&gt;&gt; block.props</span>
+<span class="sd">        {&#39;Objects&#39;: [&#39;BlockBox3&#39;], &#39;Block Type&#39;: &#39;Solid&#39;, &#39;Use External Conditions&#39;: False, &#39;Total Power&#39;: &#39;1W&#39;}</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">assign_material</span><span class="p">:</span>
@@ -462,6 +497,19 @@
 <span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
 <span class="sd">            Boundary object when successful or ``None`` when failed.</span>
 
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Create two source boundaries from one box, one on the top face and one on the bottom face.</span>
+
+<span class="sd">        &gt;&gt;&gt; box = icepak.modeler.primitives.create_box([0, 0, 0], [20, 20, 20], name=&quot;SourceBox&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; source1 = icepak.create_source_power(box.top_face.id, input_power=&quot;2W&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; source1.props[&quot;Total Power&quot;]</span>
+<span class="sd">        &#39;2W&#39;</span>
+<span class="sd">        &gt;&gt;&gt; source2 = icepak.create_source_power(box.bottom_face.id, thermal_condtion=&quot;Fixed Temperature&quot;, temperature=&quot;28cel&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; source2.props[&quot;Temperature&quot;]</span>
+<span class="sd">        &#39;28cel&#39;</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">source_name</span><span class="p">:</span>
             <span class="n">source_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Source&quot;</span><span class="p">)</span>
@@ -507,6 +555,14 @@
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
 <span class="sd">            Boundary object.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; box = icepak.modeler.primitives.create_box([4, 5, 6], [5, 5, 5], &quot;NetworkBox1&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; block = icepak.create_network_block(&quot;NetworkBox1&quot;, &quot;2W&quot;, 20, 10, icepak.GravityDirection.ZNeg, 1.05918)</span>
+<span class="sd">        &gt;&gt;&gt; block.props[&quot;Nodes&quot;][&quot;Internal&quot;][0]</span>
+<span class="sd">        &#39;2W&#39;</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">object_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">object_names</span><span class="p">:</span>
@@ -574,8 +630,20 @@
 <span class="sd">       </span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        type</span>
-<span class="sd">            Networks boundary objects.</span>
+<span class="sd">        list</span>
+<span class="sd">            List of boundary objects created.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Create network boundaries from each box in the list. </span>
+
+<span class="sd">        &gt;&gt;&gt; box1 = icepak.modeler.primitives.create_box([1, 2, 3], [10, 10, 10], &quot;NetworkBox2&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; box2 = icepak.modeler.primitives.create_box([4, 5, 6], [5, 5, 5], &quot;NetworkBox3&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; blocks = icepak.create_network_blocks([[&quot;NetworkBox2&quot;, 20, 10, 3], [&quot;NetworkBox3&quot;, 4, 10, 2]],</span>
+<span class="sd">        ...                                        icepak.GravityDirection.ZNeg, 1.05918, False)</span>
+<span class="sd">        &gt;&gt;&gt; blocks[0].props[&quot;Nodes&quot;][&quot;Internal&quot;]</span>
+<span class="sd">        [&#39;3W&#39;]</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">solid_names</span>
