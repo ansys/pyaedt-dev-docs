@@ -216,7 +216,8 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    edbpath : str</span>
-<span class="sd">        Full path to the ``aedb`` folder.</span>
+<span class="sd">        Full path to the ``aedb`` folder. the variable can also contain the path to a layout to import. Allowed formarts are</span>
+<span class="sd">        brd, xml (IPC2581), gds, dxf</span>
 <span class="sd">    cellname : str</span>
 <span class="sd">        Name of the cell to select.</span>
 <span class="sd">    isreadonly : bool, optional</span>
@@ -254,6 +255,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">_ironpython</span> <span class="ow">and</span> <span class="n">inside_desktop</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="n">edb_initialized</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span> <span class="o">=</span> <span class="n">oproject</span>
             <span class="k">if</span> <span class="n">isaedtowned</span><span class="p">:</span>
@@ -263,7 +268,7 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">edbpath</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">edbpath</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span> <span class="o">=</span> <span class="n">EDBMessageManager</span><span class="p">()</span>
                 <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">edbpath</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span> <span class="o">=</span> <span class="n">EDBMessageManager</span><span class="p">(</span><span class="n">edbpath</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span> <span class="o">=</span> <span class="n">EDBMessageManager</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">edbpath</span><span class="p">))</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">student_version</span> <span class="o">=</span> <span class="n">student_version</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Messenger Initialized in EDB&quot;</span><span class="p">)</span>
@@ -433,11 +438,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_dlls</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;EDB Path </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;EDB Version </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbversion</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">_ironpython</span> <span class="ow">and</span> <span class="n">inside_desktop</span><span class="p">:</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">SetRunAsStandAlone</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">SetRunAsStandAlone</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">SetRunAsStandAlone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">isreadonly</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span> <span class="o">=</span> <span class="kc">None</span>
@@ -449,7 +450,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">TopCircuitCells</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_methods</span><span class="o">.</span><span class="n">GetBuilder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_methods</span><span class="o">.</span><span class="n">GetBuilder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">builder</span></div>
@@ -474,7 +475,7 @@
             <span class="n">hdl</span> <span class="o">=</span> <span class="n">Convert</span><span class="o">.</span><span class="n">ToUInt64</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">GetEDBHandle</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">Attach</span><span class="p">(</span><span class="n">hdl</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">CellType</span><span class="o">.</span><span class="n">CircuitCell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cellname</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_methods</span><span class="o">.</span><span class="n">GetBuilder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_methods</span><span class="o">.</span><span class="n">GetBuilder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">builder</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="kc">None</span>
@@ -497,15 +498,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">init_dlls</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_dlls</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">_ironpython</span> <span class="ow">and</span> <span class="n">inside_desktop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">SetRunAsStandAlone</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">SetRunAsStandAlone</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">SetRunAsStandAlone</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">cellname</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cellname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Cell&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">CellType</span><span class="o">.</span><span class="n">CircuitCell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cellname</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_methods</span><span class="o">.</span><span class="n">GetBuilder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_methods</span><span class="o">.</span><span class="n">GetBuilder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;active cell set&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">builder</span></div>
 
@@ -529,15 +528,36 @@
 <span class="sd">            Full path to the AEDB file.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_core_primitives</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stackup</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_siwave</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hfss</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">init_dlls</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_dlls</span><span class="p">()</span>
         <span class="n">aedb_name</span><span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">input_file</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.aedb&quot;</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout_methods</span><span class="o">.</span><span class="n">ImportCadToEdb</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbversion</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">output</span><span class="o">.</span><span class="n">Item1</span><span class="p">,</span> <span class="s2">&quot;Error Importing File&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">Item2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">EdbHandler</span><span class="o">.</span><span class="n">dB</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">EdbHandler</span><span class="o">.</span><span class="n">cell</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">builder</span></div>
+        <span class="n">command</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;anstranslator&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">+=</span>  <span class="s2">&quot;.exe&quot;</span>
+
+        <span class="n">translatorSetup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbutils</span><span class="o">.</span><span class="n">AnsTranslatorRunner</span><span class="p">(</span>
+            <span class="n">input_file</span><span class="p">,</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file</span><span class="p">),</span><span class="n">aedb_name</span><span class="p">),</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file</span><span class="p">),</span> <span class="s2">&quot;Translator.log&quot;</span><span class="p">),</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file</span><span class="p">),</span>
+            <span class="kc">True</span><span class="p">,</span>
+            <span class="n">command</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">translatorSetup</span><span class="o">.</span><span class="n">Translate</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Translator failed to translate.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file</span><span class="p">),</span><span class="n">aedb_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_edb</span><span class="p">()</span></div>
+
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
