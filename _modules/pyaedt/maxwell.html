@@ -230,7 +230,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    val_str : str</span>
-<span class="sd">        Name of the float  </span>
+<span class="sd">        Name of the float value.  </span>
 <span class="sd">        </span>
 <span class="sd">    units : str, optional</span>
 <span class="sd">         The default is ``&quot;&quot;``.</span>
@@ -332,7 +332,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">design_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Design files.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Design file.&quot;&quot;&quot;</span>
         <span class="n">design_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;design_data.json&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">design_file</span>
 
@@ -351,7 +351,7 @@
 <span class="sd">        python_interpreter : optional</span>
 <span class="sd">             The default value is ``None``.</span>
 <span class="sd">        aedt_lib_dir : str, optional</span>
-<span class="sd">             The default value is ``None``.</span>
+<span class="sd">             Full path to the ``AEDTLib`` directory. The default value is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -413,7 +413,7 @@
 <span class="sd">        object_list : list</span>
 <span class="sd">            List of objects.    </span>
 <span class="sd">        activate : bool, optional</span>
-<span class="sd">            Whether to activate. The default is ``True``.</span>
+<span class="sd">            Whether to activate eddy effects. The default is ``True``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -443,7 +443,7 @@
 <span class="sd">        object_list : list</span>
 <span class="sd">            List of objects to assign the current source to.</span>
 <span class="sd">        amplitude : float, optional</span>
-<span class="sd">            The default is ``1``.</span>
+<span class="sd">            Voltage amplitude in mV. The default is ``1``.</span>
 <span class="sd">        phase : str, optional</span>
 <span class="sd">            The default is ``&quot;0deg&quot;``.</span>
 <span class="sd">        solid : bool, optional</span>
@@ -465,14 +465,23 @@
             <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Current&quot;</span><span class="p">)</span>
         
         <span class="n">object_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_convert_list_to_ids</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">object_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;Faces&quot;</span><span class="p">:</span> <span class="n">object_list</span><span class="p">,</span> <span class="s2">&quot;Current&quot;</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span> <span class="s2">&quot;IsSolid&quot;</span><span class="p">:</span> <span class="n">solid</span><span class="p">,</span> <span class="s2">&quot;Point out of terminal&quot;</span><span class="p">:</span> <span class="n">swap_direction</span><span class="p">})</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is3d</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">object_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;Faces&quot;</span><span class="p">:</span> <span class="n">object_list</span><span class="p">,</span> <span class="s2">&quot;Current&quot;</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span> <span class="s2">&quot;IsSolid&quot;</span><span class="p">:</span> <span class="n">solid</span><span class="p">,</span> <span class="s2">&quot;Point out of terminal&quot;</span><span class="p">:</span> <span class="n">swap_direction</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">object_list</span><span class="p">,</span> <span class="s2">&quot;Current&quot;</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span><span class="s2">&quot;Phase&quot;</span><span class="p">:</span><span class="n">phase</span><span class="p">,</span> <span class="s2">&quot;IsSolid&quot;</span><span class="p">:</span> <span class="n">solid</span><span class="p">,</span> <span class="s2">&quot;Point out of terminal&quot;</span><span class="p">:</span> <span class="n">swap_direction</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">object_list</span><span class="p">,</span> <span class="s2">&quot;Current&quot;</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span><span class="s2">&quot;Phase&quot;</span><span class="p">:</span><span class="n">phase</span><span class="p">,</span> <span class="s2">&quot;IsSolid&quot;</span><span class="p">:</span> <span class="n">solid</span><span class="p">,</span> <span class="s2">&quot;Point out of terminal&quot;</span><span class="p">:</span> <span class="n">swap_direction</span><span class="p">})</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">object_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">object_list</span><span class="p">,</span> <span class="s2">&quot;Current&quot;</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span><span class="s2">&quot;IsPositive&quot;</span><span class="p">:</span> <span class="n">swap_direction</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;Input has to be a 2D Object&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
         <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Current&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">bound</span>
         <span class="k">return</span> <span class="kc">False</span>
@@ -566,11 +575,11 @@
 <span class="sd">        ind : float, optional</span>
 <span class="sd">            Henry. The default is ``0``.</span>
 <span class="sd">        voltage : float, optional</span>
-<span class="sd">            Voltage. The default is ``0``.</span>
+<span class="sd">            Voltage value. The default is ``0``.</span>
 <span class="sd">        parallel_branches : int, optional</span>
 <span class="sd">            The default is ``1``.</span>
 <span class="sd">        name : str, optional</span>
-<span class="sd">            Name of the winding. The default is ``None``.</span>
+<span class="sd">            Name of the boundary. The default is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -864,7 +873,7 @@
         <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Push exit up to parent object Design &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Push exit up to parent object Design.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ex_type</span><span class="p">:</span>
             <span class="n">exception_to_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">)</span>
 
@@ -925,14 +934,15 @@
 
     <span class="nd">@property</span>  <span class="c1"># for legacy purposes</span>
     <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Dimensions.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s1">&#39;3D&#39;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projectname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">designname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">specified_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">NG</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize the ``Maxwell`` class.</span>
+<span class="sd">        Initialize the `Maxwell` class.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is3d</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">FieldAnalysis3D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Maxwell 3D&quot;</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span>
                                  <span class="n">specified_version</span><span class="p">,</span> <span class="n">NG</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="p">,</span> <span class="n">student_version</span><span class="p">)</span>
         <span class="n">Maxwell</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
@@ -1001,7 +1011,7 @@
 
     <span class="nd">@property</span>  <span class="c1"># for legacy purposes</span>
     <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Dimension.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Dimensions.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">dimension</span>
 
     <span class="nd">@property</span>
@@ -1011,6 +1021,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projectname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">designname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">specified_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">NG</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is3d</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">FieldAnalysis2D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Maxwell 2D&quot;</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span>
                                  <span class="n">specified_version</span><span class="p">,</span> <span class="n">NG</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="p">,</span> <span class="n">student_version</span><span class="p">)</span>
         <span class="n">Maxwell</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
