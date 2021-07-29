@@ -169,7 +169,7 @@
 <span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
 
-<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
+<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">.Object3d</span> <span class="kn">import</span> <span class="n">Padstack</span><span class="p">,</span> <span class="n">Components3DLayout</span><span class="p">,</span> <span class="n">Geometries3DLayout</span><span class="p">,</span> <span class="n">Pins3DLayout</span><span class="p">,</span> <span class="n">Nets3DLayout</span><span class="p">,</span> \
     <span class="n">_uname</span>
 <span class="kn">from</span> <span class="nn">.Primitives</span> <span class="kn">import</span> <span class="n">_ironpython</span><span class="p">,</span> <span class="n">default_materials</span>
@@ -183,9 +183,7 @@
 
 
 <div class="viewcode-block" id="Primitives3DLayout"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout">[docs]</a><span class="k">class</span> <span class="nc">Primitives3DLayout</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Primitives3DLayout class.</span>
-<span class="sd">    </span>
-<span class="sd">    This class provides all functionalities for managing primitives in HFSS 3D Layout.</span>
+    <span class="sd">&quot;&quot;&quot;Manages primitives in HFSS 3D Layout.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -235,7 +233,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
-<span class="sd">            List of components from EDB. If no EDB is present, ``None`` is returned.</span>
+<span class="sd">            List of components from EDB. If EDB is not present, ``None`` is returned.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -253,7 +251,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
-<span class="sd">            List of geometries from EDB. If no EDB is present, ``None`` is returned.</span>
+<span class="sd">            List of geometries from EDB. If EDB is not present, ``None`` is returned.</span>
 <span class="sd">           </span>
 <span class="sd">           &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -293,7 +291,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
-<span class="sd">            List of pins from EDB. If no EDB is present, ``None`` is returned.</span>
+<span class="sd">            List of pins from EDB. If EDB is not present, ``None`` is returned.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -318,7 +316,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
-<span class="sd">            List of nets from EDB. If no EDB is present, ``None`` is returned.</span>
+<span class="sd">            List of nets from EDB. If EDB is not present, ``None`` is returned.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -343,7 +341,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_messenger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;_messenger.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Messenger.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_messenger</span>
 
     <span class="nd">@property</span>
@@ -365,13 +363,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">oeditor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Editor object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Editor.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">opadstackmanager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Padstack manager. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetDefinitionManager</span><span class="p">()</span><span class="o">.</span><span class="n">GetManager</span><span class="p">(</span><span class="s2">&quot;Padstack&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetDefinitionManager</span><span class="p">()</span><span class="o">.</span><span class="n">GetManager</span><span class="p">,</span> <span class="s2">&quot;Padstack&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">model_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -540,7 +538,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            Name of the created via when successful.</span>
+<span class="sd">            Name of the via created when successful.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">all_signal_layers</span>
@@ -602,7 +600,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            Name of the created circle when successful.</span>
+<span class="sd">            Name of the circle created when successful.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
@@ -653,7 +651,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            Name of the created rectangle when successful.</span>
+<span class="sd">            Name of the rectangle created when successful.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -716,7 +714,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            Name of the created line when successful.</span>
+<span class="sd">            Name of the line created when successful.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
@@ -744,7 +742,7 @@
 
 <div class="viewcode-block" id="Primitives3DLayout.arg_with_dim"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Value</span><span class="p">,</span> <span class="n">sUnits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve arguments with dimensions.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
