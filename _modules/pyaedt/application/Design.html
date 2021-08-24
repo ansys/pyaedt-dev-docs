@@ -1150,7 +1150,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        type</span>
 <span class="sd">            Project object</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1184,8 +1183,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="n">proj</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">NewProject</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_path</span><span class="p">,</span> <span class="n">proj_name</span><span class="o">+</span><span class="s2">&quot;.aedt&quot;</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
-
+                <span class="k">if</span> <span class="s2">&quot;.aedt&quot;</span> <span class="ow">in</span> <span class="n">proj_name</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span><span class="n">proj_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">Rename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_path</span><span class="p">,</span> <span class="n">proj_name</span><span class="o">+</span><span class="s2">&quot;.aedt&quot;</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">NewProject</span><span class="p">()</span>
 
@@ -2488,6 +2489,39 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">archive_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_external_files</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_results_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">additional_file_lists</span><span class="o">=</span><span class="p">[],</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Archive the AEDT project and add a message.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        project_file : str, optional</span>
+<span class="sd">            Full path and project file name. The default is ``None``.</span>
+<span class="sd">        include_external_files : bool, optional</span>
+<span class="sd">            Whether to include external files to the archive. The default is ``True``.</span>
+<span class="sd">        include_results_file : bool, optional</span>
+<span class="sd">            Whether to include simulation results files to the archive. The default is ``True``.</span>
+<span class="sd">        additional_file_lists : list, optional</span>
+<span class="sd">            List of additional files to add to the archive. The default is ``[]``.</span>
+<span class="sd">        notes : str, optional</span>
+<span class="sd">            Simulation notes to be added to the archive. The default is ``&quot;&quot;``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msg_text</span> <span class="o">=</span> <span class="s2">&quot;Saving </span><span class="si">{0}</span><span class="s2"> Project&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="n">msg_text</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&#39;Global&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">project_file</span><span class="p">:</span>
+            <span class="n">project_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_path</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">+</span> <span class="s2">&quot;.aedtz&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SaveProjectArchive</span><span class="p">(</span><span class="n">project_file</span><span class="p">,</span> <span class="n">include_external_files</span><span class="p">,</span> <span class="n">include_results_file</span><span class="p">,</span>
+                                         <span class="n">additional_file_lists</span><span class="p">,</span> <span class="n">notes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">delete_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Delete a project.</span>
 
@@ -2571,7 +2605,7 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        &gt;&gt;&gt; M3D = Maxwell3D()</span>
+<span class="sd">        &gt;&gt;&gt; M3D = Maxwell3d()</span>
 <span class="sd">        &gt;&gt;&gt; M3D[&quot;p1&quot;] = &quot;10mm&quot;</span>
 <span class="sd">        &gt;&gt;&gt; M3D[&quot;p2&quot;] = &quot;20mm&quot;</span>
 <span class="sd">        &gt;&gt;&gt; M3D[&quot;p3&quot;] = &quot;P1 * p2&quot;</span>

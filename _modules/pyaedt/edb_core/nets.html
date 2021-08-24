@@ -352,7 +352,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">flag_in_ng</span><span class="p">:</span>
             <span class="n">net_group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">power_net_name</span><span class="p">)</span>
 
-        <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">component_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">rats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">get_rats</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">net_group</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">rats</span><span class="p">:</span>
@@ -361,16 +361,23 @@
                     <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">el</span><span class="p">[</span><span class="s1">&#39;net_name&#39;</span><span class="p">]:</span>
                         <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">net</span><span class="p">:</span>
                             <span class="n">df</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="p">[</span><span class="s1">&#39;refdes&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="s1">&#39;pin_name&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span><span class="n">net</span> <span class="p">]</span>
-                            <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                            <span class="n">component_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
                         <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="n">component_type</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">df_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">component_list</span><span class="p">:</span>
             <span class="n">refdes</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">comp_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">_cmp</span><span class="p">[</span><span class="n">refdes</span><span class="p">]</span><span class="o">.</span><span class="n">type</span>
             <span class="n">component_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comp_type</span><span class="p">)</span>
             <span class="n">el</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comp_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">df_list</span><span class="p">,</span> <span class="n">net_group</span></div>
+
+            <span class="n">comp_partname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">_cmp</span><span class="p">[</span><span class="n">refdes</span><span class="p">]</span><span class="o">.</span><span class="n">partname</span>
+            <span class="n">el</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comp_partname</span><span class="p">)</span>
+            <span class="n">pins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">get_pin_from_component</span><span class="p">(</span><span class="n">cmpName</span><span class="o">=</span><span class="n">refdes</span><span class="p">,</span> <span class="n">netName</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">el</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">]))</span>
+
+        <span class="n">component_list_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;refdes&quot;</span><span class="p">,</span> <span class="s2">&quot;pin_name&quot;</span><span class="p">,</span> <span class="s2">&quot;net_name&quot;</span><span class="p">,</span> <span class="s2">&quot;component_type&quot;</span><span class="p">,</span> <span class="s2">&quot;component_partname&quot;</span><span class="p">,</span> <span class="s2">&quot;pin_list&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">component_list</span><span class="p">,</span> <span class="n">component_list_columns</span><span class="p">,</span> <span class="n">net_group</span></div>
 
 <div class="viewcode-block" id="EdbNets.get_net_by_name"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.nets.EdbNets.get_net_by_name.html#pyaedt.edb_core.nets.EdbNets.get_net_by_name">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_net_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="p">):</span>
