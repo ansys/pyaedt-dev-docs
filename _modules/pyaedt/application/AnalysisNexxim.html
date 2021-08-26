@@ -172,7 +172,7 @@
 <span class="kn">from</span> <span class="nn">..modeler.Circuit</span> <span class="kn">import</span> <span class="n">ModelerNexxim</span>
 <span class="kn">from</span> <span class="nn">..modules.SetupTemplates</span> <span class="kn">import</span> <span class="n">SetupKeys</span>
 <span class="kn">from</span> <span class="nn">..modules.SolveSetup</span> <span class="kn">import</span> <span class="n">SetupCircuit</span>
-
+<span class="kn">from</span> <span class="nn">..modules.PostProcessor</span> <span class="kn">import</span> <span class="n">CircuitPostProcessor</span>
 
 <span class="k">class</span> <span class="nc">FieldAnalysisCircuit</span><span class="p">(</span><span class="n">Analysis</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;FieldCircuitAnalysis class.</span>
@@ -187,6 +187,27 @@
 <span class="sd">    ----------</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">specified_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">NG</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">=</span> <span class="n">solution_type</span>
+        <span class="n">Analysis</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span>
+                          <span class="n">specified_version</span><span class="p">,</span> <span class="n">NG</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="p">,</span> <span class="n">student_version</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span> <span class="o">=</span> <span class="n">ModelerNexxim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">init_padstacks</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_post</span> <span class="o">=</span> <span class="n">CircuitPostProcessor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;PostProcessor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.PostProcessor.CircuitPostProcessor`</span>
+<span class="sd">            PostProcessor object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solution_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solution type. &quot;&quot;&quot;</span>
@@ -195,17 +216,6 @@
 
     <span class="nd">@solution_type</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">solution_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">soltype</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        soltype : </span>
-<span class="sd">            SolutionType object</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">soltype</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_solution_type</span> <span class="o">=</span> <span class="n">solutions_settings</span><span class="p">[</span><span class="n">soltype</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -225,15 +235,6 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_analysis_setups</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">specified_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">NG</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">=</span> <span class="n">solution_type</span>
-        <span class="n">Analysis</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span>
-                          <span class="n">specified_version</span><span class="p">,</span> <span class="n">NG</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="p">,</span> <span class="n">student_version</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span> <span class="o">=</span> <span class="n">ModelerNexxim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">init_padstacks</span><span class="p">()</span>
-        <span class="c1">#self._post = PostProcessor(self)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">modeler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

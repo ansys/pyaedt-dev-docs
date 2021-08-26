@@ -185,7 +185,7 @@
 <span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">..generic.filesystem</span> <span class="kn">import</span> <span class="n">Scratch</span>
 <span class="kn">from</span> <span class="nn">..application.Variables</span> <span class="kn">import</span> <span class="n">AEDT_units</span>
-
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="n">report_type</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;DrivenModal&quot;</span><span class="p">:</span> <span class="s2">&quot;Modal Solution Data&quot;</span><span class="p">,</span> <span class="s2">&quot;DrivenTerminal&quot;</span><span class="p">:</span> <span class="s2">&quot;Terminal Solution Data&quot;</span><span class="p">,</span>
                <span class="s2">&quot;Eigenmode&quot;</span><span class="p">:</span> <span class="s2">&quot;EigenMode Parameters&quot;</span><span class="p">,</span>
                <span class="s2">&quot;Transient Network&quot;</span><span class="p">:</span> <span class="s2">&quot;Terminal Solution Data&quot;</span><span class="p">,</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">:</span> <span class="s2">&quot;Modal Solution Data&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient&quot;</span><span class="p">:</span> <span class="s2">&quot;Transient&quot;</span><span class="p">,</span>
@@ -769,7 +769,399 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">plotsettings</span><span class="p">,</span> <span class="s2">&quot;EnableGaussianSmoothing:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="PostProcessor"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.html#pyaedt.modules.PostProcessor.PostProcessor">[docs]</a><span class="k">class</span> <span class="nc">PostProcessor</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">PostProcessorCommon</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Manages the main AEDT postprocessing functions.</span>
+
+<span class="sd">    The inherited `AEDTConfig` class contains all `_desktop` hierarchical calls</span>
+<span class="sd">    needed for the class inititialization data `_desktop` and the design types ``&quot;HFSS&quot;``,</span>
+<span class="sd">    ``&quot;Icepak&quot;``, and ``&quot;HFSS3DLayout&quot;``.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">   Some functionalities are available only when AEDT is running in the graphical mode.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent:</span>
+<span class="sd">        Inherited parent object. The parent object must provide the members</span>
+<span class="sd">        `_modeler`, `_desktop`, `_odesign`, and `_messenger`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scratch</span> <span class="o">=</span> <span class="n">Scratch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">temp_directory</span><span class="p">,</span> <span class="n">volatile</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">oreportsetup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Report setup.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :attr:`pyaedt.modules.PostProcessor.PostProcessor.oreportsetup`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;ReportSetup&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_messenger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Messenger.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_messenger</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Desktop.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_desktop</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">odesign</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Design.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_odesign</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">oproject</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Project.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_oproject</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">modeler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Modeler.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_modeler</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">oeditor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Editor.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">post_solution_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Design solution type.</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        type</span>
+<span class="sd">            Design solution type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetSolutionType</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_design_type</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">copy_report_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy report data as static data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        PlotName :</span>
+<span class="sd">            Name of the report.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CopyReportsData</span><span class="p">([</span><span class="n">PlotName</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">PasteReports</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">delete_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete a field plot report.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        PlotName : str</span>
+<span class="sd">            Name of the field plot report.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">DeleteReports</span><span class="p">([</span><span class="n">PlotName</span><span class="p">])</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">rename_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">,</span> <span class="n">newname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rename a plot.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        PlotName : str</span>
+<span class="sd">            Name of the plot.</span>
+<span class="sd">        newname : str</span>
+<span class="sd">            New name of the plot.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">RenameReport</span><span class="p">(</span><span class="n">PlotName</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">get_report_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;dB(S(1,1))&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;Sweep&#39;</span><span class="p">,</span> <span class="n">families_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">report_input_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate report data.</span>
+
+<span class="sd">        This method returns the data object and the arrays ``solData`` and</span>
+<span class="sd">        ``FreqVals``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expression : str or list</span>
+<span class="sd">            One or more formulas to add to the report. The default is</span>
+<span class="sd">            ``&quot;dB(S(1,1))&quot;``.</span>
+<span class="sd">        setup_sweep_name : str, optional</span>
+<span class="sd">            Name of the setup for computing the report. The</span>
+<span class="sd">            default is ``&quot;&quot;``, in which case the nominal sweep is</span>
+<span class="sd">            used.</span>
+<span class="sd">        domain : str or list, optional</span>
+<span class="sd">            Context type. The options are ``&quot;Sweep&quot;`` or</span>
+<span class="sd">            ``&quot;Time&quot;``. The default is ``&quot;Sweep&quot;.``</span>
+<span class="sd">        families_dict : dict, optional</span>
+<span class="sd">            Dictionary of all families including the primary</span>
+<span class="sd">            sweep. The default is ``{&quot;Freq&quot;: [&quot;All&quot;]}``.</span>
+<span class="sd">        report_input_type :  str</span>
+<span class="sd">            Type of input data for the report.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.PostProcessor.SolutionData`</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Generate a report with the default sweep and default variation.</span>
+
+<span class="sd">        &gt;&gt;&gt; hfss = HFSS()</span>
+<span class="sd">        &gt;&gt;&gt; hfss.post.get_report_data(&quot;S(1,1)&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; m3d = Maxwell3D()</span>
+<span class="sd">        &gt;&gt;&gt; m3d.post.get_report_data(&quot;SurfaceLoss&quot;)   # Eddy Current examples</span>
+<span class="sd">        &gt;&gt;&gt; m3d.post.get_report_data(&quot;Wind(LoadA,LaodA)&quot;)    # TransientAnalsysis</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Sweep&quot;</span><span class="p">:</span>
+                <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">did</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span> <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
+                    <span class="p">[</span><span class="n">did</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;IDIID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">ctxt</span> <span class="o">=</span> <span class="n">domain</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Domain:=&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
+            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_sweep</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">report_input_type</span><span class="p">:</span>
+            <span class="n">report_input_type</span> <span class="o">=</span> <span class="n">report_type</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">families_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">families_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Freq&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]}</span>
+
+        <span class="n">solution_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_data_per_variation</span><span class="p">(</span><span class="n">report_input_type</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">families_dict</span><span class="p">,</span>
+                                                             <span class="n">expression</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_data</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No Data Available. Check inputs&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">solution_data</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_rectangular_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;dB(S(1,1))&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">families_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Freq&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]},</span>
+                                <span class="n">primary_sweep_variable</span><span class="o">=</span><span class="s2">&quot;Freq&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plotname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plottype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a 2D rectangular plot in AEDT.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expression : str or list, optional</span>
+<span class="sd">            One or more formulas to add to the report. The default is value = ``&quot;dB(S(1,1))&quot;``.</span>
+<span class="sd">        setup_sweep_name : str, optional</span>
+<span class="sd">            Setup name with the sweep. The default is ``&quot;&quot;``.</span>
+<span class="sd">        families_dict : dict, optional</span>
+<span class="sd">            Dictionary of all families including the primary sweep. The default is ``{&quot;Freq&quot;: [&quot;All&quot;]}``.</span>
+<span class="sd">        primary_sweep_variable : str, optional</span>
+<span class="sd">            Name of the primary sweep. The default is ``&quot;Freq&quot;``.</span>
+<span class="sd">        context : str, optional</span>
+<span class="sd">            The default is ``None``.</span>
+<span class="sd">        plotname : str, optional</span>
+<span class="sd">            Name of the plot. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
+            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_sweep</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s2">&quot;Freq&quot;</span> <span class="o">==</span> <span class="n">primary_sweep_variable</span> <span class="ow">or</span> <span class="s2">&quot;Freq&quot;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">families_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">did</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span> <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
+                    <span class="p">[</span><span class="n">did</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;IDIID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="n">context</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="n">ctxt</span> <span class="o">=</span> <span class="n">context</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Context:=&quot;</span><span class="p">,</span> <span class="n">context</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
+            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_sweep</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">report_type</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solution not supported&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plottype</span><span class="p">:</span>
+            <span class="n">modal_data</span> <span class="o">=</span> <span class="n">report_type</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">modal_data</span> <span class="o">=</span> <span class="n">plottype</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plotname</span><span class="p">:</span>
+            <span class="n">plotname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Plot&quot;</span><span class="p">)</span>
+        <span class="n">families_input</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">primary_sweep_variable</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">primary_sweep_variable</span> <span class="ow">in</span> <span class="n">families_dict</span><span class="p">:</span>
+            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;All&quot;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">families_dict</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]])</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">families_dict</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">el</span> <span class="o">==</span> <span class="n">primary_sweep_variable</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">el</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">families_dict</span><span class="p">[</span><span class="n">el</span><span class="p">]])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CreateReport</span><span class="p">(</span><span class="n">plotname</span><span class="p">,</span> <span class="n">modal_data</span><span class="p">,</span> <span class="s2">&quot;Rectangular Plot&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">families_input</span><span class="p">,</span>
+                                       <span class="p">[</span><span class="s2">&quot;X Component:=&quot;</span><span class="p">,</span> <span class="n">primary_sweep_variable</span><span class="p">,</span> <span class="s2">&quot;Y Component:=&quot;</span><span class="p">,</span>
+                                        <span class="n">expression</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">get_solution_data_per_variation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">soltype</span><span class="o">=</span><span class="s1">&#39;Far Fields&#39;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ctxt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                        <span class="n">sweeps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve solution data for each variation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        soltype : str, optional</span>
+<span class="sd">            Type of the solution. For example, ``&quot;Far Fields&quot;`` or ``&quot;Modal Solution Data&quot;``. The default</span>
+<span class="sd">            is ``&quot;Far Fields&quot;``.</span>
+<span class="sd">        setup_sweep_name : str, optional</span>
+<span class="sd">            Name of the setup for computing the report. The default is ``&quot;&quot;``,</span>
+<span class="sd">            in which case ``&quot;nominal adaptive&quot;`` is used.</span>
+<span class="sd">        ctxt : list, optional</span>
+<span class="sd">            List of context variables. The default is ``None``.</span>
+<span class="sd">        sweeps : dict, optional</span>
+<span class="sd">            Dictionary of variables and values. The default is ``None``,</span>
+<span class="sd">            in which case this list is used:</span>
+<span class="sd">            ``{&#39;Theta&#39;: &#39;All&#39;, &#39;Phi&#39;: &#39;All&#39;, &#39;Freq&#39;: &#39;All&#39;}``.</span>
+<span class="sd">        expression : str or list, optional</span>
+<span class="sd">            One or more traces to include. The default is ``&quot;&quot;``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.PostProcessor.SolutionData`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sweeps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sweeps</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Theta&#39;</span><span class="p">:</span> <span class="s1">&#39;All&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">:</span> <span class="s1">&#39;All&#39;</span><span class="p">,</span> <span class="s1">&#39;Freq&#39;</span><span class="p">:</span> <span class="s1">&#39;All&#39;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctxt</span><span class="p">:</span>
+            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
+            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_adaptive</span>
+        <span class="n">sweep_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">sweeps</span><span class="p">:</span>
+            <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]])</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">GetSolutionDataPerVariation</span><span class="p">(</span><span class="n">soltype</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SolutionData</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">steal_focus_oneditor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove the selection of an object that would prevent the image from exporting correctly.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">RestoreWindow</span><span class="p">()</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:SphereParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;XCenter:=&quot;</span><span class="p">,</span> <span class="s2">&quot;0mm&quot;</span><span class="p">,</span> <span class="s2">&quot;YCenter:=&quot;</span><span class="p">,</span> <span class="s2">&quot;0mm&quot;</span><span class="p">,</span> <span class="s2">&quot;ZCenter:=&quot;</span><span class="p">,</span> <span class="s2">&quot;0mm&quot;</span><span class="p">,</span> <span class="s2">&quot;Radius:=&quot;</span><span class="p">,</span> <span class="s2">&quot;1mm&quot;</span><span class="p">]</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="s2">&quot;DUMMYSPHERE1&quot;</span><span class="p">,</span> <span class="s2">&quot;Flags:=&quot;</span><span class="p">,</span> <span class="s2">&quot;NonModel#&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateSphere</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Delete</span><span class="p">([</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="s2">&quot;DUMMYSPHERE1&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">export_report_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export the SParameter plot data to a CSV file.</span>
+
+<span class="sd">        This method leaves the data in the plot (as data) as a reference</span>
+<span class="sd">        for the Sparameters plot after the loops.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        project_dir : str</span>
+<span class="sd">            Path to the project directory.</span>
+<span class="sd">        plot_name : str</span>
+<span class="sd">            Name of the plot to export.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">npath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+
+        <span class="n">csv_file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">npath</span><span class="p">,</span> <span class="n">plot_name</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">ExportToFile</span><span class="p">(</span><span class="n">plot_name</span><span class="p">,</span> <span class="n">csv_file_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">export_report_to_jpg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export the SParameter plot to a JPG file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        project_dir : str</span>
+<span class="sd">            Path to the project directory.</span>
+<span class="sd">        plot_name : str</span>
+<span class="sd">            Name of the plot to export.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># path</span>
+        <span class="n">npath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">npath</span><span class="p">,</span> <span class="n">plot_name</span> <span class="o">+</span> <span class="s2">&quot;.jpg&quot;</span><span class="p">)</span>  <span class="c1"># name of the image file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">ExportImageToFile</span><span class="p">(</span><span class="n">plot_name</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="PostProcessor"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.html#pyaedt.modules.PostProcessor.PostProcessor">[docs]</a><span class="k">class</span> <span class="nc">PostProcessor</span><span class="p">(</span><span class="n">PostProcessorCommon</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages the main AEDT postprocessing functions.</span>
 <span class="sd">    </span>
 <span class="sd">    The inherited `AEDTConfig` class contains all `_desktop` hierarchical calls </span>
@@ -789,7 +1181,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_scratch</span> <span class="o">=</span> <span class="n">Scratch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">temp_directory</span><span class="p">,</span> <span class="n">volatile</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">PostProcessorCommon</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_primitives</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -835,62 +1227,6 @@
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;FieldsReporter&quot;</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">oreportsetup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Report setup.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :attr:`pyaedt.modules.PostProcessor.PostProcessor.oreportsetup`</span>
-<span class="sd">        </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;ReportSetup&quot;</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">post_solution_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Design solution type.</span>
-
-<span class="sd">        Return</span>
-<span class="sd">        ------</span>
-<span class="sd">        type</span>
-<span class="sd">            Design solution type.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetSolutionType</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_design_type</span>
-
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_messenger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Messenger.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_messenger</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Desktop.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_desktop</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">odesign</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Design.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_odesign</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">oproject</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Project.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_oproject</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">modeler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Modeler.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_modeler</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">oeditor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Editor.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">report_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1236,8 +1572,11 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
             <span class="n">setup_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">existing_analysis_sweeps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">CloseAllWindows</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FitAll</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FitAll</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ZoomToFit</span><span class="p">()</span>
         <span class="n">char_set</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span>
         <span class="n">uName</span> <span class="o">=</span> <span class="n">quantityName</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">char_set</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
         <span class="n">plot</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="p">)</span>
@@ -1474,113 +1813,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ExportModelImageToFile</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">file_name</span></div>
 
-<div class="viewcode-block" id="PostProcessor.copy_report_data"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.copy_report_data.html#pyaedt.modules.PostProcessor.PostProcessor.copy_report_data">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">copy_report_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copy report data as static data.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        PlotName :</span>
-<span class="sd">            Name of the report.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CopyReportsData</span><span class="p">([</span><span class="n">PlotName</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">PasteReports</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="PostProcessor.delete_report"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.delete_report.html#pyaedt.modules.PostProcessor.PostProcessor.delete_report">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">delete_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Delete a field plot report.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        PlotName : str</span>
-<span class="sd">            Name of the field plot report.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">DeleteReports</span><span class="p">([</span><span class="n">PlotName</span><span class="p">])</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="PostProcessor.rename_report"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.rename_report.html#pyaedt.modules.PostProcessor.PostProcessor.rename_report">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">rename_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">,</span> <span class="n">newname</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Rename a plot.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        PlotName : str</span>
-<span class="sd">            Name of the plot.</span>
-<span class="sd">        newname : str</span>
-<span class="sd">            New name of the plot.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">RenameReport</span><span class="p">(</span><span class="n">PlotName</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-
-<div class="viewcode-block" id="PostProcessor.export_report_to_csv"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.export_report_to_csv.html#pyaedt.modules.PostProcessor.PostProcessor.export_report_to_csv">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">export_report_to_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ProjectDir</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Export the SParameter plot data to a CSV file.</span>
-<span class="sd">        </span>
-<span class="sd">        This method leaves the data in the plot (as data) as a reference </span>
-<span class="sd">        for the Sparameters plot after the loops.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        ProjectDir : str</span>
-<span class="sd">            Path to the project directory.</span>
-<span class="sd">        PlotName : str</span>
-<span class="sd">            Name of the plot to export.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># path</span>
-        <span class="n">npath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">ProjectDir</span><span class="p">)</span>
-        <span class="c1"># set name for the csv file</span>
-
-        <span class="n">csvFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">npath</span><span class="p">,</span> <span class="n">PlotName</span><span class="o">+</span><span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
-        <span class="c1"># export the csv</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">ExportToFile</span><span class="p">(</span><span class="n">PlotName</span><span class="p">,</span> <span class="n">csvFileName</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="PostProcessor.export_report_to_jpg"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.export_report_to_jpg.html#pyaedt.modules.PostProcessor.PostProcessor.export_report_to_jpg">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">export_report_to_jpg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ProjectDir</span><span class="p">,</span> <span class="n">PlotName</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Export the SParameter plot to a JPG file.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        ProjectDir : str</span>
-<span class="sd">            Path to the project directory.</span>
-<span class="sd">        PlotName : str</span>
-<span class="sd">            Name of the plot to export.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># path</span>
-        <span class="n">npath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">ProjectDir</span><span class="p">)</span>
-        <span class="c1"># set name for the plot image file</span>
-        <span class="n">jpgFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">npath</span><span class="p">,</span> <span class="n">PlotName</span><span class="o">+</span><span class="s2">&quot;.jpg&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">ExportImageToFile</span><span class="p">(</span><span class="n">PlotName</span><span class="p">,</span> <span class="n">jpgFileName</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
 <div class="viewcode-block" id="PostProcessor.get_far_field_data"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.get_far_field_data.html#pyaedt.modules.PostProcessor.PostProcessor.get_far_field_data">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_far_field_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;GainTotal&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;Infinite Sphere1&quot;</span><span class="p">,</span> <span class="n">families_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate far field data using the :func:`GetSolutionDataPerVariation` method. </span>
@@ -1615,223 +1847,217 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_data</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No Data Available. Check inputs&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="n">solution_data</span></div>
-
-<div class="viewcode-block" id="PostProcessor.get_report_data"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.get_report_data.html#pyaedt.modules.PostProcessor.PostProcessor.get_report_data">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">get_report_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;dB(S(1,1))&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;Sweep&#39;</span><span class="p">,</span> <span class="n">families_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">report_input_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate report data using the :func:`GetSolutionDataPerVariation` method.</span>
-<span class="sd">        </span>
-<span class="sd">        This method returns the data object and the arrays ``solData`` and</span>
-<span class="sd">        ``FreqVals``.</span>
-<span class="sd">               </span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        expression : str or list</span>
-<span class="sd">            One or more formulas to add to the report. The default is</span>
-<span class="sd">            ``&quot;dB(S(1,1))&quot;``.</span>
-<span class="sd">        setup_sweep_name : str, optional</span>
-<span class="sd">            Name of the setup for computing the report. The</span>
-<span class="sd">            default is ``&quot;&quot;``, in which case the nominal sweep is</span>
-<span class="sd">            used.</span>
-<span class="sd">        domain : str or list, optional</span>
-<span class="sd">            Context type. The options are ``&quot;Sweep&quot;`` or</span>
-<span class="sd">            ``&quot;Time&quot;``. The default is ``&quot;Sweep&quot;.``</span>
-<span class="sd">        families_dict : dict, optional</span>
-<span class="sd">            Dictionary of all families including the primary</span>
-<span class="sd">            sweep. The default is ``{&quot;Freq&quot;: [&quot;All&quot;]}``.</span>
-<span class="sd">        report_input_type :  str</span>
-<span class="sd">            Type of input data for the report.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :class:`pyaedt.modules.PostProcessor.SolutionData`</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        --------</span>
-<span class="sd">        Generate a report with the default sweep and default variation.</span>
-
-<span class="sd">        &gt;&gt;&gt; hfss = HFSS()</span>
-<span class="sd">        &gt;&gt;&gt; hfss.post.get_report_data(&quot;S(1,1)&quot;)</span>
-
-<span class="sd">        &gt;&gt;&gt; m3d = Maxwell3D()</span>
-<span class="sd">        &gt;&gt;&gt; m3d.post.get_report_data(&quot;SurfaceLoss&quot;)   # Eddy Current examples</span>
-<span class="sd">        &gt;&gt;&gt; m3d.post.get_report_data(&quot;Wind(LoadA,LaodA)&quot;)    # TransientAnalsysis</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Sweep&quot;</span><span class="p">:</span>
-                <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">did</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span> <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
-                    <span class="p">[</span><span class="n">did</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;IDIID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">]]</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">ctxt</span> <span class="o">=</span> <span class="n">domain</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Domain:=&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
-            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_sweep</span>
+        <span class="k">return</span> <span class="n">solution_data</span></div></div>
 
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">report_input_type</span><span class="p">:</span>
-            <span class="n">report_input_type</span> <span class="o">=</span> <span class="n">report_type</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span><span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">CircuitPostProcessor</span><span class="p">(</span><span class="n">PostProcessorCommon</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Manages the main AEDT Nexxim postprocessing functions.</span>
 
 
-        <span class="k">if</span> <span class="n">families_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">families_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Freq&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]}</span>
+<span class="sd">    .. note::</span>
+<span class="sd">       Some functionalities are available only when AEDT is running in the graphical mode.</span>
 
-        <span class="n">solution_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_data_per_variation</span><span class="p">(</span><span class="n">report_input_type</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">families_dict</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parent:</span>
+<span class="sd">        Inherited parent object. The parent object must provide the members</span>
+<span class="sd">        `_modeler`, `_desktop`, `_odesign`, and `_messenger`.</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_data</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No Data Available. Check inputs&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="n">solution_data</span></div>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="PostProcessor.create_rectangular_plot"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.create_rectangular_plot.html#pyaedt.modules.PostProcessor.PostProcessor.create_rectangular_plot">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">create_rectangular_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;dB(S(1,1))&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">families_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Freq&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]},</span>
-                                <span class="n">primary_sweep_variable</span><span class="o">=</span><span class="s2">&quot;Freq&quot;</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plotname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">plottype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a 2D rectangular plot in AEDT.</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="n">PostProcessorCommon</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">create_ami_initial_response_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">ami_name</span><span class="p">,</span> <span class="n">variation_list_w_value</span><span class="p">,</span> 
+                                         <span class="n">plot_type</span><span class="o">=</span><span class="s2">&quot;Rectangular Plot&quot;</span><span class="p">,</span> <span class="n">plot_initial_response</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                         <span class="n">plot_intermediate_response</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_final_response</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plotname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an AMI initial response plot.</span>
+
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        expression : str or list, optional</span>
-<span class="sd">            One or more formulas to add to the report. The default is value = ``&quot;dB(S(1,1))&quot;``.</span>
-<span class="sd">        setup_sweep_name : str, optional</span>
-<span class="sd">            Setup name with the sweep. The default is ``&quot;&quot;``.</span>
-<span class="sd">        families_dict : dict, optional</span>
-<span class="sd">            Dictionary of all families including the primary sweep. The default is ``{&quot;Freq&quot;: [&quot;All&quot;]}``.</span>
-<span class="sd">        primary_sweep_variable : str, optional</span>
-<span class="sd">            Name of the primary sweep. The default is ``&quot;Freq&quot;``.</span>
-<span class="sd">        context : str, optional</span>
-<span class="sd">            The default is ``None``.</span>
-<span class="sd">        plotname : str, optional</span>
-<span class="sd">            Name of the plot. The default is ``None``. </span>
+<span class="sd">        setupname: str</span>
+<span class="sd">            Name of the setup</span>
+<span class="sd">        ami_name: str</span>
+<span class="sd">            AMI Probe name to use</span>
+<span class="sd">        variation_list_w_value: list</span>
+<span class="sd">            list of variations with relative values</span>
+<span class="sd">        plot_type: str, Default ``&quot;Rectangular Plot&quot;``</span>
+<span class="sd">            String containing the report type. Default is ``&quot;Rectangular Plot&quot;``. It can be ``&quot;Data Table&quot;``,</span>
+<span class="sd">            ``&quot;Rectangular Stacked Plot&quot;``or any of the other valid AEDT Report types.</span>
+<span class="sd">        plot_initial_response: bool, optional</span>
+<span class="sd">            Set either to plot the initial input response.  Default is ``True``.</span>
+<span class="sd">        plot_intermediate_response: bool, optional</span>
+<span class="sd">            Set whether to plot the intermediate input response.  Default is ``False``.</span>
+<span class="sd">        plot_final_response: bool, optional</span>
+<span class="sd">            Set whether to plot the final input response.  Default is ``False``.</span>
+<span class="sd">        plotname: str, optional</span>
+<span class="sd">            The plot name.  Default is a unique name.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ctxt</span><span class="o">=</span><span class="p">[]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
-            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_sweep</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;NexximLNA&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;Freq&quot;</span> <span class="o">==</span> <span class="n">primary_sweep_variable</span> <span class="ow">or</span> <span class="s2">&quot;Freq&quot;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">families_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-                <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">did</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span> <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
-                    <span class="p">[</span><span class="n">did</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;IDIID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">]]</span>
-        <span class="k">elif</span> <span class="n">context</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="ow">is</span>  <span class="nb">list</span><span class="p">:</span>
-                <span class="n">ctxt</span> <span class="o">=</span> <span class="n">context</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Context:=&quot;</span><span class="p">,</span> <span class="n">context</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
-            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_sweep</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">report_type</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solution not supported&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">plottype</span><span class="p">:</span>
-            <span class="n">modal_data</span> <span class="o">=</span> <span class="n">report_type</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">modal_data</span> <span class="o">=</span> <span class="n">plottype</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">plotname</span><span class="p">:</span>
-            <span class="n">plotname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Plot&quot;</span><span class="p">)</span>
-        <span class="n">families_input</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">primary_sweep_variable</span><span class="o">+</span><span class="s2">&quot;:=&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">primary_sweep_variable</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">families_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;All&quot;</span><span class="p">])</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">])</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">families_dict</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]])</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">families_dict</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">el</span> <span class="o">==</span> <span class="n">primary_sweep_variable</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="o">+</span><span class="s2">&quot;:=&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">el</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-                <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">families_dict</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+            <span class="n">plotname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;AMIAnalysis&quot;</span><span class="p">)</span>
+        <span class="n">variations</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;__InitialTime:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">variation_list_w_value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;:=&quot;</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">families_dict</span><span class="p">[</span><span class="n">el</span><span class="p">]])</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">ycomponents</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">plot_initial_response</span><span class="p">:</span>
+            <span class="n">ycomponents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;InitialImpulseResponse&lt;</span><span class="si">{}</span><span class="s2">.int_ami_rx&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ami_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">plot_intermediate_response</span><span class="p">:</span>
+            <span class="n">ycomponents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;IntermediateImpulseResponse&lt;</span><span class="si">{}</span><span class="s2">.int_ami_rx&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ami_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">plot_final_response</span><span class="p">:</span>
+            <span class="n">ycomponents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;FinalImpulseResponse&lt;</span><span class="si">{}</span><span class="s2">.int_ami_rx&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ami_name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CreateReport</span><span class="p">(</span><span class="n">plotname</span><span class="p">,</span> <span class="s2">&quot;Standard&quot;</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span> <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
+                                                                                    <span class="p">[</span><span class="mi">55824</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                                                                                     <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;NUMLEVELS&quot;</span><span class="p">,</span>
+                                                                                     <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;PCID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span>
+                                                                                     <span class="s2">&quot;PID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;SCID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
+                                                                                     <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;SID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]],</span>
+                                       <span class="n">variations</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;X Component:=&quot;</span><span class="p">,</span> <span class="s2">&quot;__InitialTime&quot;</span><span class="p">,</span> <span class="s2">&quot;Y Component:=&quot;</span><span class="p">,</span> <span class="n">ycomponents</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">plotname</span>
 
 
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CreateReport</span><span class="p">(</span><span class="n">plotname</span><span class="p">,</span> <span class="n">modal_data</span><span class="p">,</span> <span class="s2">&quot;Rectangular Plot&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">families_input</span><span class="p">,</span>
-                                                       <span class="p">[</span><span class="s2">&quot;X Component:=&quot;</span><span class="p">,</span> <span class="n">primary_sweep_variable</span><span class="p">,</span> <span class="s2">&quot;Y Component:=&quot;</span><span class="p">,</span>
-                                                   <span class="n">expression</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="PostProcessor.get_solution_data_per_variation"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.get_solution_data_per_variation.html#pyaedt.modules.PostProcessor.PostProcessor.get_solution_data_per_variation">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">get_solution_data_per_variation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">soltype</span><span class="o">=</span><span class="s1">&#39;Far Fields&#39;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ctxt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                        <span class="n">sweeps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieve solution data for each variation.</span>
+    <span class="k">def</span> <span class="nf">create_ami_statistical_eye_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">ami_name</span><span class="p">,</span> <span class="n">variation_list_w_value</span><span class="p">,</span> <span class="n">ami_plot_type</span><span class="o">=</span><span class="s2">&quot;InitialEye&quot;</span><span class="p">,</span> <span class="n">plotname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an AMI statistical eye plot.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        soltype : str, optional</span>
-<span class="sd">            Type of the solution. For example, ``&quot;Far Fields&quot;`` or ``&quot;Modal Solution Data&quot;``. The default</span>
-<span class="sd">            is ``&quot;Far Fields&quot;``.</span>
-<span class="sd">        setup_sweep_name : str, optional</span>
-<span class="sd">            Name of the setup for computing the report. The default is ``&quot;&quot;``, </span>
-<span class="sd">            in which case ``&quot;nominal adaptive&quot;`` is used.</span>
-<span class="sd">        ctxt : list, optional</span>
-<span class="sd">            List of context variables. The default is ``None``.</span>
-<span class="sd">        sweeps : dict, optional</span>
-<span class="sd">            Dictionary of variables and values. The default is ``None``, </span>
-<span class="sd">            in which case this list is used: </span>
-<span class="sd">            ``{&#39;Theta&#39;: &#39;All&#39;, &#39;Phi&#39;: &#39;All&#39;, &#39;Freq&#39;: &#39;All&#39;}``.</span>
-<span class="sd">        expression : str or list, optional</span>
-<span class="sd">            One or more traces to include. The default is ``&quot;&quot;``.</span>
+<span class="sd">        setupname : str</span>
+<span class="sd">            Name of the setup.</span>
+<span class="sd">        probe_id : str</span>
+<span class="sd">            AMI Probe Name to use</span>
+<span class="sd">        variation_list_w_value : list</span>
+<span class="sd">            List of variations with relative values.</span>
+<span class="sd">        plot_type : str, optional</span>
+<span class="sd">            String containing the report type. Default is ``&quot;Rectangular Plot&quot;``. It can be ``&quot;Data Table&quot;``, </span>
+<span class="sd">            ``&quot;Rectangular Stacked Plot&quot;``, or any other valid AEDT report types.</span>
+<span class="sd">        ami_plot_type : str, optional</span>
+<span class="sd">            String containing the report AMI type. Default is ``&quot;InitialEye&quot;``. It can be ``&quot;EyeAfterSource&quot;``,</span>
+<span class="sd">            ``&quot;EyeAfterChannel&quot;`` or ``&quot;EyeAfterProbe&quot;``.</span>
+<span class="sd">        plotname: str, optional</span>
+<span class="sd">            The name of the plot.  Defaults to a unique name starting with ``&quot;Plot&quot;``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`pyaedt.modules.PostProcessor.SolutionData`</span>
-<span class="sd">      </span>
+<span class="sd">        str</span>
+<span class="sd">           The name of the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">sweeps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">sweeps</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Theta&#39;</span><span class="p">:</span> <span class="s1">&#39;All&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">:</span> <span class="s1">&#39;All&#39;</span><span class="p">,</span> <span class="s1">&#39;Freq&#39;</span><span class="p">:</span> <span class="s1">&#39;All&#39;</span><span class="p">}</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctxt</span><span class="p">:</span>
-            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expression</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
-            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_adaptive</span>
-        <span class="n">sweep_list</span><span class="o">=</span><span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">sweeps</span><span class="p">:</span>
-            <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="o">+</span><span class="s2">&quot;:=&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-                <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plotname</span><span class="p">:</span>
+            <span class="n">plotname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;AMYAanalysis&quot;</span><span class="p">)</span>
+        <span class="n">variations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__UnitInterval:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">],</span><span class="s2">&quot;__Amplitude:=&quot;</span>	<span class="p">,</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">],]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">variation_list_w_value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;:=&quot;</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]])</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">ycomponents</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">ami_plot_type</span> <span class="o">==</span> <span class="s2">&quot;InitialEye&quot;</span> <span class="ow">or</span> <span class="n">ami_plot_type</span> <span class="o">==</span> <span class="s2">&quot;EyeAfterSource&quot;</span><span class="p">:</span>
+            <span class="n">ibs_type</span> <span class="o">=</span> <span class="s2">&quot;tx&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ibs_type</span> <span class="o">=</span> <span class="s2">&quot;rx&quot;</span>
+        <span class="n">ycomponents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&lt;</span><span class="si">{}</span><span class="s2">.int_ami_</span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ami_plot_type</span><span class="p">,</span> <span class="n">ami_name</span><span class="p">,</span> <span class="n">ibs_type</span><span class="p">))</span>
 
+        <span class="n">ami_id</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span>
+        <span class="k">if</span> <span class="n">ami_plot_type</span> <span class="o">==</span> <span class="s2">&quot;EyeAfterSource&quot;</span><span class="p">:</span>
+            <span class="n">ami_id</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+        <span class="k">elif</span> <span class="n">ami_plot_type</span> <span class="o">==</span> <span class="s2">&quot;EyeAfterChannel&quot;</span><span class="p">:</span>
+            <span class="n">ami_id</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+        <span class="k">elif</span> <span class="n">ami_plot_type</span> <span class="o">==</span> <span class="s2">&quot;EyeAfterProbe&quot;</span><span class="p">:</span>
+            <span class="n">ami_id</span> <span class="o">=</span> <span class="s2">&quot;3&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CreateReport</span><span class="p">(</span><span class="n">plotname</span><span class="p">,</span> <span class="s2">&quot;Statistical Eye&quot;</span><span class="p">,</span> <span class="s2">&quot;Statistical Eye Plot&quot;</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span>
+                             <span class="p">[</span>
+                                 <span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
+                                 <span class="p">[</span><span class="mi">55819</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;NUMLEVELS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                                  <span class="s2">&quot;QTID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">ami_id</span><span class="p">,</span> <span class="s2">&quot;SCID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;SID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]</span>
+                             <span class="p">],</span>
+                             <span class="n">variations</span><span class="p">,</span>
+                             <span class="p">[</span>
+                                 <span class="s2">&quot;X Component:=&quot;</span>		<span class="p">,</span> <span class="s2">&quot;__UnitInterval&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;Y Component:=&quot;</span>		<span class="p">,</span> <span class="s2">&quot;__Amplitude&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;Eye Diagram Component:=&quot;</span><span class="p">,</span> <span class="n">ycomponents</span>
+                             <span class="p">])</span>
+        <span class="k">return</span> <span class="n">plotname</span>
 
+    <span class="k">def</span> <span class="nf">create_statistical_eye_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">probe_names</span><span class="p">,</span> <span class="n">variation_list_w_value</span><span class="p">,</span> <span class="n">ami_plot_type</span><span class="o">=</span><span class="s2">&quot;InitialEye&quot;</span><span class="p">,</span> <span class="n">plotname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a statistical QuickEye, VerifEye, and/or Statistical Eye plot.</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">GetSolutionDataPerVariation</span><span class="p">(</span><span class="n">soltype</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">SolutionData</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="PostProcessor.steal_focus_oneditor"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.steal_focus_oneditor.html#pyaedt.modules.PostProcessor.PostProcessor.steal_focus_oneditor">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">steal_focus_oneditor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Remove the selection of an object that would prevent the image from exporting correctly.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        setupname: str</span>
+<span class="sd">            Name of the setup</span>
+<span class="sd">        probe_names: str or list</span>
+<span class="sd">            Name of the probe to plot in the EYE diagram.</span>
+<span class="sd">        variation_list_w_value : list</span>
+<span class="sd">            List of variations with relative values.</span>
+<span class="sd">        plotname: str, optional</span>
+<span class="sd">            The name of the plot.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        str</span>
+<span class="sd">            The name of the plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">RestoreWindow</span><span class="p">()</span>
-        <span class="n">param</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:SphereParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;XCenter:=&quot;</span><span class="p">,</span> <span class="s2">&quot;0mm&quot;</span><span class="p">,</span> <span class="s2">&quot;YCenter:=&quot;</span><span class="p">,</span> <span class="s2">&quot;0mm&quot;</span><span class="p">,</span> <span class="s2">&quot;ZCenter:=&quot;</span><span class="p">,</span> <span class="s2">&quot;0mm&quot;</span><span class="p">,</span> <span class="s2">&quot;Radius:=&quot;</span><span class="p">,</span> <span class="s2">&quot;1mm&quot;</span><span class="p">]</span>
-        <span class="n">attr</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="s2">&quot;DUMMYSPHERE1&quot;</span><span class="p">,</span> <span class="s2">&quot;Flags:=&quot;</span><span class="p">,</span> <span class="s2">&quot;NonModel#&quot;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateSphere</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Delete</span><span class="p">([</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="s2">&quot;DUMMYSPHERE1&quot;</span><span class="p">])</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plotname</span><span class="p">:</span>
+            <span class="n">plotname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;AMIAanalysis&quot;</span><span class="p">)</span>
+        <span class="n">variations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__UnitInterval:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">],</span><span class="s2">&quot;__Amplitude:=&quot;</span>	<span class="p">,</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">],]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">variation_list_w_value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;:=&quot;</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">variations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">a</span><span class="p">])</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">probe_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">ycomponents</span> <span class="o">=</span> <span class="n">probe_names</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ycomponents</span> <span class="o">=</span> <span class="p">[</span><span class="n">probe_names</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CreateReport</span><span class="p">(</span><span class="n">plotname</span><span class="p">,</span> <span class="s2">&quot;Statistical Eye&quot;</span><span class="p">,</span> <span class="s2">&quot;Statistical Eye Plot&quot;</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span>
+                             <span class="p">[</span>
+                                 <span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
+                                 <span class="p">[</span><span class="mi">55819</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;NUMLEVELS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                                  <span class="s2">&quot;QTID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;SCID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;SID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]</span>
+                             <span class="p">],</span>
+                             <span class="n">variations</span><span class="p">,</span>
+                             <span class="p">[</span>
+                                 <span class="s2">&quot;X Component:=&quot;</span>		<span class="p">,</span> <span class="s2">&quot;__UnitInterval&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;Y Component:=&quot;</span>		<span class="p">,</span> <span class="s2">&quot;__Amplitude&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;Eye Diagram Component:=&quot;</span><span class="p">,</span> <span class="n">ycomponents</span>
+                             <span class="p">])</span>
+        <span class="k">return</span> <span class="n">plotname</span>
+
 </pre></div>
 
               </div>
