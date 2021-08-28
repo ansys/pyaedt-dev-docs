@@ -173,11 +173,13 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span>  <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
 <span class="kn">from</span> <span class="nn">.application.AnalysisIcepak</span> <span class="kn">import</span> <span class="n">FieldAnalysisIcepak</span>
 <span class="kn">from</span> <span class="nn">.desktop</span> <span class="kn">import</span> <span class="n">exception_to_desktop</span>
 <span class="kn">from</span> <span class="nn">.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">aedt_exception_handler</span>
-<span class="kn">from</span> <span class="nn">.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span>
-<span class="kn">from</span>  <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">.application.DataHandlers</span> <span class="kn">import</span> <span class="n">arg2dict</span>
+<span class="kn">from</span> <span class="nn">.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span><span class="p">,</span> <span class="n">NativeComponentObject</span>
 
 
 <div class="viewcode-block" id="Icepak"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.html#pyaedt.Icepak">[docs]</a><span class="k">class</span> <span class="nc">Icepak</span><span class="p">(</span><span class="n">FieldAnalysisIcepak</span><span class="p">):</span>
@@ -191,10 +193,10 @@
 <span class="sd">    projectname : str, optional</span>
 <span class="sd">        Name of the project to select or the full path to the project</span>
 <span class="sd">        or AEDTZ archive to open.  The default is ``None``, in which</span>
-<span class="sd">        case an attempt is made to get an active project. If no </span>
+<span class="sd">        case an attempt is made to get an active project. If no</span>
 <span class="sd">        projects are present, an empty project is created.</span>
 <span class="sd">    designname : str, optional</span>
-<span class="sd">        Name of the design to select. The default is ``None``, in </span>
+<span class="sd">        Name of the design to select. The default is ``None``, in</span>
 <span class="sd">        which case an attempt is made to get an active design. If no</span>
 <span class="sd">        designs are present, an empty design is created.</span>
 <span class="sd">    solution_type : str, optional</span>
@@ -202,20 +204,20 @@
 <span class="sd">        ``None``, in which case the default type is applied.</span>
 <span class="sd">    setup_name : str, optional</span>
 <span class="sd">        Name of the setup to use as the nominal. The default is</span>
-<span class="sd">        ``None``, in which case the active setup is used or </span>
+<span class="sd">        ``None``, in which case the active setup is used or</span>
 <span class="sd">        nothing is used.</span>
 <span class="sd">    specified_version: str, optional</span>
 <span class="sd">        Version of AEDT to use. The default is ``None``, in which case</span>
 <span class="sd">        the active version or latest installed version is  used. This parameter is ignored when Script is launched within AEDT.</span>
 <span class="sd">    NG : bool, optional</span>
-<span class="sd">        Whether to launch AEDT in the non-graphical mode. The default </span>
+<span class="sd">        Whether to launch AEDT in the non-graphical mode. The default</span>
 <span class="sd">        is ``False``, in which case AEDT is launched in the graphical mode.   This parameter is ignored when Script is launched within AEDT.</span>
 <span class="sd">    AlwaysNew : bool, optional</span>
 <span class="sd">        Whether to launch an instance of AEDT in a new thread, even if</span>
 <span class="sd">        another instance of the ``specified_version`` is active on the</span>
 <span class="sd">        machine.  The default is ``True``. This parameter is ignored when Script is launched within AEDT.</span>
 <span class="sd">    release_on_exit : bool, optional</span>
-<span class="sd">        Whether to release AEDT on exit. </span>
+<span class="sd">        Whether to release AEDT on exit.</span>
 <span class="sd">    student_version : bool, optional</span>
 <span class="sd">        Whether to open the AEDT student version. The default is ``False``. This parameter is ignored when Script is launched within AEDT.</span>
 
@@ -253,7 +255,7 @@
 <span class="sd">    &gt;&gt;&gt; icepak = Icepak(specified_version=&quot;2021.1&quot;, projectname=&quot;myipk2.aedt&quot;)</span>
 <span class="sd">    pyaedt Info: Added design ...</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">projectname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">designname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">specified_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">NG</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">FieldAnalysisIcepak</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Icepak&quot;</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span>
@@ -269,7 +271,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">existing_analysis_sweeps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Existing analysis setups.       </span>
+        <span class="sd">&quot;&quot;&quot;Existing analysis setups.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -281,7 +283,7 @@
         <span class="n">sweep_list</span><span class="o">=</span><span class="p">[]</span>
         <span class="n">s_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">setup_list</span><span class="p">:</span>
-                <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span><span class="n">s_type</span><span class="p">)</span>
+            <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span><span class="n">s_type</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sweep_list</span>
 
 <div class="viewcode-block" id="Icepak.assign_openings"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Icepak.assign_openings.html#pyaedt.Icepak.assign_openings">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -368,15 +370,15 @@
 
 <div class="viewcode-block" id="Icepak.create_source_blocks_from_list"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Icepak.create_source_blocks_from_list.html#pyaedt.Icepak.create_source_blocks_from_list">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_source_blocks_from_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_powers</span><span class="p">,</span> <span class="n">assign_material</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default_material</span><span class="o">=</span><span class="s2">&quot;Ceramic_material&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Assign to a box in Icepak the sources that come from the CSV file. </span>
-<span class="sd">        </span>
+        <span class="sd">&quot;&quot;&quot;Assign to a box in Icepak the sources that come from the CSV file.</span>
+
 <span class="sd">        Assignment is made by name.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        list_powers : list</span>
-<span class="sd">            List of input powers. It is a list of lists. For example, </span>
-<span class="sd">            ``[[&quot;Obj1&quot;, 1], [&quot;Obj2&quot;, 3]]``. The list can contain multiple </span>
+<span class="sd">            List of input powers. It is a list of lists. For example,</span>
+<span class="sd">            ``[[&quot;Obj1&quot;, 1], [&quot;Obj2&quot;, 3]]``. The list can contain multiple</span>
 <span class="sd">            columns for power inputs.</span>
 <span class="sd">        assign_material : bool, optional</span>
 <span class="sd">            Whether to assign a material. The default is ``True``.</span>
@@ -392,7 +394,7 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        Create block boundaries from each box in the list. </span>
+<span class="sd">        Create block boundaries from each box in the list.</span>
 
 <span class="sd">        &gt;&gt;&gt; box1 = icepak.modeler.primitives.create_box([1, 1, 1], [3, 3, 3], &quot;BlockBox1&quot;, &quot;copper&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; box2 = icepak.modeler.primitives.create_box([2, 2, 2], [4, 4, 4], &quot;BlockBox2&quot;, &quot;copper&quot;)</span>
@@ -432,7 +434,7 @@
 <span class="sd">        object_name : str</span>
 <span class="sd">            Name of the object.</span>
 <span class="sd">        input_power : str or var</span>
-<span class="sd">            Input power. </span>
+<span class="sd">            Input power.</span>
 <span class="sd">        assign_material : bool, optional</span>
 <span class="sd">            Whether to assign a material. The default is ``True``.</span>
 <span class="sd">        material_name :</span>
@@ -546,7 +548,7 @@
 <span class="sd">        rjb :</span>
 <span class="sd">            RJB value.</span>
 <span class="sd">        gravity_dir :</span>
-<span class="sd">            Gravity direction from -X to +Z. Options are ``0`` through ``5``. </span>
+<span class="sd">            Gravity direction from -X to +Z. Options are ``0`` through ``5``.</span>
 <span class="sd">        top :</span>
 <span class="sd">            Board bounding value in millimeters of the top face.</span>
 <span class="sd">        assign_material : bool, optional</span>
@@ -568,7 +570,7 @@
 <span class="sd">        &gt;&gt;&gt; block = icepak.create_network_block(&quot;NetworkBox1&quot;, &quot;2W&quot;, 20, 10, icepak.GravityDirection.ZNeg, 1.05918)</span>
 <span class="sd">        &gt;&gt;&gt; block.props[&quot;Nodes&quot;][&quot;Internal&quot;][0]</span>
 <span class="sd">        &#39;2W&#39;</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">object_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">object_names</span><span class="p">:</span>
             <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span>
@@ -622,7 +624,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        input_list : list</span>
-<span class="sd">            List of sources with inputs ``rjc``,  ``rjb``, and ``power``. </span>
+<span class="sd">            List of sources with inputs ``rjc``,  ``rjb``, and ``power``.</span>
 <span class="sd">            For example, ``[[Objname1, rjc, rjb, power1, power2, ...], [Objname2, rjc2, rbj2, power1, power2, ...]]``.</span>
 <span class="sd">        gravity_dir : int</span>
 <span class="sd">            Gravity direction from -X to +Z. Options are ``0`` to ``5``.</span>
@@ -632,7 +634,7 @@
 <span class="sd">            Whether to assign a material. The default is ``True``.</span>
 <span class="sd">        default_material : str, optional</span>
 <span class="sd">            Default material if ``assign_material=True``. The default is ``&quot;Ceramic_material&quot;``.</span>
-<span class="sd">       </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -641,7 +643,7 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
-<span class="sd">        Create network boundaries from each box in the list. </span>
+<span class="sd">        Create network boundaries from each box in the list.</span>
 
 <span class="sd">        &gt;&gt;&gt; box1 = icepak.modeler.primitives.create_box([1, 2, 3], [10, 10, 10], &quot;NetworkBox2&quot;, &quot;copper&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; box2 = icepak.modeler.primitives.create_box([4, 5, 6], [5, 5, 5], &quot;NetworkBox3&quot;, &quot;copper&quot;)</span>
@@ -649,7 +651,7 @@
 <span class="sd">        ...                                        icepak.GravityDirection.ZNeg, 1.05918, False)</span>
 <span class="sd">        &gt;&gt;&gt; blocks[0].props[&quot;Nodes&quot;][&quot;Internal&quot;]</span>
 <span class="sd">        [&#39;3W&#39;]</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">solid_names</span>
         <span class="n">countpow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">3</span>
@@ -700,7 +702,7 @@
 <span class="sd">        ...                                                      [0, 0, 0], [10, 20], name=&quot;Surface1&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; icepak.assign_surface_monitor(&quot;Surface1&quot;)</span>
 <span class="sd">        True</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">monitor_name</span><span class="p">:</span>
             <span class="n">monitor_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Monitor&quot;</span><span class="p">)</span>
@@ -719,7 +721,7 @@
 <span class="sd">        monitor_type : str, optional</span>
 <span class="sd">            Type of the monitor. The default is ``&quot;Temperature&quot;``.</span>
 <span class="sd">        monitor_name : str, optional</span>
-<span class="sd">            Name of the monitor. The default is ``None``, in which case </span>
+<span class="sd">            Name of the monitor. The default is ``None``, in which case</span>
 <span class="sd">            the default name is assigned.</span>
 
 <span class="sd">        Returns</span>
@@ -734,7 +736,7 @@
 
 <span class="sd">        &gt;&gt;&gt; icepak.assign_point_monitor([1, 1, 1])</span>
 <span class="sd">        True</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">point_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Point&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreatePoint</span><span class="p">(</span>
@@ -762,7 +764,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        type</span>
 <span class="sd">            Total power applied.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_name</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
             <span class="n">csv_input</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
@@ -804,7 +806,7 @@
 <div class="viewcode-block" id="Icepak.assign_priority_on_intersections"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Icepak.assign_priority_on_intersections.html#pyaedt.Icepak.assign_priority_on_intersections">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">assign_priority_on_intersections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_prefix</span><span class="o">=</span><span class="s2">&quot;COMP_&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Validate an Icepak design.</span>
-<span class="sd">        </span>
+
 <span class="sd">        If there are intersections, priorities are automatically applied to overcome simulation issues.</span>
 
 <span class="sd">        Parameters</span>
@@ -815,8 +817,8 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
-<span class="sd">             ``True`` when successful, ``False`` when failed.     </span>
-<span class="sd">        </span>
+<span class="sd">             ``True`` when successful, ``False`` when failed.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">temp_log</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_path</span><span class="p">,</span> <span class="s2">&quot;validation.log&quot;</span><span class="p">)</span>
         <span class="n">validate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ValidateDesign</span><span class="p">(</span><span class="n">temp_log</span><span class="p">)</span>
@@ -852,7 +854,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        float</span>
 <span class="sd">            Top position.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dirs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-X&quot;</span><span class="p">,</span> <span class="s2">&quot;+X&quot;</span><span class="p">,</span> <span class="s2">&quot;-Y&quot;</span><span class="p">,</span> <span class="s2">&quot;+Y&quot;</span><span class="p">,</span> <span class="s2">&quot;-Z&quot;</span><span class="p">,</span> <span class="s2">&quot;+Z&quot;</span><span class="p">]</span>
         <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">dirs</span><span class="p">:</span>
@@ -906,7 +908,7 @@
 <span class="sd">        matname : str, optional</span>
 <span class="sd">            Name of the material. The default is ``Al-Extruded``.</span>
 <span class="sd">        center : list, optional</span>
-<span class="sd">           List of ``[x, y, z]`` coordinates for the center of </span>
+<span class="sd">           List of ``[x, y, z]`` coordinates for the center of</span>
 <span class="sd">           the heatsink.  The default is ``[0, 0, 0]``.</span>
 <span class="sd">        plane_enum : optional</span>
 <span class="sd">            The default is ``0``.</span>
@@ -914,12 +916,12 @@
 <span class="sd">            The default is ``0``.</span>
 <span class="sd">        tolerance : optional</span>
 <span class="sd">            Tolerance value. The default is ``0.001``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">all_objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">object_names</span>
         <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;FinPitch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pitch</span><span class="p">)</span>
@@ -1036,14 +1038,14 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        gravityDir : int, optional</span>
-<span class="sd">            Gravity direction from -X to +Z. Options are ``0`` through ``5``. </span>
+<span class="sd">            Gravity direction from -X to +Z. Options are ``0`` through ``5``.</span>
 <span class="sd">            The default is ``0``.</span>
-<span class="sd">        ambtemp : optional </span>
+<span class="sd">        ambtemp : optional</span>
 <span class="sd">            Ambient temperature. The default is ``22``.</span>
 <span class="sd">        performvalidation : bool, optional</span>
 <span class="sd">            Whether to perform validation. The default is ``False``.</span>
 <span class="sd">        CheckLevel : str, optional</span>
-<span class="sd">            Level of check to perform during validation. The default </span>
+<span class="sd">            Level of check to perform during validation. The default</span>
 <span class="sd">            is ``&quot;None&quot;``.</span>
 <span class="sd">        defaultfluid : str, optional</span>
 <span class="sd">            Default fluid material. The default is ``&quot;air&quot;``.</span>
@@ -1054,7 +1056,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">AmbientTemp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ambtemp</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;cel&quot;</span>
         <span class="c1">#</span>
@@ -1089,12 +1091,12 @@
 <span class="sd">        sweepname : str, optional</span>
 <span class="sd">            Name of the EM sweep to use for the mapping. The default is ``&quot;LastAdaptive&quot;``.</span>
 <span class="sd">        map_frequency : optional</span>
-<span class="sd">            String containing the frequency to map. The default is ``None``. </span>
+<span class="sd">            String containing the frequency to map. The default is ``None``.</span>
 <span class="sd">            The value must be ``None`` for Eigenmode analysis.</span>
 <span class="sd">        surface_objects : list, optional</span>
 <span class="sd">            List of objects in the source that are metals. The default is ``[]``.</span>
 <span class="sd">        source_project_name : str, optional</span>
-<span class="sd">            Name of the source project. The default is ``None``, in which case the </span>
+<span class="sd">            Name of the source project. The default is ``None``, in which case the</span>
 <span class="sd">            source from the same project is used.</span>
 <span class="sd">        paramlist :list, optional</span>
 <span class="sd">            List of all parameters in the EM to map. The default is ``[]``.</span>
@@ -1105,7 +1107,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Mapping HFSS EM losses.&quot;</span><span class="p">)</span>
         <span class="n">oName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span>
@@ -1157,7 +1159,7 @@
     <span class="k">def</span> <span class="nf">eval_surface_quantity_from_field_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">faces_list</span><span class="p">,</span> <span class="n">quantity_name</span><span class="o">=</span><span class="s2">&quot;HeatTransCoeff&quot;</span><span class="p">,</span> <span class="n">savedir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                  <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sweep_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter_dict_with_values</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;Export the field surface output.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This method exports one CSV file for the specified variation.</span>
 
 <span class="sd">        Parameters</span>
@@ -1179,7 +1181,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            Name of the file.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">name</span><span class="o">=</span><span class="n">generate_unique_name</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">create_face_list</span><span class="p">(</span><span class="n">faces_list</span><span class="p">,</span><span class="n">name</span> <span class="p">)</span>
@@ -1209,7 +1211,7 @@
 <div class="viewcode-block" id="Icepak.eval_volume_quantity_from_field_summary"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Icepak.eval_volume_quantity_from_field_summary.html#pyaedt.Icepak.eval_volume_quantity_from_field_summary">[docs]</a>    <span class="k">def</span> <span class="nf">eval_volume_quantity_from_field_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">quantity_name</span><span class="o">=</span><span class="s2">&quot;HeatTransCoeff&quot;</span><span class="p">,</span>  <span class="n">savedir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                                  <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sweep_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter_dict_with_values</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;Export the field volume output.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This method exports one CSV file for the specified variation.</span>
 
 <span class="sd">        Parameters</span>
@@ -1231,7 +1233,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">           Name of the file.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">savedir</span><span class="p">:</span>
             <span class="n">savedir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_path</span>
@@ -1263,15 +1265,15 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        savedir : str</span>
-<span class="sd">           Directory path for saving the file.           </span>
+<span class="sd">           Directory path for saving the file.</span>
 <span class="sd">        proj_icepak : str</span>
-<span class="sd">            Name of the Icepak project.  </span>
+<span class="sd">            Name of the Icepak project.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">newfilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">savedir</span><span class="p">,</span> <span class="n">proj_icepak</span> <span class="o">+</span> <span class="s2">&quot;_HTCAndTemp.csv&quot;</span><span class="p">)</span>
         <span class="n">newfilelines</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1338,7 +1340,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">all_objs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectsInGroup</span><span class="p">(</span><span class="s2">&quot;Solids&quot;</span><span class="p">))</span>
         <span class="n">all_objs_NonModeled</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectsInGroup</span><span class="p">(</span><span class="s2">&quot;Non Model&quot;</span><span class="p">))</span>
@@ -1384,11 +1386,11 @@
 <span class="sd">        ----------</span>
 <span class="sd">        radiation : str</span>
 <span class="sd">            Type of the radiation. Options are:</span>
-<span class="sd">            </span>
+
 <span class="sd">            * ``&quot;Nothing&quot;``</span>
 <span class="sd">            * ``&quot;Low&quot;``</span>
 <span class="sd">            * ``&quot;High&quot;``</span>
-<span class="sd">            * ``&quot;Both&quot;``   </span>
+<span class="sd">            * ``&quot;Both&quot;``</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1411,12 +1413,12 @@
 <div class="viewcode-block" id="Icepak.get_link_data"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Icepak.get_link_data.html#pyaedt.Icepak.get_link_data">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_link_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linkData</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve a list of linked data.</span>
-<span class="sd">                </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        linkData : list</span>
 <span class="sd">            List of the data to retrieve for links. Options are:</span>
-<span class="sd">            </span>
+
 <span class="sd">            * Project name, if ``None`` use the active project.</span>
 <span class="sd">            * Design name</span>
 <span class="sd">            * HFSS solution name, such as ``&quot;HFSS Setup 1 : Last Adaptive&quot;``</span>
@@ -1427,7 +1429,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
 <span class="sd">            List containing the requested link data.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">linkData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">project_name</span> <span class="o">=</span> <span class="s2">&quot;This Project*&quot;</span>
@@ -1462,7 +1464,7 @@
 <span class="sd">        compName : str</span>
 <span class="sd">            Name of the new PCB component.</span>
 <span class="sd">        setupLinkInfo : list</span>
-<span class="sd">            List of the five elements needed to set up the link: </span>
+<span class="sd">            List of the five elements needed to set up the link:</span>
 <span class="sd">            ``[projectname, designname, solution name, forcesimulation (bool), preserve results (bool)]``.</span>
 <span class="sd">        solutionFreq :</span>
 <span class="sd">            Frequency of the solution if cosimulation is requested.</span>
@@ -1473,7 +1475,7 @@
 <span class="sd">        rad : str, optional</span>
 <span class="sd">            Radiating faces. The default is ``&quot;Nothing&quot;``.</span>
 <span class="sd">        extenttype : str, optional</span>
-<span class="sd">            Type of the extent. Options are ``&quot;Bounding Box&quot;`` and ``&quot;Polygon&quot;``.  </span>
+<span class="sd">            Type of the extent. Options are ``&quot;Bounding Box&quot;`` and ``&quot;Polygon&quot;``.</span>
 <span class="sd">            The default is ``&quot;Bounding Box&quot;``.</span>
 <span class="sd">        outlinepolygon : str, optional</span>
 <span class="sd">            Name of the polygon if ``extentype=&quot;Polygon&quot;``. The default is ``&quot;&quot;``.</span>
@@ -1486,87 +1488,59 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">             ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.NativeComponentObject`</span>
+<span class="sd">            NativeComponentObject object.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">lowRad</span><span class="p">,</span> <span class="n">highRad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_radiation_settings</span><span class="p">(</span><span class="n">rad</span><span class="p">)</span>
-        <span class="n">hfssLinkInfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_link_data</span><span class="p">(</span><span class="n">setupLinkInfo</span><span class="p">)</span>
-        <span class="n">compInfo</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:BasicComponentInfo&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;ComponentName:=&quot;</span><span class="p">,</span> <span class="n">compName</span><span class="p">,</span>
-                    <span class="s2">&quot;Company:=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;Company URL:=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;Model Number:=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;Help URL:=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;Version:=&quot;</span><span class="p">,</span> <span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;Notes:=&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;IconType:=&quot;</span><span class="p">,</span> <span class="s2">&quot;PCB&quot;</span><span class="p">]</span>
-        <span class="n">compDefinition</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:NativeComponentDefinitionProvider&quot;</span><span class="p">,</span>
-                          <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span> <span class="s2">&quot;PCB&quot;</span><span class="p">,</span>
-                          <span class="s2">&quot;Unit:=&quot;</span>	<span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span><span class="p">,</span>
-                          <span class="s2">&quot;MovePlane:=&quot;</span>		<span class="p">,</span> <span class="s2">&quot;XY&quot;</span><span class="p">,</span>
-                          <span class="s2">&quot;Use3DLayoutExtents:=&quot;</span>	<span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
-                          <span class="s2">&quot;ExtentsType:=&quot;</span>		<span class="p">,</span> <span class="n">extenttype</span><span class="p">,</span>
-                          <span class="s2">&quot;OutlinePolygon:=&quot;</span>	<span class="p">,</span> <span class="n">outlinepolygon</span><span class="p">]</span>
+        <span class="n">hfssLinkInfo</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+        <span class="n">arg2dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_link_data</span><span class="p">(</span><span class="n">setupLinkInfo</span><span class="p">),</span> <span class="n">hfssLinkInfo</span><span class="p">)</span>
 
-        <span class="n">compDefinition</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;CreateDevices:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
-                            <span class="s2">&quot;CreateTopSolderballs:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
-                            <span class="s2">&quot;CreateBottomSolderballs:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">]</span>
-        <span class="n">compDefinition</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Resolution:=&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">resolution</span><span class="p">),</span>
-                           <span class="p">[</span><span class="s2">&quot;NAME:LowSide&quot;</span><span class="p">,</span> <span class="s2">&quot;Radiate:=&quot;</span><span class="p">,</span> <span class="n">lowRad</span><span class="p">],</span>
-                           <span class="p">[</span><span class="s2">&quot;NAME:HighSide&quot;</span><span class="p">,</span> <span class="s2">&quot;Radiate:=&quot;</span><span class="p">,</span> <span class="n">highRad</span><span class="p">]]</span>
+        <span class="n">native_props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;PCB&quot;</span><span class="p">,</span> <span class="s2">&quot;Unit&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span><span class="p">,</span> <span class="s2">&quot;MovePlane&quot;</span><span class="p">:</span> <span class="s2">&quot;XY&quot;</span><span class="p">,</span> <span class="s2">&quot;Use3DLayoutExtents&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="s2">&quot;ExtentsType&quot;</span><span class="p">:</span> <span class="n">extenttype</span><span class="p">,</span> <span class="s2">&quot;OutlinePolygon&quot;</span><span class="p">:</span> <span class="n">outlinepolygon</span><span class="p">,</span> <span class="s2">&quot;CreateDevices&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="s2">&quot;CreateTopSolderballs&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;CreateBottomSolderballs&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Resolution&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">resolution</span><span class="p">),</span>
+             <span class="s2">&quot;LowSide&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Radiate&quot;</span><span class="p">:</span> <span class="n">lowRad</span><span class="p">}),</span> <span class="s2">&quot;HighSide&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Radiate&quot;</span><span class="p">:</span> <span class="n">highRad</span><span class="p">})})})</span>
+        <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;BasicComponentInfo&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;IconType&quot;</span><span class="p">:</span><span class="s2">&quot;PCB&quot;</span><span class="p">})</span>
 
 
         <span class="k">if</span> <span class="n">custom_x_resolution</span> <span class="ow">and</span> <span class="n">custom_y_resolution</span><span class="p">:</span>
-            <span class="n">compDefinition</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;UseThermalLink:=&quot;</span><span class="p">,</span> <span class="n">solutionFreq</span><span class="o">!=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-                               <span class="s2">&quot;CustomResolution:=&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;CustomResolutionRow:=&quot;</span><span class="p">,</span> <span class="n">custom_x_resolution</span><span class="p">,</span>
-                               <span class="s2">&quot;CustomResolutionCol:=&quot;</span><span class="p">,</span> <span class="mi">600</span><span class="p">]</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;UseThermalLink&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solutionFreq</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;CustomResolution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;CustomResolutionRow&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_x_resolution</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;CustomResolutionCol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">600</span>
+            <span class="c1"># compDefinition += [&quot;UseThermalLink:=&quot;, solutionFreq!=&quot;&quot;,</span>
+            <span class="c1">#                    &quot;CustomResolution:=&quot;, True, &quot;CustomResolutionRow:=&quot;, custom_x_resolution,</span>
+            <span class="c1">#                    &quot;CustomResolutionCol:=&quot;, 600]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">compDefinition</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;UseThermalLink:=&quot;</span><span class="p">,</span> <span class="n">solutionFreq</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                               <span class="s2">&quot;CustomResolution:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;UseThermalLink&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solutionFreq</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;CustomResolution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># compDefinition += [&quot;UseThermalLink:=&quot;, solutionFreq != &quot;&quot;,</span>
+            <span class="c1">#                    &quot;CustomResolution:=&quot;, False]</span>
         <span class="k">if</span> <span class="n">solutionFreq</span><span class="p">:</span>
-                <span class="n">compDefinition</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Frequency:=&quot;</span><span class="p">,</span> <span class="n">solutionFreq</span><span class="p">,</span> <span class="n">hfssLinkInfo</span><span class="p">]</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solutionFreq</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;DefnLink&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hfssLinkInfo</span><span class="p">[</span><span class="s2">&quot;DefnLink&quot;</span><span class="p">]</span>
+            <span class="c1">#compDefinition += [&quot;Frequency:=&quot;, solutionFreq, hfssLinkInfo]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">compDefinition</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;Power:=&quot;</span><span class="p">,</span> <span class="n">powerin</span><span class="p">,</span> <span class="n">hfssLinkInfo</span><span class="p">]</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;Power&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">powerin</span>
+            <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">][</span><span class="s2">&quot;DefnLink&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hfssLinkInfo</span><span class="p">[</span><span class="s2">&quot;DefnLink&quot;</span><span class="p">]</span>
+            <span class="c1">#compDefinition += [&quot;Power:=&quot;, powerin, hfssLinkInfo]</span>
 
-        <span class="n">compInstancePar</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:InstanceParameters&quot;</span><span class="p">,</span>
-                           <span class="s2">&quot;GeometryParameters:=&quot;</span>	<span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                           <span class="s2">&quot;MaterialParameters:=&quot;</span>	<span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                           <span class="s2">&quot;DesignParameters:=&quot;</span>	<span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
-
-        <span class="n">compData</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:InsertNativeComponentData&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;TargetCS:=&quot;</span><span class="p">,</span> <span class="n">PCB_CS</span><span class="p">,</span>
-                    <span class="s2">&quot;SubmodelDefinitionName:=&quot;</span><span class="p">,</span> <span class="n">compName</span><span class="p">,</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:ComponentPriorityLists&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;NextUniqueID:=&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
-                    <span class="s2">&quot;MoveBackwards:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="s2">&quot;DatasetType:=&quot;</span><span class="p">,</span> <span class="s2">&quot;ComponentDatasetType&quot;</span><span class="p">,</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:DatasetDefinitions&quot;</span><span class="p">],</span>
-                    <span class="n">compInfo</span><span class="p">,</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:GeometryDefinitionParameters&quot;</span> <span class="p">,[</span><span class="s2">&quot;NAME:VariableOrders&quot;</span><span class="p">]</span> <span class="p">],</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:DesignDefinitionParameters&quot;</span><span class="p">,</span>	<span class="p">[</span><span class="s2">&quot;NAME:VariableOrders&quot;</span><span class="p">]</span>	<span class="p">],</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:MaterialDefinitionParameters&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:VariableOrders&quot;</span><span class="p">]</span> <span class="p">],</span>
-                    <span class="s2">&quot;MapInstanceParameters:=&quot;</span><span class="p">,</span> <span class="s2">&quot;DesignVariable&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;UniqueDefinitionIdentifier:=&quot;</span><span class="p">,</span> <span class="s2">&quot;a731a7c3-f557-4ab7-ae80-6bf8520c6129&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;OriginFilePath:=&quot;</span>	<span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;IsLocal:=&quot;</span>		<span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="s2">&quot;ChecksumString:=&quot;</span>	<span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;ChecksumHistory:=&quot;</span>	<span class="p">,</span> <span class="p">[],</span>
-                    <span class="s2">&quot;VersionHistory:=&quot;</span>	<span class="p">,</span> <span class="p">[],</span>
-                    <span class="n">compDefinition</span><span class="p">,</span>
-                    <span class="n">compInstancePar</span><span class="p">]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">InsertNativeComponent</span><span class="p">(</span><span class="n">compData</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_load_from_project</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="n">native_props</span><span class="p">[</span><span class="s2">&quot;TargetCS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PCB_CS</span>
+        <span class="n">native</span> <span class="o">=</span> <span class="n">NativeComponentObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;PCB&quot;</span><span class="p">,</span> <span class="n">compName</span><span class="p">,</span> <span class="n">native_props</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">native</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_load_from_project</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">native_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">native</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">native</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Icepak.create_pcb_from_3dlayout"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Icepak.create_pcb_from_3dlayout.html#pyaedt.Icepak.create_pcb_from_3dlayout">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_pcb_from_3dlayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">design_name</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                                  <span class="n">extenttype</span><span class="o">=</span><span class="s2">&quot;Bounding Box&quot;</span><span class="p">,</span> <span class="n">outlinepolygon</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">close_linked_project_after_import</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                  <span class="n">custom_x_resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">custom_y_resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a PCB component in Icepak that is linked to an HFSS 3D Layout object linking only to the geometry file.</span>
-<span class="sd">        </span>
+
 <span class="sd">        .. note::</span>
 <span class="sd">           No solution is linked.</span>
 
@@ -1595,7 +1569,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">project_name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
             <span class="n">project_name</span> <span class="o">=</span> <span class="s2">&quot;This Project*&quot;</span>
@@ -1605,8 +1579,8 @@
                                                  <span class="n">custom_y_resolution</span><span class="o">=</span><span class="n">custom_y_resolution</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">close_linked_project_after_import</span> <span class="ow">and</span> <span class="s2">&quot;.aedt&quot;</span> <span class="ow">in</span> <span class="n">project_name</span><span class="p">:</span>
-                <span class="n">prjname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">project_name</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">close_project</span><span class="p">(</span><span class="n">prjname</span><span class="p">,</span> <span class="n">saveproject</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">prjname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">project_name</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_project</span><span class="p">(</span><span class="n">prjname</span><span class="p">,</span> <span class="n">saveproject</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;PCB component correctly created in Icepak.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">status</span></div>
 
@@ -1629,7 +1603,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">oName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span>
         <span class="k">if</span> <span class="n">sourceProject</span> <span class="o">==</span> <span class="n">oName</span> <span class="ow">or</span> <span class="n">sourceProject</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1654,7 +1628,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        fileName : str</span>
-<span class="sd">            Name of the file.   </span>
+<span class="sd">            Name of the file.</span>
 <span class="sd">        filePath : str</span>
 <span class="sd">            Path for the file.</span>
 <span class="sd">        fileFormat : str, optional</span>
@@ -1668,7 +1642,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">object_list</span><span class="p">:</span>
             <span class="n">allObjects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">object_names</span>
@@ -1703,8 +1677,8 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        meshtype : </span>
-<span class="sd">            Type of the mesh. Options are ``1``, ``2``, and ``3``, which represent </span>
+<span class="sd">        meshtype :</span>
+<span class="sd">            Type of the mesh. Options are ``1``, ``2``, and ``3``, which represent</span>
 <span class="sd">            respectively a coarse, standard, or very accurate mesh.</span>
 <span class="sd">        gap_min_elements : str, optional</span>
 <span class="sd">            The default is ``&quot;1&quot;``.</span>
@@ -1720,12 +1694,12 @@
 <span class="sd">            The default is ``&quot;1&quot;``.</span>
 <span class="sd">        object : str, optional</span>
 <span class="sd">            The default is ``&quot;Region&quot;``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">oModule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;MeshRegion&quot;</span><span class="p">)</span>
 
@@ -1773,13 +1747,13 @@
 <span class="sd">        name : str, optional</span>
 <span class="sd">            Name of the bounding box. The default is &quot;Component_Region&quot;</span>
 <span class="sd">        restore_padding_values : list, optional</span>
-<span class="sd">            The default is ``[50,50,50,50,50,50]``.  </span>
+<span class="sd">            The default is ``[50,50,50,50,50,50]``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
 <span class="sd">            Tuple containing the ``(x, y, z)`` distances of the region.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edit_region_dimensions</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
 
@@ -1830,14 +1804,14 @@
 <span class="sd">        point_name : str</span>
 <span class="sd">            Name of the temperature monitor.</span>
 <span class="sd">        point_coord : list, optional</span>
-<span class="sd">            Listof ``[x, y, z}&quot;&quot; coordinates for the temperature monitor. </span>
+<span class="sd">            Listof ``[x, y, z}&quot;&quot; coordinates for the temperature monitor.</span>
 <span class="sd">            The default is ``[0, 0, 0]``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">             ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">arg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:PointParameters&quot;</span><span class="p">,</span>
                <span class="s2">&quot;PointX:=&quot;</span>		<span class="p">,</span> <span class="n">point_coord</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
@@ -1871,7 +1845,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">DeleteBoundaries</span><span class="p">([</span><span class="n">bound_name</span><span class="p">])</span>
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -1889,7 +1863,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span>
                <span class="s2">&quot;Selections:=&quot;</span>		<span class="p">,</span> <span class="n">comp_name</span><span class="p">]</span>

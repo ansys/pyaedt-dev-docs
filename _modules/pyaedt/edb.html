@@ -176,6 +176,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">gc</span>
 
 <span class="kn">import</span> <span class="nn">pyaedt.edb_core.EDB_Data</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -218,8 +219,8 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    edbpath : str, optional</span>
-<span class="sd">        Full path to the ``aedb`` folder. The variable can also contain </span>
-<span class="sd">        the path to a layout to import. Allowed formarts are BRD, </span>
+<span class="sd">        Full path to the ``aedb`` folder. The variable can also contain</span>
+<span class="sd">        the path to a layout to import. Allowed formarts are BRD,</span>
 <span class="sd">        XML (IPC2581), GDS, and DXF. The default is ``None``.</span>
 <span class="sd">    cellname : str, optional</span>
 <span class="sd">        Name of the cell to select. The default is ``None``.</span>
@@ -241,7 +242,7 @@
 <span class="sd">    Create an `Edb` object and a new EDB cell.</span>
 
 <span class="sd">    &gt;&gt;&gt; from pyaedt import Edb</span>
-<span class="sd">    &gt;&gt;&gt; app = Edb()     </span>
+<span class="sd">    &gt;&gt;&gt; app = Edb()</span>
 
 <span class="sd">    Create an `Edb` object and open the specified project.</span>
 
@@ -249,16 +250,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cellname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">isreadonly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">edbversion</span><span class="o">=</span><span class="s2">&quot;2021.1&quot;</span><span class="p">,</span> <span class="n">isaedtowned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">oproject</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_core_primitives</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_stackup</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_siwave</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_hfss</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clean_variables</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">_ironpython</span> <span class="ow">and</span> <span class="n">inside_desktop</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">standalone</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
@@ -304,6 +296,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Failed to initialize Dlls&quot;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_clean_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize internal variables and perform garbage collection.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_core_primitives</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stackup</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_siwave</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hfss</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">builder</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_init_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="n">Components</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -325,7 +331,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        message_text : str</span>
 <span class="sd">            Text to display as the info message.</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
@@ -344,14 +350,14 @@
 <div class="viewcode-block" id="Edb.add_warning_message"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Edb.add_warning_message.html#pyaedt.Edb.add_warning_message">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">add_warning_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_text</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a type 0 &quot;Warning&quot; message to the active design level of the Message Manager tree.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Also add an info message to the logger if the handler is present.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        message_text : str</span>
 <span class="sd">            Text to display as the warning message.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
@@ -382,7 +388,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">             </span>
+
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -496,7 +502,7 @@
 <div class="viewcode-block" id="Edb.open_edb_inside_aedt"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Edb.open_edb_inside_aedt.html#pyaedt.Edb.open_edb_inside_aedt">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">open_edb_inside_aedt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_dlls</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Open EDB inside of AEDT.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        init_dlls : bool, optional</span>
@@ -584,7 +590,7 @@
 <span class="sd">        input_file : str</span>
 <span class="sd">            Full path to the BRD file.</span>
 <span class="sd">        working_dir : str</span>
-<span class="sd">            Directory in which to create the ``aedb`` folder. The AEDB file name will be the </span>
+<span class="sd">            Directory in which to create the ``aedb`` folder. The AEDB file name will be the</span>
 <span class="sd">            same as the BRD file name.</span>
 <span class="sd">        init_dlls : bool</span>
 <span class="sd">            Whether to initialize DLLs. The default is ``False``.</span>
@@ -642,9 +648,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        ex_value :</span>
-<span class="sd">            </span>
+
 <span class="sd">        tb_data :</span>
-<span class="sd">            </span>
+
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -773,13 +779,13 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Pins.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
 <span class="sd">            List of all pins.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
+
         <span class="n">pins</span><span class="o">=</span><span class="p">[]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
@@ -793,27 +799,27 @@
 
     <span class="k">class</span> <span class="nc">Boundaries</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Boundaries.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        Port :</span>
-<span class="sd">        </span>
+
 <span class="sd">        Pec :</span>
-<span class="sd">        </span>
+
 <span class="sd">        RLC :</span>
-<span class="sd">        </span>
+
 <span class="sd">        CurrentSource :</span>
-<span class="sd">        </span>
+
 <span class="sd">        VoltageSource :</span>
-<span class="sd">        </span>
+
 <span class="sd">        NexximGround :</span>
-<span class="sd">        </span>
+
 <span class="sd">        NexximPort :</span>
-<span class="sd">        </span>
+
 <span class="sd">        DcTerminal :</span>
-<span class="sd">        </span>
+
 <span class="sd">        VoltageProbe :</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="p">(</span><span class="n">Port</span><span class="p">,</span> <span class="n">Pec</span><span class="p">,</span> <span class="n">RLC</span><span class="p">,</span> <span class="n">CurrentSource</span><span class="p">,</span> <span class="n">VoltageSource</span><span class="p">,</span> <span class="n">NexximGround</span><span class="p">,</span> <span class="n">NexximPort</span><span class="p">,</span> <span class="n">DcTerminal</span><span class="p">,</span> <span class="n">VoltageProbe</span><span class="p">)</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
 
@@ -824,7 +830,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        val :</span>
-<span class="sd">            </span>
+
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -835,25 +841,26 @@
 <div class="viewcode-block" id="Edb.close_edb"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Edb.close_edb.html#pyaedt.Edb.close_edb">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">close_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Close EDB.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clean_variables</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Edb.save_edb"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Edb.save_edb.html#pyaedt.Edb.save_edb">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">save_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save the EDB file.</span>
-<span class="sd">        </span>
+
 <span class="sd">       Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">       </span>
+
 <span class="sd">       &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -884,7 +891,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        func : str</span>
 <span class="sd">            Function to execute.</span>
-<span class="sd">            </span>
+
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -903,7 +910,7 @@
 <span class="sd">        inputBrd : str</span>
 <span class="sd">            Full path to the BRD file.</span>
 <span class="sd">        WorkDir : str</span>
-<span class="sd">            Directory in which to create the ``aedb`` folder. The AEDB file name will be </span>
+<span class="sd">            Directory in which to create the ``aedb`` folder. The AEDB file name will be</span>
 <span class="sd">            the same as the BRD file name. The default value is ``None``.</span>
 
 <span class="sd">        Returns</span>
@@ -926,7 +933,7 @@
 <span class="sd">        inputGDS : str</span>
 <span class="sd">            Full path to the GDS file.</span>
 <span class="sd">        WorkDir : str</span>
-<span class="sd">            Directory in which to create the ``aedb`` folder. The AEDB file name will be </span>
+<span class="sd">            Directory in which to create the ``aedb`` folder. The AEDB file name will be</span>
 <span class="sd">            the same as the GDS file name. The default value is ``None``.</span>
 
 <span class="sd">        Returns</span>
@@ -951,7 +958,7 @@
 <span class="sd">        reference_list : list, optional</span>
 <span class="sd">            List of references to add. The default is ``[&quot;GND&quot;]``.</span>
 <span class="sd">        extent_type : str, optional</span>
-<span class="sd">            Type of the extension. Options are ``&quot;Conforming&quot;`` and </span>
+<span class="sd">            Type of the extension. Options are ``&quot;Conforming&quot;`` and</span>
 <span class="sd">            ``&quot;Bounding&quot;``. The default is ``&quot;Conforming&quot;``.</span>
 <span class="sd">        expansion_size : float, optional</span>
 <span class="sd">            Expansion size ratio in meters. The default is ``0.002``.</span>
@@ -960,8 +967,8 @@
 <span class="sd">        output_aedb_path : str, optional</span>
 <span class="sd">            Full path and name for the new AEDB file.</span>
 <span class="sd">        replace_design_with_cutout : bool, optional</span>
-<span class="sd">            Whether to replace the design with the cutout. The default </span>
-<span class="sd">            is ``True``.      </span>
+<span class="sd">            Whether to replace the design with the cutout. The default</span>
+<span class="sd">            is ``True``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1032,14 +1039,14 @@
 <div class="viewcode-block" id="Edb.write_export3d_option_config_file"><a class="viewcode-back" href="../../API/_autosummary/_autosummary/pyaedt.Edb.write_export3d_option_config_file.html#pyaedt.Edb.write_export3d_option_config_file">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">write_export3d_option_config_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_output</span><span class="p">,</span> <span class="n">config_dictionaries</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Write the options for a 3D export to a configuration file.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        path_to_output : str</span>
 <span class="sd">            Full path to the configuration file where the 3D export options are to be saved.</span>
-<span class="sd">        </span>
+
 <span class="sd">        config_dictionaries : dict, optional</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">option_config</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;UNITE_NETS&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
@@ -1124,7 +1131,7 @@
 <span class="sd">        &gt;&gt;&gt; edb.write_export3d_option_config_file(r&quot;C:\temp&quot;, options_config)</span>
 <span class="sd">        &gt;&gt;&gt; edb.export_q3d(r&quot;C:\temp&quot;)</span>
 <span class="sd">        &quot;C:\\temp\\q3d_siwave.aedt&quot;</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">siwave_s</span> <span class="o">=</span> <span class="n">SiwaveSolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="n">aedt_installer_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="p">)</span>
@@ -1159,7 +1166,7 @@
 <span class="sd">        &gt;&gt;&gt; edb.write_export3d_option_config_file(r&quot;C:\temp&quot;, options_config)</span>
 <span class="sd">        &gt;&gt;&gt; edb.export_maxwell(r&quot;C:\temp&quot;)</span>
 <span class="sd">        &quot;C:\\temp\\maxwell_siwave.aedt&quot;</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">siwave_s</span> <span class="o">=</span> <span class="n">SiwaveSolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="n">aedt_installer_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">siwave_s</span><span class="o">.</span><span class="n">export_3d_cad</span><span class="p">(</span><span class="s2">&quot;Maxwell&quot;</span><span class="p">,</span> <span class="n">path_to_output</span><span class="p">,</span> <span class="n">net_list</span><span class="p">)</span></div></div>

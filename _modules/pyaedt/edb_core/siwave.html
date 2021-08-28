@@ -167,7 +167,7 @@
                 
   <h1>Source code for pyaedt.edb_core.siwave</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains these clases: `CircuitPort`, `CurrentSource`, `EdbSiwave`, </span>
+<span class="sd">This module contains these clases: `CircuitPort`, `CurrentSource`, `EdbSiwave`,</span>
 <span class="sd">`PinGroup`, `ResistorSource`, `Source`, `SourceType`, and `VoltageSource`.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -180,9 +180,97 @@
     <span class="kn">import</span> <span class="nn">clr</span>
     <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">Convert</span><span class="p">,</span> <span class="n">String</span>
     <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">Double</span><span class="p">,</span> <span class="n">Array</span>
-    <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
+    <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dictionary</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;This module requires pythonnet.&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SiwaveDCSetupTemplate"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.SiwaveDCSetupTemplate.html#pyaedt.edb_core.siwave.SiwaveDCSetupTemplate">[docs]</a><span class="k">class</span> <span class="nc">SiwaveDCSetupTemplate</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Siwave DC Settings Data Class. This class contains all the settings for a Siwave DC Analysis and is used as input</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edb  = Edb(&quot;pathtoaedb&quot;, edbversion=&quot;2021.2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; settings = edb.core_siwave.get_siwave_dc_setup_template()</span>
+<span class="sd">        &gt;&gt;&gt; settings.accuracy_level = 0</span>
+<span class="sd">        &gt;&gt;&gt; settings.use_dc_custom_settings  = True</span>
+<span class="sd">        &gt;&gt;&gt; settings.name = &quot;myDCIR_3&quot;</span>
+<span class="sd">        &gt;&gt;&gt; settings.pos_term_to_ground = &quot;I1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; settings.neg_term_to_ground = &quot;V1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; edb.core_siwave.add_siwave_dc_analysis(settings)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;DC IR 1&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dcreport_show_active_devices</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">export_dcthermal_data</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">full_dcreport_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_loopres_forperpin</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">via_report_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_inductance</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accuracy_level</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotjv</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_passes</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_passes</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">percent_localrefinement</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_error</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refine_bondwires</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refine_vias</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bondwire_sides</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_via_sides</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mesh_bondwires</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mesh_vias</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perform_adaptive_refinement</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_dc_custom_settings</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source_terms_to_ground</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pos_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span>
+
+    <span class="nd">@pos_term_to_ground</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">pos_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">terms</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set Positive Terminals to ground</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        terms : list, str</span>
+<span class="sd">            List of Terminals with Positive nodes to ground</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">terms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span> <span class="o">=</span> <span class="p">[</span><span class="n">terms</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span> <span class="o">=</span> <span class="n">terms</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">neg_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span>
+
+    <span class="nd">@neg_term_to_ground</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">neg_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">terms</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set Negative Terminals to ground</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        terms : list, str</span>
+<span class="sd">            List of Terminals with Negative nodes to ground</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">terms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span> <span class="o">=</span> <span class="p">[</span><span class="n">terms</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span> <span class="o">=</span> <span class="n">terms</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">source_terms_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">Dictionary</span><span class="p">[</span><span class="n">String</span><span class="p">,</span> <span class="nb">int</span><span class="p">]()</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span><span class="p">:</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span><span class="p">:</span>
+            <span class="n">a</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source_terms_to_ground</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source_terms_to_ground</span></div>
 
 
 <span class="k">class</span> <span class="nc">SourceType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -426,11 +514,11 @@
 <span class="sd">    ----------</span>
 <span class="sd">    parent :</span>
 <span class="sd">        Inherited parent object.</span>
-<span class="sd">        </span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; from pyaedt import Edb</span>
-<span class="sd">    &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;, &quot;project name&quot;, &quot;release version&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;, edbversion=&quot;2021.1&quot;)</span>
 <span class="sd">    &gt;&gt;&gt; edbapp.core_siwave</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -459,6 +547,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">edb</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_messenger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;EDB.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">messenger</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_active_layout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Active layout.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">active_layout</span>
@@ -466,7 +559,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Cell.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">cell</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">active_cell</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -478,7 +571,7 @@
     <span class="k">def</span> <span class="nf">create_circuit_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positive_component_name</span><span class="p">,</span> <span class="n">positive_net_name</span><span class="p">,</span> <span class="n">negative_component_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">negative_net_name</span><span class="o">=</span><span class="s2">&quot;GND&quot;</span><span class="p">,</span> <span class="n">impedance_value</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">port_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a circuit port.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        positive_component_name : str</span>
@@ -486,7 +579,7 @@
 <span class="sd">        positive_net_name : str</span>
 <span class="sd">            Name of the positive net.</span>
 <span class="sd">        negative_component_name : str, optional</span>
-<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of </span>
+<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of</span>
 <span class="sd">            the positive net is assigned.</span>
 <span class="sd">        negative_net_name : str, optional</span>
 <span class="sd">            Name of the negative net name. The default is ``&quot;GND&quot;``.</span>
@@ -494,7 +587,7 @@
 <span class="sd">            Port impedance value. The default is ``50``.</span>
 <span class="sd">        port_name: str, optional</span>
 <span class="sd">            Name of the port. The default is ``&quot;&quot;``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
@@ -534,15 +627,15 @@
     <span class="k">def</span> <span class="nf">create_voltage_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positive_component_name</span><span class="p">,</span> <span class="n">positive_net_name</span><span class="p">,</span> <span class="n">negative_component_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">negative_net_name</span><span class="o">=</span><span class="s2">&quot;GND&quot;</span><span class="p">,</span> <span class="n">voltage_value</span><span class="o">=</span><span class="mf">3.3</span><span class="p">,</span> <span class="n">phase_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">source_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a voltage source.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        positive_component_name : str</span>
 <span class="sd">            Name of the positive component.</span>
 <span class="sd">        positive_net_name : str</span>
 <span class="sd">            Name of the positive net.</span>
-<span class="sd">        negative_component_name : str, optional </span>
-<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of </span>
+<span class="sd">        negative_component_name : str, optional</span>
+<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of</span>
 <span class="sd">            the positive net is assigned.</span>
 <span class="sd">        negative_net_name : str, optional</span>
 <span class="sd">            Name of the negative net. The default is ``&quot;GND&quot;``.</span>
@@ -552,12 +645,12 @@
 <span class="sd">            Value for the phase. The default is ``0``.</span>
 <span class="sd">        source_name : str, optional</span>
 <span class="sd">            Name of the source. The default is ``&quot;&quot;``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">            </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
@@ -590,15 +683,15 @@
     <span class="k">def</span> <span class="nf">create_current_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positive_component_name</span><span class="p">,</span> <span class="n">positive_net_name</span><span class="p">,</span> <span class="n">negative_component_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">negative_net_name</span><span class="o">=</span><span class="s2">&quot;GND&quot;</span><span class="p">,</span> <span class="n">current_value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">phase_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">source_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a current source.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        positive_component_name : str</span>
 <span class="sd">            Name of the positive component.</span>
 <span class="sd">        positive_net_name : str</span>
 <span class="sd">            Name of the positive net.</span>
-<span class="sd">        negative_component_name : str, optional </span>
-<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of </span>
+<span class="sd">        negative_component_name : str, optional</span>
+<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of</span>
 <span class="sd">            the positive net is assigned.</span>
 <span class="sd">        negative_net_name : str, optional</span>
 <span class="sd">            Name of the negative net. The default is ``&quot;GND&quot;``.</span>
@@ -608,18 +701,18 @@
 <span class="sd">            Value for the phase. The default is ``0``.</span>
 <span class="sd">        source_name : str, optional</span>
 <span class="sd">            Name of the source. The default is ``&quot;&quot;``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 
 <span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
 <span class="sd">        &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;, &quot;project name&quot;, &quot;release version&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; edb.core_siwave.create_current_source(&quot;U2A5&quot;,&quot;V1P5_S3&quot;,&quot;U2A5&quot;,&quot;GND&quot;,0.1,0,&quot;source_name&quot;)   </span>
+<span class="sd">        &gt;&gt;&gt; edb.core_siwave.create_current_source(&quot;U2A5&quot;,&quot;V1P5_S3&quot;,&quot;U2A5&quot;,&quot;GND&quot;,0.1,0,&quot;source_name&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">current_source</span> <span class="o">=</span> <span class="n">CurrentSource</span><span class="p">()</span>
         <span class="n">current_source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">positive_net_name</span>
@@ -646,15 +739,15 @@
     <span class="k">def</span> <span class="nf">create_resistor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positive_component_name</span><span class="p">,</span> <span class="n">positive_net_name</span><span class="p">,</span> <span class="n">negative_component_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">negative_net_name</span><span class="o">=</span><span class="s2">&quot;GND&quot;</span><span class="p">,</span> <span class="n">rvalue</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">resistor_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a voltage source.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        positive_component_name : str</span>
 <span class="sd">            Name of the positive component.</span>
 <span class="sd">        positive_net_name : str</span>
 <span class="sd">            Name of the positive net.</span>
-<span class="sd">        negative_component_name : str, optional </span>
-<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of </span>
+<span class="sd">        negative_component_name : str, optional</span>
+<span class="sd">            Name of the negative component. The default is ``None``, in which case the name of</span>
 <span class="sd">            the positive net is assigned.</span>
 <span class="sd">        negative_net_name : str, optional</span>
 <span class="sd">            Name of the negative net. The default is ``&quot;GND&quot;``.</span>
@@ -662,18 +755,18 @@
 <span class="sd">            Resistance value. The default is ``1``.</span>
 <span class="sd">        resistor_name : str, optional</span>
 <span class="sd">            Name of the resistor. The default is ``&quot;&quot;``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        </span>
+
 <span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
 <span class="sd">        &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;, &quot;project name&quot;, &quot;release version&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; edb.core_siwave.create_resistor(&quot;U2A5&quot;, &quot;V1P5_S3&quot;, &quot;U2A5&quot;, &quot;GND&quot;, 1, &quot;resistor_name&quot;)        </span>
+<span class="sd">        &gt;&gt;&gt; edb.core_siwave.create_resistor(&quot;U2A5&quot;, &quot;V1P5_S3&quot;, &quot;U2A5&quot;, &quot;GND&quot;, 1, &quot;resistor_name&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">resistor</span> <span class="o">=</span> <span class="n">ResistorSource</span><span class="p">()</span>
         <span class="n">resistor</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">positive_net_name</span>
@@ -714,11 +807,11 @@
 <span class="sd">        accuracy_level : int, optional</span>
 <span class="sd">           Level of accuracy. The default is ``1``.</span>
 <span class="sd">        decade_count : int</span>
-<span class="sd">            The default is ``10``.    </span>
+<span class="sd">            The default is ``10``.</span>
 <span class="sd">        sweeptype : int, optional</span>
 <span class="sd">            Type of the sweep. The default is ``1``.</span>
 <span class="sd">        start_freq : float, optional</span>
-<span class="sd">            Starting frequency. The default is ``1``. </span>
+<span class="sd">            Starting frequency. The default is ``1``.</span>
 <span class="sd">        stop_freq : float, optional</span>
 <span class="sd">            Stopping frequency. The default is ``1e9``.</span>
 <span class="sd">        step_freq : float, optional</span>
@@ -729,7 +822,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.  </span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_siwave_setup</span><span class="o">.</span><span class="n">AddACSimSetup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="p">,</span> <span class="n">accuracy_level</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">decade_count</span><span class="p">),</span> <span class="n">sweeptype</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">start_freq</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">stop_freq</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">step_freq</span><span class="p">),</span> <span class="n">discrete_sweep</span><span class="p">)</span>
         <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
@@ -747,11 +840,11 @@
 <span class="sd">        accuracy_level : int, optional</span>
 <span class="sd">           Level of accuracy. The default is ``1``.</span>
 <span class="sd">        decade_count : int, optional</span>
-<span class="sd">            Number of points to calculate in each decade. The default is ``10``.    </span>
+<span class="sd">            Number of points to calculate in each decade. The default is ``10``.</span>
 <span class="sd">        sweeptype : int, optional</span>
 <span class="sd">            Type of the sweep. The default is ``1``.</span>
 <span class="sd">        start_freq : float, optional</span>
-<span class="sd">            Starting frequency. The default is ``1``. </span>
+<span class="sd">            Starting frequency. The default is ``1``.</span>
 <span class="sd">        stop_freq : float, optional</span>
 <span class="sd">            Stopping frequency. The default is ``1e9``.</span>
 <span class="sd">        step_freq : float, optional</span>
@@ -762,7 +855,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.       </span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_siwave_setup</span><span class="o">.</span><span class="n">AddSYZSimSetup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="p">,</span> <span class="n">accuracy_level</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">decade_count</span><span class="p">),</span> <span class="n">sweeptype</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">start_freq</span><span class="p">),</span>
@@ -773,35 +866,95 @@
         <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
+
+<div class="viewcode-block" id="EdbSiwave.get_siwave_dc_setup_template"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.get_siwave_dc_setup_template.html#pyaedt.edb_core.siwave.EdbSiwave.get_siwave_dc_setup_template">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">get_siwave_dc_setup_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class: `pyaedt.edb_core.siwave.SiwaveDCSetupTemplate``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="n">SiwaveDCSetupTemplate</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">settings</span></div>
+
+
 <div class="viewcode-block" id="EdbSiwave.add_siwave_dc_analysis"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.add_siwave_dc_analysis.html#pyaedt.edb_core.siwave.EdbSiwave.add_siwave_dc_analysis">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">add_siwave_dc_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accuracy_level</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a SIwave DC analysis.</span>
+    <span class="k">def</span> <span class="nf">add_siwave_dc_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">setup_settings</span><span class="o">=</span><span class="n">SiwaveDCSetupTemplate</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;This method creates a Siwave DC Analysis in EDB. If Setup is present it will be deleted and replaced by new actual settings.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           Source Reference to Ground settings works only from 2021.2</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        accuracy_level : int, optional</span>
-<span class="sd">            Level of accuracy. The default is ``1``.</span>
+<span class="sd">        setup_settings : ``pyaedt.edb_core.siwave.SiwaveDCSetupTemplate``</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edb  = Edb(&quot;pathtoaedb&quot;, edbversion=&quot;2021.2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; edb.core_siwave.add_siwave_ac_analysis()</span>
+<span class="sd">        &gt;&gt;&gt; settings = edb.core_siwave.get_siwave_dc_setup_template()</span>
+<span class="sd">        &gt;&gt;&gt; settings.accuracy_level = 0</span>
+<span class="sd">        &gt;&gt;&gt; settings.use_dc_custom_settings  = True</span>
+<span class="sd">        &gt;&gt;&gt; settings.name = &quot;myDCIR_3&quot;</span>
+<span class="sd">        &gt;&gt;&gt; settings.pos_term_to_ground = &quot;I1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; settings.neg_term_to_ground = &quot;V1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; edb.core_siwave.add_siwave_dc_analysis2(settings)</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">            Command Execution Result.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_siwave_setup</span><span class="o">.</span><span class="n">AddDCSimSetup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="p">,</span> <span class="n">accuracy_level</span><span class="p">)</span>
-        <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
-        <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecDcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="n">sim_setup_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SimSetupInfo</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SIwave</span><span class="o">.</span><span class="n">SIWDCIRSimulationSettings</span><span class="p">]()</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">DCReportShowActiveDevices</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">dcreport_show_active_devices</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">ExportDCThermalData</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">export_dcthermal_data</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">FullDCReportPath</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">full_dcreport_path</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">UseLoopResForPerPin</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">use_loopres_forperpin</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">ViaReportPath</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">via_report_path</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">ComputeInductance</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">compute_inductance</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">DCSliderPos</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">accuracy_level</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">PlotJV</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">plotjv</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MinNumPasses</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">min_passes</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MaxNumPasses</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">max_passes</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">PercentLocalRefinement</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">percent_localrefinement</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">EnergyError</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">energy_error</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">RefineBws</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">refine_bondwires</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">RefineVias</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">refine_vias</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">NumViaSides</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">num_via_sides</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">NumBwSides</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">num_bondwire_sides</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MeshBws</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">mesh_bondwires</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MeshVias</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">mesh_vias</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">PerformAdaptiveRefinement</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">perform_adaptive_refinement</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">UseDCCustomSettings</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">use_dc_custom_settings</span>
+        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">SourceTermsToGround</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">source_terms_to_ground</span>
+        <span class="n">simulationSetup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">SIWaveDCIRSimulationSetup</span><span class="p">(</span><span class="n">sim_setup_info</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">AddSimulationSetup</span><span class="p">(</span><span class="n">simulationSetup</span><span class="p">):</span>
+            <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
+            <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecDcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">DeleteSimulationSetup</span><span class="p">(</span><span class="n">setup_settings</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">AddSimulationSetup</span><span class="p">(</span><span class="n">simulationSetup</span><span class="p">):</span>
+                <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
+                <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecDcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.create_pin_group_terminal"><a class="viewcode-back" href="../../../API/_autosummary/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_terminal.html#pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_terminal">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_pin_group_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a pin group terminal.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        source : str</span>
+<span class="sd">        source : ``VoltageSource``</span>
 <span class="sd">            Name of the source.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pos_pin_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">create_pingroup_from_pins</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">node_pins</span><span class="p">)</span>
         <span class="n">neg_pin_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">create_pingroup_from_pins</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">negative_node</span><span class="o">.</span><span class="n">node_pins</span><span class="p">)</span>

@@ -169,7 +169,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains the `analysis` class.</span>
 
-<span class="sd">It includes common classes for file management and messaging and all </span>
+<span class="sd">It includes common classes for file management and messaging and all</span>
 <span class="sd">calls to AEDT modules like the modeler, mesh, postprocessing, and setup.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
@@ -178,10 +178,13 @@
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
 <span class="kn">from</span> <span class="nn">..modeler.modeler_constants</span> <span class="kn">import</span> <span class="n">CoordinateSystemPlane</span><span class="p">,</span> <span class="n">CoordinateSystemAxis</span><span class="p">,</span> <span class="n">GravityDirection</span><span class="p">,</span> <span class="n">Plane</span>
 <span class="kn">from</span> <span class="nn">..modules.SolveSetup</span> <span class="kn">import</span> <span class="n">Setup</span>
 <span class="kn">from</span> <span class="nn">..modules.SolutionType</span> <span class="kn">import</span> <span class="n">SolutionType</span><span class="p">,</span> <span class="n">SetupTypes</span>
 <span class="kn">from</span> <span class="nn">..modules.SetupTemplates</span> <span class="kn">import</span> <span class="n">SetupKeys</span>
+<span class="kn">from</span> <span class="nn">..modules.Boundary</span> <span class="kn">import</span> <span class="n">NativeComponentObject</span>
 <span class="kn">from</span> <span class="nn">..modules.DesignXPloration</span> <span class="kn">import</span> <span class="n">DOESetups</span><span class="p">,</span> <span class="n">DXSetups</span><span class="p">,</span> <span class="n">ParametericsSetups</span><span class="p">,</span> <span class="n">SensitivitySetups</span><span class="p">,</span> <span class="n">StatisticalSetups</span><span class="p">,</span> <span class="n">OptimizationSetups</span>
 <span class="kn">from</span> <span class="nn">.Design</span> <span class="kn">import</span> <span class="n">Design</span>
 <span class="kn">from</span> <span class="nn">..modules.MaterialLib</span> <span class="kn">import</span> <span class="n">Materials</span>
@@ -196,8 +199,8 @@
 
 <span class="k">class</span> <span class="nc">Analysis</span><span class="p">(</span><span class="n">Design</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Contains all common analysis functions.</span>
-<span class="sd">    </span>
-<span class="sd">    It is automatically initialized by a call from an application, such as HFSS or Q3D. </span>
+
+<span class="sd">    It is automatically initialized by a call from an application, such as HFSS or Q3D.</span>
 <span class="sd">    See the application function for its parameter descriptions.</span>
 
 <span class="sd">    Parameters</span>
@@ -216,7 +219,7 @@
 <span class="sd">    specified_version: str</span>
 <span class="sd">        Version of AEDT  to use.</span>
 <span class="sd">    NG : bool</span>
-<span class="sd">        Whether to run AEDT in the non-graphical mode. </span>
+<span class="sd">        Whether to run AEDT in the non-graphical mode.</span>
 <span class="sd">    AlwaysNew : bool</span>
 <span class="sd">        Whether to launch an instance of AEDT in a new thread, even if</span>
 <span class="sd">        another instance of the ``specified_version`` is active on the</span>
@@ -224,8 +227,8 @@
 <span class="sd">    release_on_exit : bool</span>
 <span class="sd">        Whether to release  AEDT on exit.</span>
 <span class="sd">    student_version : bool</span>
-<span class="sd">        Whether to enable the student version of AEDT. </span>
-<span class="sd">    </span>
+<span class="sd">        Whether to enable the student version of AEDT.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">application</span><span class="p">,</span> <span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">,</span> <span class="n">solution_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span>
@@ -249,12 +252,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">opti_designxplorer</span> <span class="o">=</span> <span class="n">DXSetups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">opti_sensitivity</span> <span class="o">=</span> <span class="n">SensitivitySetups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">opti_statistical</span> <span class="o">=</span> <span class="n">StatisticalSetups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">native_components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_native_data</span><span class="p">()</span>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">materials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Manages materials in the project.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modules.MaterialLib.Materials`</span>
@@ -266,7 +270,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Position of the object.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        type</span>
@@ -279,7 +283,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">available_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Available variation object.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.application.Analysis.Analysis.AvailableVariations`</span>
@@ -291,7 +295,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">CoordinateSystemAxis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Coordinate system axis constant.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
@@ -303,7 +307,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">CoordinateSystemPlane</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Coordinate system plane constants.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
@@ -315,8 +319,8 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">View</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Planes. (To check if redundant to CoordinateSystemPlane.)</span>
-<span class="sd">       </span>
-<span class="sd">        </span>
+
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
@@ -328,7 +332,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">GravityDirection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gravity direction. (To check if redundant.)</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
@@ -340,7 +344,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">modeler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Modeler.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modeler.Modeler.Modeler`</span>
@@ -351,7 +355,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Mesh.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modules.Mesh.Mesh`</span>
@@ -362,7 +366,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;PostProcessor.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modules.PostProcessor.PostProcessor`</span>
@@ -373,7 +377,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">osolution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solution.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AEDT object</span>
@@ -390,7 +394,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">analysis_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Analysis setup.</span>
-<span class="sd">       </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
@@ -418,7 +422,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">existing_analysis_sweeps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Existing analysis sweeps.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -462,7 +466,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
-<span class="sd">            Name of the last adaptive sweep if a sweep is available or </span>
+<span class="sd">            Name of the last adaptive sweep if a sweep is available or</span>
 <span class="sd">            the name of the nominal adaptive sweep if present.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -474,7 +478,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">existing_analysis_setups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Existing analysis setups.</span>
-<span class="sd">               </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -487,7 +491,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">output_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Output variables.</span>
-<span class="sd">     </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -514,8 +518,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ooptimetrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Optimetrics. </span>
-<span class="sd">        </span>
+        <span class="sd">&quot;&quot;&quot;Optimetrics.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AEDT object</span>
@@ -527,7 +531,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ooutput_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Output variable</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        AEDT object</span>
@@ -539,7 +543,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">SimulationSetupTypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Simulation setup types.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -551,7 +555,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">SolutionTypes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solution types.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -559,6 +563,28 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SolutionType</span><span class="p">()</span>
 
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_native_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve Native Components data.&quot;&quot;&quot;</span>
+        <span class="n">boundaries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data_vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s1">&#39;ModelSetup&#39;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="s1">&#39;GeometryOperations&#39;</span><span class="p">][</span><span class="s1">&#39;SubModelDefinitions&#39;</span><span class="p">][</span><span class="s1">&#39;NativeComponentDefinition&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_vals</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span>  <span class="nb">type</span><span class="p">(</span><span class="n">data_vals</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                <span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">NativeComponentObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_vals</span><span class="p">[</span><span class="s1">&#39;NativeComponentDefinitionProvider&#39;</span><span class="p">][</span><span class="s1">&#39;Type&#39;</span><span class="p">],</span>
+                                          <span class="n">data_vals</span><span class="p">[</span><span class="s1">&#39;BasicComponentInfo&#39;</span><span class="p">][</span><span class="s1">&#39;ComponentName&#39;</span><span class="p">],</span>
+                                          <span class="n">data_vals</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">data_vals</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                        <span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NativeComponentObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">[</span><span class="s1">&#39;NativeComponentDefinitionProvider&#39;</span><span class="p">][</span><span class="s1">&#39;Type&#39;</span><span class="p">],</span>
+                                                        <span class="n">ds</span><span class="p">[</span><span class="s1">&#39;BasicComponentInfo&#39;</span><span class="p">][</span><span class="s1">&#39;ComponentName&#39;</span><span class="p">],</span>
+                                                        <span class="n">ds</span><span class="p">))</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">boundaries</span>
 
     <span class="k">class</span> <span class="nc">AvailableVariations</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
@@ -581,7 +607,7 @@
         <span class="nd">@property</span>
         <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot;Variables.</span>
-<span class="sd">            </span>
+
 <span class="sd">            Returns</span>
 <span class="sd">            -------</span>
 <span class="sd">            list</span>
@@ -692,7 +718,7 @@
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_nominal_variation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the nominal variation.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -708,7 +734,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Name of the setup.</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
@@ -732,7 +758,7 @@
 <span class="sd">        filename : str</span>
 <span class="sd">            Full path and name for the CSV file.</span>
 <span class="sd">        exportunits : bool, optional</span>
-<span class="sd">            Whether to export units with the value. The default is ``True``. When ``False``, </span>
+<span class="sd">            Whether to export units with the value. The default is ``True``. When ``False``,</span>
 <span class="sd">            only the value is exported.</span>
 
 <span class="sd">        Returns</span>
@@ -748,7 +774,7 @@
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">analyze_from_initial_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Revert the solution to the initial mesh and re-run the solve.</span>
-<span class="sd">                </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
@@ -762,7 +788,7 @@
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">analyse_nominal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Revert the solution to the initial mesh and re-run the solve.</span>
-<span class="sd">       </span>
+
 <span class="sd">        .. deprecated:: 0.4.0</span>
 <span class="sd">           Use :func:`Analysis.analyze_nominal` instead.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -774,7 +800,7 @@
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">analyze_nominal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Revert the solution to the initial mesh and re-run the solve.</span>
-<span class="sd">       </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
@@ -787,17 +813,17 @@
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">generate_unique_setup_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate a new setup with an unique name.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        setup_name : str, optional</span>
 <span class="sd">            Name of the setup. The default is ``None``.</span>
-<span class="sd"> </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">            Name of the setup.</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
             <span class="n">setup_name</span> <span class="o">=</span> <span class="s2">&quot;Setup&quot;</span>
@@ -816,7 +842,7 @@
 <span class="sd">        setupname : str, optional</span>
 <span class="sd">            Name of the setup. The default is ``&quot;MySetupAuto&quot;``.</span>
 <span class="sd">        setuptype : optional</span>
-<span class="sd">            Type of the setup. The default is ``None``, in which case </span>
+<span class="sd">            Type of the setup. The default is ``None``, in which case</span>
 <span class="sd">            the default type is applied.</span>
 <span class="sd">        props : dict, optional</span>
 <span class="sd">            Dictionary of properties with values. The default is ``{}``.</span>
@@ -850,13 +876,13 @@
 <span class="sd">        ----------</span>
 <span class="sd">        setupname : str</span>
 <span class="sd">            Name of the setup.</span>
-<span class="sd">        properties_dict : dict </span>
+<span class="sd">        properties_dict : dict</span>
 <span class="sd">            Dictionary containing the property to update with the value.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modules.SolveSetup.Setup`</span>
-<span class="sd">        </span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">setuptype</span> <span class="o">=</span> <span class="n">SetupKeys</span><span class="o">.</span><span class="n">defaultSetups</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="p">]</span>
         <span class="n">setup</span> <span class="o">=</span> <span class="n">Setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setuptype</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">isnewsetup</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -937,17 +963,17 @@
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_object_material_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prop_names</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the material properties for a list of given objects and return them in a dictionary.</span>
-<span class="sd">        </span>
+
 <span class="sd">        This high-level function ignores objects with no defined material properties.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        object_list : list, optional</span>
-<span class="sd">            List of objects for which to get material_properties. The default is ``None``,  </span>
-<span class="sd">            in which case all objects are considered. </span>
+<span class="sd">            List of objects for which to get material_properties. The default is ``None``,</span>
+<span class="sd">            in which case all objects are considered.</span>
 <span class="sd">        prop_names : str or list</span>
-<span class="sd">            The property or list of properties to export.  The default is ``None``, in  </span>
-<span class="sd">            which case all properties are exported. </span>
+<span class="sd">            The property or list of properties to export.  The default is ``None``, in</span>
+<span class="sd">            which case all properties are exported.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1005,21 +1031,21 @@
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">solve_in_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">machine</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span> <span class="n">run_in_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Analyze a design setup in batch mode. </span>
-<span class="sd">        </span>
+        <span class="sd">&quot;&quot;&quot;Analyze a design setup in batch mode.</span>
+
 <span class="sd">        .. note::</span>
 <span class="sd">           To use this function, the AEDT project must be closed.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        filename : str, optional</span>
-<span class="sd">            Name of the setup. The default is ``None``, which means that the active project </span>
+<span class="sd">            Name of the setup. The default is ``None``, which means that the active project</span>
 <span class="sd">            is to be solved.</span>
 <span class="sd">        machine : str, optional</span>
-<span class="sd">            Name of the machine if remote.  The default is ``&quot;local&quot;``. </span>
+<span class="sd">            Name of the machine if remote.  The default is ``&quot;local&quot;``.</span>
 <span class="sd">        run_in_thread : bool, optional</span>
 <span class="sd">            Whether the batch command is to be submitted as a thread. The default is</span>
-<span class="sd">            ``False``. </span>
+<span class="sd">            ``False``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1071,7 +1097,7 @@
 <span class="sd">        clustername : str</span>
 <span class="sd">            Name of the cluster to submit the job to.</span>
 <span class="sd">        aedt_full_exe_path : str, optional</span>
-<span class="sd">            Full path to the AEDT executable file. The default is ``None``, in which </span>
+<span class="sd">            Full path to the AEDT executable file. The default is ``None``, in which</span>
 <span class="sd">            case ``&quot;/clustername/AnsysEM/AnsysEM2x.x/Win64/ansysedt.exe&quot;`` is used.</span>
 <span class="sd">        numnodes : int, optional</span>
 <span class="sd">            Number of nodes. The default is ``1``.</span>
@@ -1081,7 +1107,7 @@
 <span class="sd">             Whether to wait for the license to be validated. The default is ``True``.</span>
 <span class="sd">        setting_file : str, optional</span>
 <span class="sd">            Name of the file to use as a template. The default value is ``None``.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        type</span>
