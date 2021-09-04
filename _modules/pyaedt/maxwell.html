@@ -171,89 +171,16 @@
 <span></span><span class="sd">&quot;&quot;&quot;This module contains these Maxwell classes: `Maxwell`, `Maxwell2d`, and `Maxwell3d`.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
-<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">from</span> <span class="nn">.application.Analysis2D</span> <span class="kn">import</span> <span class="n">FieldAnalysis2D</span>
 <span class="kn">from</span> <span class="nn">.application.Analysis3D</span> <span class="kn">import</span> <span class="n">FieldAnalysis3D</span>
 <span class="kn">from</span> <span class="nn">.desktop</span> <span class="kn">import</span> <span class="n">exception_to_desktop</span>
+<span class="kn">from</span> <span class="nn">.application.DataHandlers</span> <span class="kn">import</span> <span class="n">float_units</span>
 <span class="kn">from</span> <span class="nn">.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">aedt_exception_handler</span>
 <span class="kn">from</span> <span class="nn">.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-
-<span class="n">unit_val</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s2">&quot;uV&quot;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
-    <span class="s2">&quot;mV&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
-    <span class="s2">&quot;V&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s2">&quot;kV&quot;</span><span class="p">:</span> <span class="mf">1e3</span><span class="p">,</span>
-    <span class="s2">&quot;MegV&quot;</span><span class="p">:</span> <span class="mf">1e6</span><span class="p">,</span>
-    <span class="s2">&quot;ns&quot;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span>
-    <span class="s2">&quot;us&quot;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
-    <span class="s2">&quot;ms&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
-    <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s2">&quot;min&quot;</span><span class="p">:</span> <span class="mi">60</span><span class="p">,</span>
-    <span class="s2">&quot;hour&quot;</span><span class="p">:</span> <span class="mi">3600</span><span class="p">,</span>
-    <span class="s2">&quot;rad&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s2">&quot;deg&quot;</span><span class="p">:</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">,</span>
-    <span class="s2">&quot;Hz&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s2">&quot;kHz&quot;</span><span class="p">:</span> <span class="mf">1e3</span><span class="p">,</span>
-    <span class="s2">&quot;MHz&quot;</span><span class="p">:</span> <span class="mf">1e6</span><span class="p">,</span>
-    <span class="s2">&quot;nm&quot;</span><span class="p">:</span> <span class="mf">1e-9</span><span class="p">,</span>
-    <span class="s2">&quot;um&quot;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
-    <span class="s2">&quot;mm&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
-    <span class="s2">&quot;cm&quot;</span><span class="p">:</span> <span class="mf">1e-2</span><span class="p">,</span>
-    <span class="s2">&quot;dm&quot;</span><span class="p">:</span> <span class="mf">1e-1</span><span class="p">,</span>
-    <span class="s2">&quot;meter&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-    <span class="s2">&quot;km&quot;</span><span class="p">:</span> <span class="mf">1e3</span>
-
-<span class="p">}</span>
-
-<span class="c1"># Utility scripts</span>
-<span class="n">resynch_maxwell2D_control_program_for_design</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">from pyaedt.Desktop import Desktop</span>
-<span class="s1">from pyaedt.Maxwell import Maxwell2D</span>
-<span class="s1">design_name = os.getenv(&#39;design&#39;)</span>
-<span class="s1">setup = os.getenv(&#39;setup&#39;)</span>
-
-<span class="s1">with Desktop() as d:</span>
-<span class="s1">    mxwl = Maxwell2D(designname=design_name, setup_name=setup)</span>
-<span class="s1">    mxwl.setup_ctrlprog(keep_modifications=True )</span>
-<span class="s1">    oDesktop.AddMessage( mxwl.project_name, mxwl.design_name, 0, &quot;Successfully updated project definitions&quot;)</span>
-<span class="s1">    mxwl.save_project()</span>
-<span class="s1">&#39;&#39;&#39;</span>
-
-
-<span class="k">def</span> <span class="nf">float_units</span><span class="p">(</span><span class="n">val_str</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Retrieve units for a value.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    val_str : str</span>
-<span class="sd">        Name of the float value.</span>
-
-<span class="sd">    units : str, optional</span>
-<span class="sd">         The default is ``&quot;&quot;``.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">unit_val</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Specified unit string &quot;</span> <span class="o">+</span> <span class="n">units</span> <span class="o">+</span> <span class="s2">&quot; not known!&quot;</span><span class="p">)</span>
-
-    <span class="n">loc</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;[a-zA-Z]&#39;</span><span class="p">,</span> <span class="n">val_str</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">loc</span><span class="o">.</span><span class="n">span</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">var</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">val_str</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">b</span><span class="p">]),</span> <span class="n">val_str</span><span class="p">[</span><span class="n">b</span><span class="p">:]]</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="n">var</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">unit_val</span><span class="p">[</span><span class="n">var</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
-    <span class="k">except</span><span class="p">:</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">val_str</span><span class="p">)</span>
-
-    <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">/</span> <span class="n">unit_val</span><span class="p">[</span><span class="n">units</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">val</span>
 
 
 <span class="k">class</span> <span class="nc">Maxwell</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>

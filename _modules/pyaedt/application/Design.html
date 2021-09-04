@@ -190,11 +190,11 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">.MessageManager</span> <span class="kn">import</span> <span class="n">AEDTMessageManager</span>
-<span class="kn">from</span> <span class="nn">.Variables</span> <span class="kn">import</span> <span class="n">VariableManager</span><span class="p">,</span> <span class="n">DataSet</span>
+<span class="kn">from</span> <span class="nn">.Variables</span> <span class="kn">import</span> <span class="n">VariableManager</span><span class="p">,</span> <span class="n">DataSet</span><span class="p">,</span> <span class="n">AEDT_units</span><span class="p">,</span> <span class="n">unit_system</span>
 <span class="kn">from</span> <span class="nn">..desktop</span> <span class="kn">import</span> <span class="n">exception_to_desktop</span><span class="p">,</span> <span class="n">Desktop</span><span class="p">,</span> <span class="n">force_close_desktop</span><span class="p">,</span> <span class="n">release_desktop</span><span class="p">,</span> <span class="n">get_version_env_variable</span>
 <span class="kn">from</span> <span class="nn">..generic.LoadAEDTFile</span> <span class="kn">import</span> <span class="n">load_entire_aedt_file</span>
 <span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
-<span class="kn">from</span> <span class="nn">..generic.list_handling</span> <span class="kn">import</span> <span class="n">variation_string_to_dict</span>
+<span class="kn">from</span> <span class="nn">.DataHandlers</span> <span class="kn">import</span> <span class="n">variation_string_to_dict</span>
 <span class="kn">from</span> <span class="nn">..modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span>
 <span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 
@@ -2613,8 +2613,8 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">ValidateDesign</span><span class="p">()</span>
 
     <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">get_evaluated_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieve the evaluated value of a design property or project variable in SI units.</span>
+    <span class="k">def</span> <span class="nf">get_evaluated_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the evaluated value of a design property or project variable in SI units if no Unit is provided.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -2623,6 +2623,8 @@
 <span class="sd">        variation : float, optional</span>
 <span class="sd">            Variation value for the evaluation. The default is ``None``,</span>
 <span class="sd">            in which case the nominal variation is used.</span>
+<span class="sd">        units : str</span>
+<span class="sd">            Name of the unit to rescale method. SI will be applied by default.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2645,7 +2647,12 @@
             <span class="n">variation_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_variation</span><span class="p">(</span><span class="n">variation_string</span><span class="o">=</span><span class="n">variation</span><span class="p">)</span>
 
         <span class="n">si_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetVariationVariableValue</span><span class="p">(</span><span class="n">variation_string</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">)</span>
-
+        <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_units</span><span class="p">[</span><span class="n">unit_system</span><span class="p">(</span><span class="n">units</span><span class="p">)][</span><span class="n">units</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">si_value</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">si_value</span> <span class="o">/</span> <span class="n">scale</span>
         <span class="k">return</span> <span class="n">si_value</span>
 
     <span class="nd">@aedt_exception_handler</span>
