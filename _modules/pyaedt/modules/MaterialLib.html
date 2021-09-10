@@ -175,8 +175,10 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
 <span class="kn">from</span> <span class="nn">.Material</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
+<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">retry_ntimes</span>
+<span class="kn">from</span> <span class="nn">..generic.DataHandlers</span> <span class="kn">import</span> <span class="n">arg2dict</span>
 <span class="kn">import</span> <span class="nn">json</span>
+
 
 <div class="viewcode-block" id="Materials"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.MaterialLib.Materials.html#pyaedt.modules.MaterialLib.Materials">[docs]</a><span class="k">class</span> <span class="nc">Materials</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Contains the AEDT materials database and all methods for creating and editing materials.</span>
@@ -187,6 +189,7 @@
 <span class="sd">        Inherited parent object.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">odefinition_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Definition manager.&quot;&quot;&quot;</span>
@@ -194,8 +197,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">omaterial_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Material manager.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Material manager.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odefinition_manager</span><span class="o">.</span><span class="n">GetManager</span><span class="p">(</span><span class="s2">&quot;Material&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -216,7 +218,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Successfully loaded project materials !&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully loaded project materials !&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_materials</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">surface_material_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_surface_materials</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_load_from_project</span><span class="p">()</span>
@@ -240,8 +242,10 @@
         <span class="sd">&quot;&quot;&quot;Get materials.&quot;&quot;&quot;</span>
         <span class="n">mats</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s1">&#39;AnsoftProject&#39;</span><span class="p">][</span><span class="s1">&#39;Definitions&#39;</span><span class="p">][</span><span class="s1">&#39;Materials&#39;</span><span class="p">]:</span>
-                <span class="n">mats</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s1">&#39;AnsoftProject&#39;</span><span class="p">][</span><span class="s1">&#39;Definitions&#39;</span><span class="p">][</span><span class="s1">&#39;Materials&#39;</span><span class="p">][</span><span class="n">ds</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="s2">&quot;Materials&quot;</span><span class="p">]:</span>
+                <span class="n">mats</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="s2">&quot;Materials&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">]</span>
+                <span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">mats</span>
@@ -250,8 +254,12 @@
     <span class="k">def</span> <span class="nf">_get_surface_materials</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mats</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s1">&#39;AnsoftProject&#39;</span><span class="p">][</span><span class="s1">&#39;Definitions&#39;</span><span class="p">][</span><span class="s1">&#39;SurfaceMaterials&#39;</span><span class="p">]:</span>
-                <span class="n">mats</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">SurfaceMaterial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s1">&#39;AnsoftProject&#39;</span><span class="p">][</span><span class="s1">&#39;Definitions&#39;</span><span class="p">][</span><span class="s1">&#39;SurfaceMaterials&#39;</span><span class="p">][</span><span class="n">ds</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="s2">&quot;SurfaceMaterials&quot;</span><span class="p">]:</span>
+                <span class="n">mats</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">SurfaceMaterial</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="n">ds</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="s2">&quot;SurfaceMaterials&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">],</span>
+                <span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">mats</span>
@@ -310,7 +318,7 @@
         <span class="k">if</span> <span class="n">exists</span><span class="p">:</span>
             <span class="n">omat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">MatProperties</span><span class="o">.</span><span class="n">aedtname</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">omat</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">thermalmodifier</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">omat</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">thermalmodifier</span><span class="p">:</span>
                     <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
@@ -330,7 +338,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Material.Material`</span>
+<span class="sd">        :class:`pyaedt.modules.Material.Material`</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -342,10 +350,11 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">materialname</span> <span class="o">=</span> <span class="n">materialname</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s1">&#39;Adding new material to the Project Library: &#39;</span> <span class="o">+</span> <span class="n">materialname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Adding new material to the Project Library: &quot;</span> <span class="o">+</span> <span class="n">materialname</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">materialname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span>
-                <span class="s2">&quot;Warning. The material is already in the database. Change or edit the name.&quot;</span><span class="p">)</span>
+                <span class="s2">&quot;Warning. The material is already in the database. Change or edit the name.&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">materialname</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">material</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">,</span> <span class="n">materialname</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span>
@@ -370,7 +379,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.SurfaceMaterial`</span>
+<span class="sd">        :class:`pyaedt.modules.SurfaceMaterial`</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -382,10 +391,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">materialname</span> <span class="o">=</span> <span class="n">material_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s1">&#39;Adding a surface material to the project library: &#39;</span> <span class="o">+</span> <span class="n">materialname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Adding a surface material to the project library: &quot;</span> <span class="o">+</span> <span class="n">materialname</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">materialname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface_material_keys</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span>
-                <span class="s2">&quot;Warning. The material is already in the database. Change the name or edit it.&quot;</span><span class="p">)</span>
+                <span class="s2">&quot;Warning. The material is already in the database. Change the name or edit it.&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface_material_keys</span><span class="p">[</span><span class="n">materialname</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">material</span> <span class="o">=</span> <span class="n">SurfaceMaterial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">,</span> <span class="n">materialname</span><span class="p">)</span>
@@ -398,19 +408,19 @@
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_create_mat_project_vars</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matlist</span><span class="p">):</span>
-        <span class="n">matprop</span><span class="o">=</span><span class="p">{}</span>
+        <span class="n">matprop</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-12</span>
         <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">MatProperties</span><span class="o">.</span><span class="n">aedtname</span><span class="p">:</span>
             <span class="n">matprop</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">mat</span> <span class="ow">in</span> <span class="n">matlist</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">matprop</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">prop</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+                    <span class="n">matprop</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">prop</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;Warning. Wrong parsed property. Reset to 0&quot;</span><span class="p">)</span>
                     <span class="n">matprop</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">a</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">matprop</span><span class="p">[</span><span class="n">prop</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span><span class="n">tol</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">:</span>
                     <span class="k">del</span> <span class="n">matprop</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
@@ -461,13 +471,13 @@
         <span class="n">mat_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_mat_project_vars</span><span class="p">(</span><span class="n">matsweep</span><span class="p">)</span>
 
         <span class="n">newmat</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">,</span> <span class="n">matname</span><span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="s2">&quot;$ID&quot;</span><span class="o">+</span><span class="n">matname</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="s2">&quot;$ID&quot;</span> <span class="o">+</span> <span class="n">matname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">mat_dict</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">mat_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">[</span><span class="s2">&quot;$&quot;</span><span class="o">+</span><span class="n">matname</span><span class="o">+</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat_dict</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
-                <span class="n">newmat</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;$&quot;</span><span class="o">+</span><span class="n">matname</span><span class="o">+</span><span class="n">el</span><span class="o">+</span><span class="s2">&quot;[&quot;</span><span class="o">+</span> <span class="n">index</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
-                <span class="n">newmat</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span><span class="o">+</span><span class="n">matname</span><span class="o">+</span><span class="n">el</span><span class="o">+</span><span class="s2">&quot;[&quot;</span><span class="o">+</span> <span class="n">index</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">[</span><span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">matname</span> <span class="o">+</span> <span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">mat_dict</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+                <span class="n">newmat</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">matname</span> <span class="o">+</span> <span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">index</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span>
+                <span class="n">newmat</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">matname</span> <span class="o">+</span> <span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">index</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
         <span class="n">newmat</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">matname</span><span class="p">]</span> <span class="o">=</span> <span class="n">newmat</span>
@@ -486,7 +496,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Material.Material`</span>
+<span class="sd">        :class:`pyaedt.modules.Material.Material`</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -518,7 +528,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.SurfaceMaterial`</span>
+<span class="sd">        :class:`pyaedt.modules.SurfaceMaterial`</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -610,13 +620,13 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_aedmattolibrary</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s1">&#39;aedmattolibrary failed for material </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;aedmattolibrary failed for material </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_aedmattolibrary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matname</span><span class="p">):</span>
         <span class="n">matname</span> <span class="o">=</span> <span class="n">matname</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">arg2dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omaterial_manager</span><span class="o">.</span><span class="n">GetData</span><span class="p">(</span><span class="n">matname</span><span class="p">)),</span> <span class="n">props</span><span class="p">)</span>
+        <span class="n">arg2dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">omaterial_manager</span><span class="o">.</span><span class="n">GetData</span><span class="p">,</span> <span class="n">matname</span><span class="p">)),</span> <span class="n">props</span><span class="p">)</span>
         <span class="n">values_view</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="n">value_iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">values_view</span><span class="p">)</span>
         <span class="n">first_value</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">value_iterator</span><span class="p">)</span>
@@ -639,13 +649,15 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">def</span> <span class="nf">find_datasets</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">out_list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="n">find_datasets</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">out_list</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">if</span> <span class="s2">&quot;pwl(&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
-                        <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">):</span><span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)])</span>
+                        <span class="n">out_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">)</span> <span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)])</span>
+
         <span class="c1"># Data to be written</span>
         <span class="n">output_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -657,18 +669,33 @@
             <span class="k">if</span> <span class="n">ds</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_datasets</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
                 <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_datasets</span><span class="p">[</span><span class="n">ds</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">z</span><span class="p">:</span>
-                    <span class="n">datasets</span><span class="p">[</span><span class="n">ds</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;DimUnits&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">xunit</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">yunit</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">zunit</span><span class="p">],</span>
-                                                                            <span class="s2">&quot;Points&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
-                                                                                       <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">]})})</span>
+                    <span class="n">datasets</span><span class="p">[</span><span class="n">ds</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;Coordinates&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                                <span class="p">{</span>
+                                    <span class="s2">&quot;DimUnits&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">xunit</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">yunit</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">zunit</span><span class="p">],</span>
+                                    <span class="s2">&quot;Points&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">z</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">],</span>
+                                <span class="p">}</span>
+                            <span class="p">)</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">datasets</span><span class="p">[</span><span class="n">ds</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                        <span class="p">{</span><span class="s2">&quot;DimUnits&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">xunit</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">yunit</span><span class="p">],</span> <span class="s2">&quot;Points&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">]})})</span>
+                    <span class="n">datasets</span><span class="p">[</span><span class="n">ds</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;Coordinates&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                                <span class="p">{</span>
+                                    <span class="s2">&quot;DimUnits&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">xunit</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">yunit</span><span class="p">],</span>
+                                    <span class="s2">&quot;Points&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">val</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">],</span>
+                                <span class="p">}</span>
+                            <span class="p">)</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
         <span class="n">json_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">json_dict</span><span class="p">[</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_dict</span>
         <span class="k">if</span> <span class="n">datasets</span><span class="p">:</span>
             <span class="n">json_dict</span><span class="p">[</span><span class="s2">&quot;datasets&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datasets</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_json_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">full_json_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
             <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
@@ -696,20 +723,23 @@
                 <span class="n">yunit</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">][</span><span class="s2">&quot;DimUnits&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">zunit</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
-                <span class="n">new_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">][</span><span class="s1">&#39;Points&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">numcol</span><span class="p">]</span>
-                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">][</span><span class="s1">&#39;Points&#39;</span><span class="p">]),</span> <span class="n">numcol</span><span class="p">)]</span>
+                <span class="n">new_list</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">val</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">][</span><span class="s2">&quot;Points&quot;</span><span class="p">][</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">numcol</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">][</span><span class="s2">&quot;Points&quot;</span><span class="p">]),</span> <span class="n">numcol</span><span class="p">)</span>
+                <span class="p">]</span>
                 <span class="n">xval</span> <span class="o">=</span> <span class="n">new_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">yval</span> <span class="o">=</span> <span class="n">new_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">zval</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">if</span> <span class="n">numcol</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="n">zunit</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">][</span><span class="s2">&quot;DimUnits&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
                     <span class="n">zval</span> <span class="o">=</span> <span class="n">new_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">xunit</span><span class="o">=</span><span class="n">xunit</span><span class="p">,</span> <span class="n">yunit</span><span class="o">=</span><span class="n">yunit</span><span class="p">,</span> <span class="n">zunit</span><span class="o">=</span><span class="n">zunit</span><span class="p">,</span>
-                                            <span class="n">xlist</span><span class="o">=</span><span class="n">xval</span><span class="p">,</span> <span class="n">ylist</span><span class="o">=</span><span class="n">yval</span><span class="p">,</span> <span class="n">zlist</span><span class="o">=</span><span class="n">zval</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                    <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">xunit</span><span class="o">=</span><span class="n">xunit</span><span class="p">,</span> <span class="n">yunit</span><span class="o">=</span><span class="n">yunit</span><span class="p">,</span> <span class="n">zunit</span><span class="o">=</span><span class="n">zunit</span><span class="p">,</span> <span class="n">xlist</span><span class="o">=</span><span class="n">xval</span><span class="p">,</span> <span class="n">ylist</span><span class="o">=</span><span class="n">yval</span><span class="p">,</span> <span class="n">zlist</span><span class="o">=</span><span class="n">zval</span>
+                <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-                <span class="n">newname</span> <span class="o">=</span><span class="n">generate_unique_name</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                <span class="n">newname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;Material </span><span class="si">{}</span><span class="s2"> already exists. Renaming to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">newname</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">newname</span> <span class="o">=</span> <span class="n">el</span>

@@ -168,11 +168,15 @@
               <div>
                 
   <h1>Source code for pyaedt.modeler.Primitives3D</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
 <span class="kn">from</span> <span class="nn">.Primitives</span> <span class="kn">import</span> <span class="n">Primitives</span>
 <span class="kn">from</span> <span class="nn">.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 <span class="kn">from</span> <span class="nn">..application.Analysis</span> <span class="kn">import</span> <span class="n">CoordinateSystemAxis</span>
 <span class="kn">from</span> <span class="nn">.Object3d</span> <span class="kn">import</span> <span class="n">Object3d</span>
+<span class="kn">from</span> <span class="nn">.MultiPartComponent</span> <span class="kn">import</span> <span class="n">Person</span><span class="p">,</span> <span class="n">Bird</span><span class="p">,</span> <span class="n">Vehicle</span><span class="p">,</span> <span class="n">Antenna</span><span class="p">,</span> <span class="n">Radar</span><span class="p">,</span> <span class="n">Environment</span><span class="p">,</span> <span class="n">MultiPartComponent</span>
+<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">retry_ntimes</span>
+
 
 <div class="viewcode-block" id="Primitives3D"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.html#pyaedt.modeler.Primitives3D.Primitives3D">[docs]</a><span class="k">class</span> <span class="nc">Primitives3D</span><span class="p">(</span><span class="n">Primitives</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages primitives in 3D tools.</span>
@@ -188,6 +192,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">modeler</span><span class="p">):</span>
         <span class="n">Primitives</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">modeler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiparts</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="Primitives3D.is3d"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.is3d.html#pyaedt.modeler.Primitives3D.Primitives3D.is3d">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">is3d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -198,7 +203,8 @@
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
 <div class="viewcode-block" id="Primitives3D.create_box"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_box.html#pyaedt.modeler.Primitives3D.Primitives3D.create_box">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">dimensions_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a box.</span>
@@ -219,7 +225,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        Examples</span>
@@ -245,7 +251,7 @@
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;YSize:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">YSize</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ZSize:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ZSize</span><span class="p">)</span>
         <span class="n">vArg2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_object_attributes</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="n">matname</span><span class="p">)</span>
-        <span class="n">new_object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateBox</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
+        <span class="n">new_object_name</span> <span class="o">=</span> <span class="n">retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateBox</span><span class="p">,</span> <span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_cylinder"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_cylinder.html#pyaedt.modeler.Primitives3D.Primitives3D.create_cylinder">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -274,7 +280,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        Examples</span>
@@ -298,14 +304,22 @@
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Radius:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Radius</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Height:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Height</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;WhichAxis:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">szAxis</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NumSides:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">numSides</span><span class="p">))</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NumSides:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">numSides</span><span class="p">))</span>
         <span class="n">vArg2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_object_attributes</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="n">matname</span><span class="p">)</span>
         <span class="n">new_object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateCylinder</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_polyhedron"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_polyhedron.html#pyaedt.modeler.Primitives3D.Primitives3D.create_polyhedron">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">create_polyhedron</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cs_axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">center_position</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">start_position</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
-                          <span class="n">height</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">num_sides</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_polyhedron</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cs_axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">center_position</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">start_position</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">height</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">num_sides</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a regular polyhedron.</span>
 
 <span class="sd">        Parameters</span>
@@ -332,15 +346,22 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss</span>
 <span class="sd">        &gt;&gt;&gt; aedtapp = Hfss()</span>
-<span class="sd">        &gt;&gt;&gt; ret_obj = aedtapp.modeler.primitives.create_polyhedron(cs_axis=&#39;X&#39;, center_position=[0, 0, 0], start_position=[0,5,0],</span>
-<span class="sd">        ...                                                        height=0.5, num_sides=8, name=&quot;mybox&quot;, matname=&quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; ret_obj = aedtapp.modeler.primitives.create_polyhedron(</span>
+<span class="sd">        ...    cs_axis=&#39;X&#39;,</span>
+<span class="sd">        ...    center_position=[0, 0, 0],</span>
+<span class="sd">        ...    start_position=[0,5,0],</span>
+<span class="sd">        ...    height=0.5,</span>
+<span class="sd">        ...    num_sides=8,</span>
+<span class="sd">        ...    name=&quot;mybox&quot;,</span>
+<span class="sd">        ...    matname=&quot;copper&quot;</span>
+<span class="sd">        ... )</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">test</span> <span class="o">=</span> <span class="n">cs_axis</span>
@@ -390,7 +411,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        Examples</span>
@@ -440,7 +461,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        Examples</span>
@@ -465,8 +486,20 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_bondwire"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_bondwire.html#pyaedt.modeler.Primitives3D.Primitives3D.create_bondwire">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">create_bondwire</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_position</span><span class="p">,</span> <span class="n">end_position</span><span class="p">,</span> <span class="n">h1</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">h2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">bond_type</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                        <span class="n">diameter</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">facets</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_bondwire</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">start_position</span><span class="p">,</span>
+        <span class="n">end_position</span><span class="p">,</span>
+        <span class="n">h1</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">h2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+        <span class="n">beta</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">bond_type</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">diameter</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span>
+        <span class="n">facets</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a bondwire.</span>
 
 <span class="sd">        Parameters</span>
@@ -509,7 +542,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        Examples</span>
@@ -519,7 +552,17 @@
 <span class="sd">        &gt;&gt;&gt; origin = [0,0,0]</span>
 <span class="sd">        &gt;&gt;&gt; endpos = [10,5,20]</span>
 <span class="sd">        &gt;&gt;&gt; #Material and name are not mandatory fields</span>
-<span class="sd">        &gt;&gt;&gt; object_id = hfss.modeler.primivites.create_bondwire(origin, endpos,h1=0.5, h2=0.1, alpha=75, beta=4,bond_type=0, name=&quot;mybox&quot;, matname=&quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; object_id = hfss.modeler.primivites.create_bondwire(</span>
+<span class="sd">        ...     origin,</span>
+<span class="sd">        ...     endpos,</span>
+<span class="sd">        ...     h1=0.5,</span>
+<span class="sd">        ...     h2=0.1,</span>
+<span class="sd">        ...     alpha=75,</span>
+<span class="sd">        ...     beta=4,</span>
+<span class="sd">        ...     bond_type=0,</span>
+<span class="sd">        ...     name=&quot;mybox&quot;,</span>
+<span class="sd">        ...     matname=&quot;copper&quot;</span>
+<span class="sd">        ... )</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">XPosition</span><span class="p">,</span> <span class="n">YPosition</span><span class="p">,</span> <span class="n">ZPosition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_with_arg</span><span class="p">(</span><span class="n">start_position</span><span class="p">)</span>
@@ -528,12 +571,12 @@
         <span class="n">XSize</span><span class="p">,</span> <span class="n">YSize</span><span class="p">,</span> <span class="n">ZSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_with_arg</span><span class="p">(</span><span class="n">end_position</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">XSize</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">YSize</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">YSize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Dimension Argument must be a valid 3 Element List&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">bond_type</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">bond_type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">bondwire</span> <span class="o">=</span> <span class="s2">&quot;JEDEC_5Points&quot;</span>
-        <span class="k">elif</span> <span class="n">bond_type</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">bond_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">bondwire</span> <span class="o">=</span> <span class="s2">&quot;JEDEC_4Points&quot;</span>
 
-        <span class="k">elif</span> <span class="n">bond_type</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">bond_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">bondwire</span> <span class="o">=</span> <span class="s2">&quot;LOW&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Wrong Profile Type&quot;</span><span class="p">)</span>
@@ -549,7 +592,8 @@
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;YDir:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">YSize</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ZDir:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ZSize</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Distance:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">start_position</span><span class="p">,</span> <span class="n">end_position</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">start_position</span><span class="p">,</span> <span class="n">end_position</span><span class="p">))</span>
+        <span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;h1:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">h1</span><span class="p">))</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;h2:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">h2</span><span class="p">))</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;alpha:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">))</span>
@@ -561,7 +605,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_rectangle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_rectangle.html#pyaedt.modeler.Primitives3D.Primitives3D.create_rectangle">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">create_rectangle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csPlane</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">dimension_list</span><span class="p">,</span>  <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_covered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_rectangle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csPlane</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">dimension_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_covered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a rectangle.</span>
 
 <span class="sd">        Parameters</span>
@@ -629,7 +673,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -643,7 +687,7 @@
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ZCenter:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ZCenter</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Radius:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Radius</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;WhichAxis:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">szAxis</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NumSegments:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">numSides</span><span class="p">))</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NumSegments:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">numSides</span><span class="p">))</span>
         <span class="n">vArg2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_object_attributes</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="n">matname</span><span class="p">)</span>
         <span class="n">new_object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateCircle</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">)</span></div>
@@ -675,7 +719,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -698,10 +742,23 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_equationbased_curve"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_equationbased_curve.html#pyaedt.modeler.Primitives3D.Primitives3D.create_equationbased_curve">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">create_equationbased_curve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">z_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_end</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_points</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-                                   <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xsection_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xsection_orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                   <span class="n">xsection_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xsection_topwidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xsection_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">xsection_num_seg</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                                   <span class="n">xsection_bend_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_equationbased_curve</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">y_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">z_t</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">t_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">t_end</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">num_points</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">xsection_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">xsection_orient</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">xsection_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">xsection_topwidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">xsection_height</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">xsection_num_seg</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">xsection_bend_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an equation-based curve.</span>
 
 <span class="sd">        Parameters</span>
@@ -750,23 +807,38 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">x_section</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_crosssection_arguments</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">xsection_type</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="n">xsection_orient</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">xsection_width</span><span class="p">,</span>
-                                                 <span class="n">topwidth</span><span class="o">=</span><span class="n">xsection_topwidth</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">xsection_height</span><span class="p">,</span> <span class="n">num_seg</span><span class="o">=</span><span class="n">xsection_num_seg</span><span class="p">,</span>
-                                                 <span class="n">bend_type</span><span class="o">=</span><span class="n">xsection_bend_type</span><span class="p">)</span>
+        <span class="n">x_section</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_crosssection_arguments</span><span class="p">(</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">xsection_type</span><span class="p">,</span>
+            <span class="n">orient</span><span class="o">=</span><span class="n">xsection_orient</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">xsection_width</span><span class="p">,</span>
+            <span class="n">topwidth</span><span class="o">=</span><span class="n">xsection_topwidth</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">xsection_height</span><span class="p">,</span>
+            <span class="n">num_seg</span><span class="o">=</span><span class="n">xsection_num_seg</span><span class="p">,</span>
+            <span class="n">bend_type</span><span class="o">=</span><span class="n">xsection_bend_type</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:EquationBasedCurveParameters&quot;</span><span class="p">,</span>
-                 <span class="s2">&quot;XtFunction:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">x_t</span><span class="p">),</span>
-                 <span class="s2">&quot;YtFunction:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">y_t</span><span class="p">),</span>
-                 <span class="s2">&quot;ZtFunction:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">z_t</span><span class="p">),</span>
-                 <span class="s2">&quot;tStart:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">t_start</span><span class="p">),</span>
-                 <span class="s2">&quot;tEnd:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">t_end</span><span class="p">),</span>
-                 <span class="s2">&quot;NumOfPointsOnCurve:=&quot;</span>	<span class="p">,</span> <span class="n">num_points</span><span class="p">,</span>
-                 <span class="s2">&quot;Version:=&quot;</span>		<span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
-                 <span class="n">x_section</span><span class="p">]</span>
+        <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:EquationBasedCurveParameters&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;XtFunction:=&quot;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">x_t</span><span class="p">),</span>
+            <span class="s2">&quot;YtFunction:=&quot;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">y_t</span><span class="p">),</span>
+            <span class="s2">&quot;ZtFunction:=&quot;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">z_t</span><span class="p">),</span>
+            <span class="s2">&quot;tStart:=&quot;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">t_start</span><span class="p">),</span>
+            <span class="s2">&quot;tEnd:=&quot;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">t_end</span><span class="p">),</span>
+            <span class="s2">&quot;NumOfPointsOnCurve:=&quot;</span><span class="p">,</span>
+            <span class="n">num_points</span><span class="p">,</span>
+            <span class="s2">&quot;Version:=&quot;</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>
+            <span class="n">x_section</span><span class="p">,</span>
+        <span class="p">]</span>
 
         <span class="n">vArg2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_object_attributes</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
@@ -784,13 +856,13 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">]</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Selections:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NewPartsModelFlag:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Model&#39;</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NewPartsModelFlag:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Model&quot;</span><span class="p">)</span>
 
         <span class="n">vArg2</span> <span class="o">=</span> <span class="n">udphelixdefinition</span><span class="o">.</span><span class="n">toScript</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
 
@@ -810,7 +882,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -822,23 +894,15 @@
                     <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
                     <span class="p">[</span>
                         <span class="s2">&quot;NAME:Geometry3DPolylineTab&quot;</span><span class="p">,</span>
-                        <span class="p">[</span>
-                            <span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span>
-                            <span class="n">this_object</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;:CreatePolyline:1:Segment&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                        <span class="p">],</span>
-                        <span class="p">[</span>
-                            <span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span>
-                            <span class="p">[</span>
-                                <span class="s2">&quot;NAME:Segment Type&quot;</span><span class="p">,</span>
-                                <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Line&quot;</span>
-                            <span class="p">]</span>
-                        <span class="p">]</span>
-                    <span class="p">]</span>
-                <span class="p">])</span>
+                        <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">this_object</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;:CreatePolyline:1:Segment&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)],</span>
+                        <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Segment Type&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Line&quot;</span><span class="p">]],</span>
+                    <span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_udm"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_udm.html#pyaedt.modeler.Primitives3D.Primitives3D.create_udm">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">create_udm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udmfullname</span><span class="p">,</span> <span class="n">udm_params_list</span><span class="p">,</span> <span class="n">udm_library</span><span class="o">=</span><span class="s1">&#39;syslib&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_udm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udmfullname</span><span class="p">,</span> <span class="n">udm_params_list</span><span class="p">,</span> <span class="n">udm_library</span><span class="o">=</span><span class="s2">&quot;syslib&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a user-defined model.</span>
 
 <span class="sd">        Parameters</span>
@@ -852,11 +916,11 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            3D object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:UserDefinedModelParameters&quot;</span><span class="p">,[</span><span class="s2">&quot;NAME:Definition&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;NAME:Options&quot;</span><span class="p">]]</span>
+        <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:UserDefinedModelParameters&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Definition&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;NAME:Options&quot;</span><span class="p">]]</span>
         <span class="n">vArgParamVector</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:GeometryParams&quot;</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">udm_params_list</span><span class="p">:</span>
@@ -868,14 +932,28 @@
                 <span class="n">val</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">Value</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
                 <span class="n">vArgParamVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-            <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="s1">&#39;0123456789&#39;</span><span class="p">:</span>
+                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span>
                 <span class="n">vArgParamVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">vArgParamVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;DataType:=&quot;</span><span class="p">,</span> <span class="s2">&quot;String&quot;</span><span class="p">,</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
-                     <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                    <span class="p">[</span>
+                        <span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
+                        <span class="n">name</span><span class="p">,</span>
+                        <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span>
+                        <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span>
+                        <span class="s2">&quot;DataType:=&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;String&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span>
+                        <span class="mi">1</span><span class="p">,</span>
+                        <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span>
+                        <span class="mi">0</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
 
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vArgParamVector</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;DllName:=&quot;</span><span class="p">)</span>
@@ -896,7 +974,7 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Primitives3D.insert_3d_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.insert_3d_component.html#pyaedt.modeler.Primitives3D.Primitives3D.insert_3d_component">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">insert_3d_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compFile</span><span class="p">,</span> <span class="n">geoParams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">szMatParams</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">szDesignParams</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">targetCS</span><span class="o">=</span><span class="s1">&#39;Global&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">insert_3d_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compFile</span><span class="p">,</span> <span class="n">geoParams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">szMatParams</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">szDesignParams</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">targetCS</span><span class="o">=</span><span class="s2">&quot;Global&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Insert a new 3D component.</span>
 
 <span class="sd">        Parameters</span>
@@ -920,20 +998,31 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:InsertComponentData&quot;</span><span class="p">]</span>
         <span class="n">sz_geo_params</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">geoParams</span><span class="p">:</span>
+            <span class="n">geometryparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">get_components3d_vars</span><span class="p">(</span><span class="n">compFile</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">geometryparams</span><span class="p">:</span>
+                <span class="n">geoParams</span> <span class="o">=</span> <span class="n">geometryparams</span>
+
         <span class="k">if</span> <span class="n">geoParams</span><span class="p">:</span>
             <span class="n">sz_geo_params</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">=&#39;</span><span class="si">{1}</span><span class="s2">&#39; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">geoParams</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;GeometryParameters:=&quot;</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sz_geo_params</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;MaterialParameters:=&quot;</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">szMatParams</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;DesignParameters:=&quot;</span><span class="p">)</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">szDesignParams</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;TargetCS:=&quot;</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">targetCS</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ComponentFile:=&quot;</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compFile</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;IsLocal:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;UniqueIdentifier:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">varg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:InstanceParameters&quot;</span><span class="p">]</span>
+        <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;GeometryParameters:=&quot;</span><span class="p">)</span>
+        <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sz_geo_params</span><span class="p">)</span>
+        <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;MaterialParameters:=&quot;</span><span class="p">)</span>
+        <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">szMatParams</span><span class="p">)</span>
+        <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;DesignParameters:=&quot;</span><span class="p">)</span>
+        <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">szDesignParams</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varg2</span><span class="p">)</span>
         <span class="n">new_object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Insert3DComponent</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
-        <span class="c1">#TODO return an object</span>
+        <span class="c1"># TODO return an object</span>
         <span class="k">return</span> <span class="n">new_object_name</span></div>
 
 <div class="viewcode-block" id="Primitives3D.get_3d_component_object_list"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.get_3d_component_object_list.html#pyaedt.modeler.Primitives3D.Primitives3D.get_3d_component_object_list">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -955,7 +1044,355 @@
         <span class="k">if</span> <span class="n">compobj</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">compobj</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[]</span></div></div>
+            <span class="k">return</span> <span class="p">[]</span></div>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_check_actor_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actor_folder</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Folder </span><span class="si">{}</span><span class="s2"> does not exist.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.json&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">))</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">fname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.a3dcomp&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;At least one json and one a3dcomp file is needed.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_initialize_multipart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">MultiPartComponent</span><span class="o">.</span><span class="n">_t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_variable_manager</span><span class="o">.</span><span class="n">independent_variable_names</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">MultiPartComponent</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Primitives3D.add_person"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.add_person.html#pyaedt.modeler.Primitives3D.Primitives3D.add_person">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">add_person</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">actor_folder</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">global_offset</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">yaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pitch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">relative_cs_name</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a Walking Person Multipart from 3D Components.</span>
+
+<span class="sd">        It requires a json file in the folder containing person infos. An example json file is showed here.</span>
+
+<span class="sd">         .. code-block:: json</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;name&quot;: &quot;person3&quot;,</span>
+<span class="sd">                &quot;version&quot;: 1,</span>
+<span class="sd">                &quot;class&quot;:&quot;person&quot;,</span>
+<span class="sd">                &quot;stride&quot;:&quot;0.76meter&quot;,</span>
+<span class="sd">                &quot;xlim&quot;:[&quot;-.43&quot;,&quot;.43&quot;],</span>
+<span class="sd">                &quot;ylim&quot;:[&quot;-.25&quot;,&quot;.25&quot;],</span>
+<span class="sd">                &quot;parts&quot;: {</span>
+<span class="sd">                    &quot;arm_left&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;arm_left.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;-.04&quot;,&quot;0&quot;,&quot;1.37&quot;],</span>
+<span class="sd">                        &quot;rotation&quot;:&quot;-30deg&quot;,</span>
+<span class="sd">                        &quot;compensation_angle&quot;:&quot;-15deg&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;Y&quot;</span>
+<span class="sd">                        },</span>
+<span class="sd">                    &quot;arm_right&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;arm_right.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;0&quot;,&quot;0&quot;,&quot;1.37&quot;],</span>
+<span class="sd">                        &quot;rotation&quot;:&quot;30deg&quot;,</span>
+<span class="sd">                        &quot;compensation_angle&quot;:&quot;30deg&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;Y&quot;</span>
+<span class="sd">                        },</span>
+<span class="sd">                    &quot;leg_left&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;leg_left.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;0&quot;,&quot;0&quot;,&quot;.9&quot;],</span>
+<span class="sd">                        &quot;rotation&quot;:&quot;20deg&quot;,</span>
+<span class="sd">                        &quot;compensation_angle&quot;:&quot;22.5deg&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;Y&quot;</span>
+<span class="sd">                        },</span>
+<span class="sd">                    &quot;leg_right&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;leg_right.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;-.04&quot;,&quot;0&quot;,&quot;.9375&quot;],</span>
+<span class="sd">                        &quot;rotation&quot;:&quot;-20deg&quot;,</span>
+<span class="sd">                        &quot;compensation_angle&quot;:&quot;-22.5deg&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;Y&quot;</span>
+<span class="sd">                        },</span>
+<span class="sd">                    &quot;torso&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;torso.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:null,</span>
+<span class="sd">                        &quot;rotation&quot;:null,</span>
+<span class="sd">                        &quot;compensation_angle&quot;:null,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:null</span>
+<span class="sd">                        }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        actor_folder: str</span>
+<span class="sd">            Path to the actor folder. It must contain a json settings file and a 3dcomponent (.a3dcomp).</span>
+<span class="sd">        speed:  float, Optional</span>
+<span class="sd">            Object movement speed with time (m_per_sec).</span>
+<span class="sd">        global_offset: list, Optional</span>
+<span class="sd">            Offset from Global Coordinate System [x,y,z] in meters.</span>
+<span class="sd">        yaw: float, Optional</span>
+<span class="sd">            Yaw Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        pitch: float, Optional</span>
+<span class="sd">            Pitch Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        roll: float, Optional</span>
+<span class="sd">            Roll Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        relative_cs_name : str</span>
+<span class="sd">            Relative CS Name of the actor. ``None`` for Global CS.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.MultiPartComponent.Person`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_multipart</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_actor_folder</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">person1</span> <span class="o">=</span> <span class="n">Person</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="n">speed</span><span class="p">,</span> <span class="n">relative_cs_name</span><span class="o">=</span><span class="n">relative_cs_name</span><span class="p">)</span>
+        <span class="n">person1</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">global_offset</span>
+        <span class="n">person1</span><span class="o">.</span><span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">person1</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pitch</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">person1</span><span class="o">.</span><span class="n">roll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">person1</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiparts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">person1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">person1</span></div>
+
+<div class="viewcode-block" id="Primitives3D.add_vehicle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.add_vehicle.html#pyaedt.modeler.Primitives3D.Primitives3D.add_vehicle">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">add_vehicle</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">actor_folder</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">global_offset</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">yaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pitch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">relative_cs_name</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a Moving Vehicle Multipart from 3D Components.</span>
+
+<span class="sd">        It requires a json file in the folder containing vehicle infos. An example json file is showed here.</span>
+
+
+<span class="sd">         .. code-block:: json</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;name&quot;: &quot;vehicle3&quot;,</span>
+<span class="sd">                &quot;version&quot;: 1,</span>
+<span class="sd">                &quot;type&quot;:&quot;mustang&quot;,</span>
+<span class="sd">                &quot;class&quot;:&quot;vehicle&quot;,</span>
+<span class="sd">                &quot;xlim&quot;:[&quot;-1.94&quot;,&quot;2.8&quot;],</span>
+<span class="sd">                &quot;ylim&quot;:[&quot;-.91&quot;,&quot;.91&quot;],</span>
+<span class="sd">                &quot;parts&quot;: {</span>
+<span class="sd">                    &quot;wheels_front&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;wheels_front.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;1.8970271810532&quot; ,&quot;0&quot; ,&quot;0.34809664860487&quot;],</span>
+<span class="sd">                        &quot;tire_radius&quot;:&quot;0.349&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;Y&quot;</span>
+<span class="sd">                        },</span>
+<span class="sd">                    &quot;wheels_rear&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;wheels_rear.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;-0.82228746728897&quot; ,&quot;0&quot;,&quot;0.34809664860487&quot;],</span>
+<span class="sd">                        &quot;tire_radius&quot;:&quot;0.349&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;Y&quot;</span>
+<span class="sd">                        },</span>
+<span class="sd">                    &quot;body&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;body.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:null,</span>
+<span class="sd">                        &quot;tire_radius&quot;:null,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:null</span>
+<span class="sd">                        }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        actor_folder : str</span>
+<span class="sd">            Path to the actor directory. It must contain a json settings file</span>
+<span class="sd">            and a 3dcomponent (``.a3dcomp`` file).</span>
+<span class="sd">        speed:  float, Optional</span>
+<span class="sd">            Object movement speed with time (m_per_sec).</span>
+<span class="sd">        global_offset: list, Optional</span>
+<span class="sd">            Offset from Global Coordinate System [x,y,z] in meters.</span>
+<span class="sd">        yaw: float, Optional</span>
+<span class="sd">            Yaw Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        pitch: float, Optional</span>
+<span class="sd">            Pitch Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        roll: float, Optional</span>
+<span class="sd">            Roll Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        relative_cs_name : str</span>
+<span class="sd">            Relative CS Name of the actor. ``None`` for Global CS.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.MultiPartComponent.Vehicle`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_multipart</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_actor_folder</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">vehicle</span> <span class="o">=</span> <span class="n">Vehicle</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="n">speed</span><span class="p">,</span> <span class="n">relative_cs_name</span><span class="o">=</span><span class="n">relative_cs_name</span><span class="p">)</span>
+        <span class="n">vehicle</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">global_offset</span>
+        <span class="n">vehicle</span><span class="o">.</span><span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">vehicle</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pitch</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">vehicle</span><span class="o">.</span><span class="n">roll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">vehicle</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiparts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vehicle</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vehicle</span></div>
+
+<div class="viewcode-block" id="Primitives3D.add_bird"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.add_bird.html#pyaedt.modeler.Primitives3D.Primitives3D.add_bird">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">add_bird</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">actor_folder</span><span class="p">,</span>
+        <span class="n">speed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">global_offset</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="n">yaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">pitch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">roll</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">flapping_rate</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">relative_cs_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a Bird Multipart from 3D Components.</span>
+
+<span class="sd">        It requires a json file in the folder containing bird infos. An example json file is showed here.</span>
+
+<span class="sd">         .. code-block:: json</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;name&quot;: &quot;bird1&quot;,</span>
+<span class="sd">                &quot;version&quot;: 1,</span>
+<span class="sd">                &quot;class&quot;:&quot;bird&quot;,</span>
+<span class="sd">                &quot;xlim&quot;:[&quot;-.7&quot;,&quot;2.75&quot;],</span>
+<span class="sd">                &quot;ylim&quot;:[&quot;-1.2&quot;,&quot;1.2&quot;],</span>
+<span class="sd">                &quot;parts&quot;: {</span>
+<span class="sd">                    &quot;body&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;body.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:null,</span>
+<span class="sd">                        &quot;rotation&quot;:null,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:null</span>
+<span class="sd">                    },</span>
+<span class="sd">                        &quot;wing_right&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;wing_left.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;.001778&quot; ,&quot;.00508&quot; ,&quot;.00762&quot;],</span>
+<span class="sd">                        &quot;rotation&quot;:&quot;-45deg&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;X&quot;</span>
+<span class="sd">                    },</span>
+<span class="sd">                        &quot;wing_left&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;wing_right.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:[&quot;.001778&quot; ,&quot;-.00508&quot; ,&quot;.00762&quot;],</span>
+<span class="sd">                        &quot;rotation&quot;:&quot;45deg&quot;,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:&quot;X&quot;</span>
+<span class="sd">                    },</span>
+<span class="sd">                        &quot;tail&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;tail.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:null,</span>
+<span class="sd">                        &quot;rotation&quot;:null,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:null</span>
+<span class="sd">                    },</span>
+<span class="sd">                        &quot;beak&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;beak.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:null,</span>
+<span class="sd">                        &quot;rotation&quot;:null,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:null</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        actor_folder : str</span>
+<span class="sd">            Path to the actor directory. It must contain a json settings file and a</span>
+<span class="sd">            3dcomponent (``.a3dcomp`` file)</span>
+<span class="sd">        speed:  float, Optional</span>
+<span class="sd">            Object movement speed with time (m_per_sec).</span>
+<span class="sd">        global_offset: list, Optional</span>
+<span class="sd">            Offset from Global Coordinate System [x,y,z] in meters.</span>
+<span class="sd">        yaw: float, Optional</span>
+<span class="sd">            Yaw Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        pitch: float, Optional</span>
+<span class="sd">            Pitch Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        roll: float, Optional</span>
+<span class="sd">            Roll Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        flapping_rate : float, optional</span>
+<span class="sd">            Motion flapping rate in Hz.</span>
+<span class="sd">        relative_cs_name : str</span>
+<span class="sd">            Relative CS Name of the actor. ``None`` for Global CS.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.MultiPartComponent.Bird`</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss</span>
+<span class="sd">        &gt;&gt;&gt; app = Hfss()</span>
+<span class="sd">        &gt;&gt;&gt; bird_dir = &quot;path/to/bird/directory&quot;</span>
+<span class="sd">        &gt;&gt;&gt; bird1 = app.modeler.primitives.add_bird(bird_dir, 1.0, [19, 4, 3], 120, -5, flapping_rate=30)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_multipart</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_actor_folder</span><span class="p">(</span><span class="n">actor_folder</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">bird</span> <span class="o">=</span> <span class="n">Bird</span><span class="p">(</span>
+            <span class="n">actor_folder</span><span class="p">,</span>
+            <span class="n">speed</span><span class="o">=</span><span class="n">speed</span><span class="p">,</span>
+            <span class="n">flapping_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">flapping_rate</span><span class="p">,</span> <span class="s2">&quot;Hz&quot;</span><span class="p">),</span>
+            <span class="n">relative_cs_name</span><span class="o">=</span><span class="n">relative_cs_name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">bird</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">global_offset</span>
+        <span class="n">bird</span><span class="o">.</span><span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">bird</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pitch</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">bird</span><span class="o">.</span><span class="n">roll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">bird</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiparts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bird</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bird</span></div>
+
+<div class="viewcode-block" id="Primitives3D.add_environment"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.add_environment.html#pyaedt.modeler.Primitives3D.Primitives3D.add_environment">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">add_environment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_folder</span><span class="p">,</span> <span class="n">global_offset</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">yaw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pitch</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">roll</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">relative_cs_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add an Environment Multipart Component from Json file.</span>
+
+<span class="sd">         .. code-block:: json</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;name&quot;: &quot;open1&quot;,</span>
+<span class="sd">                &quot;version&quot;: 1,</span>
+<span class="sd">                &quot;class&quot;:&quot;environment&quot;,</span>
+<span class="sd">                &quot;xlim&quot;:[&quot;-5&quot;,&quot;95&quot;],</span>
+<span class="sd">                &quot;ylim&quot;:[&quot;-60&quot;,&quot;60&quot;],</span>
+<span class="sd">                &quot;parts&quot;: {</span>
+<span class="sd">                    &quot;open_area&quot;: {</span>
+<span class="sd">                        &quot;comp_name&quot;: &quot;open1.a3dcomp&quot;,</span>
+<span class="sd">                        &quot;offset&quot;:null,</span>
+<span class="sd">                        &quot;rotation_cs&quot;:null,</span>
+<span class="sd">                        &quot;rotation&quot;:null,</span>
+<span class="sd">                        &quot;rotation_axis&quot;:null,</span>
+<span class="sd">                        &quot;duplicate_number&quot;:null,</span>
+<span class="sd">                        &quot;duplicate_vector&quot;:null</span>
+<span class="sd">                        }</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        env_folder : str</span>
+<span class="sd">            Path to the actor directory. It must contain a json settings file and a 3dcomponent (``.a3dcomp`` file).</span>
+<span class="sd">        global_offset: list, Optional</span>
+<span class="sd">            Offset from Global Coordinate System [x,y,z] in meters.</span>
+<span class="sd">        yaw: float, Optional</span>
+<span class="sd">            Yaw Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        pitch: float, Optional</span>
+<span class="sd">            Pitch Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        roll: float, Optional</span>
+<span class="sd">            Roll Rotation from Global Coordinate System in deg.</span>
+<span class="sd">        relative_cs_name : str</span>
+<span class="sd">            Relative CS Name of the actor. ``None`` for Global CS.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.MultiPartComponent.Environment`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_multipart</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_actor_folder</span><span class="p">(</span><span class="n">env_folder</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">environment</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span><span class="n">env_folder</span><span class="p">,</span> <span class="n">relative_cs_name</span><span class="o">=</span><span class="n">relative_cs_name</span><span class="p">)</span>
+        <span class="n">environment</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">global_offset</span>
+        <span class="n">environment</span><span class="o">.</span><span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">yaw</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">environment</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pitch</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">environment</span><span class="o">.</span><span class="n">roll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="n">environment</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiparts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">environment</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">environment</span></div></div>
 </pre></div>
 
               </div>

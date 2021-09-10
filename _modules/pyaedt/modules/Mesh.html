@@ -175,15 +175,17 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
 <span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">MethodNotSupportedError</span>
 
-<span class="kn">from</span> <span class="nn">..application.DataHandlers</span> <span class="kn">import</span> <span class="n">dict2arg</span>
+<span class="kn">from</span> <span class="nn">..generic.DataHandlers</span> <span class="kn">import</span> <span class="n">dict2arg</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
-<span class="n">meshers</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;HFSS&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
-           <span class="s2">&quot;Icepak&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshRegion&quot;</span><span class="p">,</span>
-           <span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
-           <span class="s2">&quot;Maxwell 2D&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
-           <span class="s2">&quot;Maxwell 3D&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
-           <span class="s2">&quot;Q3D Extractor&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">}</span>
+<span class="n">meshers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;HFSS&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Icepak&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshRegion&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Maxwell 2D&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Maxwell 3D&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Q3D Extractor&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
+<span class="p">}</span>
 
 
 <span class="k">class</span> <span class="nc">MeshOperation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -343,7 +345,7 @@
     <span class="k">def</span> <span class="nf">_get_design_global_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s1">&#39;MeshSetup&#39;</span><span class="p">][</span><span class="s1">&#39;MeshSettings&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshSettings&quot;</span><span class="p">]</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">()</span>
 
@@ -352,12 +354,16 @@
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">meshops</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s1">&#39;MeshSetup&#39;</span><span class="p">][</span><span class="s1">&#39;MeshOperations&#39;</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s1">&#39;MeshSetup&#39;</span><span class="p">][</span><span class="s1">&#39;MeshOperations&#39;</span><span class="p">][</span><span class="n">ds</span><span class="p">])</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
-                    <span class="n">meshops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s1">&#39;MeshSetup&#39;</span><span class="p">][</span><span class="s1">&#39;MeshOperations&#39;</span><span class="p">][</span><span class="n">ds</span><span class="p">],</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s1">&#39;MeshSetup&#39;</span><span class="p">][</span><span class="s1">&#39;MeshOperations&#39;</span><span class="p">][</span><span class="n">ds</span><span class="p">][</span>
-                                                    <span class="s1">&#39;Type&#39;</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshOperations&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshOperations&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">])</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                    <span class="n">meshops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">MeshOperation</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="p">,</span>
+                            <span class="n">ds</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshOperations&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">],</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshOperations&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;Type&quot;</span><span class="p">],</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="n">meshops</span>
@@ -377,7 +383,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -395,8 +401,14 @@
             <span class="n">seltype</span> <span class="o">=</span> <span class="s2">&quot;Faces&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">seltype</span> <span class="o">=</span> <span class="s2">&quot;Objects&quot;</span>
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;SurfApproxBased&quot;</span><span class="p">,</span> <span class="s2">&quot;CurvedSurfaceApproxChoice&quot;</span><span class="p">:</span> <span class="s2">&quot;UseSlider&quot;</span><span class="p">,</span> <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
-                             <span class="s2">&quot;SliderMeshSettings&quot;</span><span class="p">:</span> <span class="n">level</span><span class="p">})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;SurfApproxBased&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;CurvedSurfaceApproxChoice&quot;</span><span class="p">:</span> <span class="s2">&quot;UseSlider&quot;</span><span class="p">,</span>
+                <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                <span class="s2">&quot;SliderMeshSettings&quot;</span><span class="p">:</span> <span class="n">level</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;SurfApproxBased&quot;</span><span class="p">)</span>
         <span class="n">mop</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meshoperations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mop</span><span class="p">)</span>
@@ -421,7 +433,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -449,11 +461,19 @@
             <span class="n">aspect_ratio_enable</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">aspect_ratio</span> <span class="o">=</span> <span class="s2">&quot;10&quot;</span>
 
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;SurfApproxBased&quot;</span><span class="p">,</span> <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span> <span class="s2">&quot;CurvedSurfaceApproxChoice&quot;</span><span class="p">:</span> <span class="s2">&quot;ManualSettings&quot;</span><span class="p">,</span>
-                             <span class="s2">&quot;SurfDevChoice&quot;</span><span class="p">:</span> <span class="n">surf_dev_enable</span><span class="p">,</span> <span class="s2">&quot;SurfDev&quot;</span><span class="p">:</span> <span class="n">surf_dev</span><span class="p">,</span>
-                             <span class="s2">&quot;NormalDevChoice&quot;</span><span class="p">:</span> <span class="n">normal_dev_enable</span><span class="p">,</span>
-                             <span class="s2">&quot;NormalDev&quot;</span><span class="p">:</span> <span class="n">normal_dev</span><span class="p">,</span> <span class="s2">&quot;AspectRatioChoice&quot;</span><span class="p">:</span> <span class="n">aspect_ratio_enable</span><span class="p">,</span>
-                             <span class="s2">&quot;AspectRatio&quot;</span><span class="p">:</span> <span class="n">aspect_ratio</span><span class="p">})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;SurfApproxBased&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                <span class="s2">&quot;CurvedSurfaceApproxChoice&quot;</span><span class="p">:</span> <span class="s2">&quot;ManualSettings&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;SurfDevChoice&quot;</span><span class="p">:</span> <span class="n">surf_dev_enable</span><span class="p">,</span>
+                <span class="s2">&quot;SurfDev&quot;</span><span class="p">:</span> <span class="n">surf_dev</span><span class="p">,</span>
+                <span class="s2">&quot;NormalDevChoice&quot;</span><span class="p">:</span> <span class="n">normal_dev_enable</span><span class="p">,</span>
+                <span class="s2">&quot;NormalDev&quot;</span><span class="p">:</span> <span class="n">normal_dev</span><span class="p">,</span>
+                <span class="s2">&quot;AspectRatioChoice&quot;</span><span class="p">:</span> <span class="n">aspect_ratio_enable</span><span class="p">,</span>
+                <span class="s2">&quot;AspectRatio&quot;</span><span class="p">:</span> <span class="n">aspect_ratio</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
 
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;SurfApproxBased&quot;</span><span class="p">)</span>
         <span class="n">mop</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
@@ -476,7 +496,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -494,8 +514,14 @@
         <span class="k">if</span> <span class="n">defeature_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span> <span class="s2">&quot;UseAutoLength&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;DefeatureBased&quot;</span><span class="p">,</span> <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span> <span class="s2">&quot;UseAutoLength&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                                 <span class="s2">&quot;DefeatureLength&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">defeature_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;mm&quot;</span><span class="p">})</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;DefeatureBased&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                    <span class="s2">&quot;UseAutoLength&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;DefeatureLength&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">defeature_length</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
 
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;DefeatureBased&quot;</span><span class="p">)</span>
 
@@ -504,8 +530,18 @@
         <span class="k">return</span> <span class="n">mop</span></div>
 
 <div class="viewcode-block" id="Mesh.assign_initial_mesh_from_slider"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.Mesh.Mesh.assign_initial_mesh_from_slider.html#pyaedt.modules.Mesh.Mesh.assign_initial_mesh_from_slider">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">assign_initial_mesh_from_slider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Auto&#39;</span><span class="p">,</span> <span class="n">usedynamicsurface</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">useflexmesh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                        <span class="n">applycurvilinear</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">usefallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">usephi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">automodelresolution</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">modelresolutionlength</span><span class="o">=</span><span class="s2">&quot;0.0001mm&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">assign_initial_mesh_from_slider</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">level</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Auto&quot;</span><span class="p">,</span>
+        <span class="n">usedynamicsurface</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">useflexmesh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">applycurvilinear</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">usefallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">usephi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">automodelresolution</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">modelresolutionlength</span><span class="o">=</span><span class="s2">&quot;0.0001mm&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Assign a surface mesh level to an object.</span>
 
 <span class="sd">        Parameters</span>
@@ -549,14 +585,30 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">automodelresolution</span><span class="p">:</span>
             <span class="n">modelres</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;DefeatureLength:=&quot;</span><span class="p">)</span>
             <span class="n">modelres</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">modelresolutionlength</span><span class="p">)</span>
-        <span class="n">surface_appr</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:GlobalSurfApproximation&quot;</span><span class="p">,</span> <span class="s2">&quot;CurvedSurfaceApproxChoice:=&quot;</span><span class="p">,</span> <span class="s2">&quot;UseSlider&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;SliderMeshSettings:=&quot;</span><span class="p">,</span> <span class="n">level</span><span class="p">]</span>
+        <span class="n">surface_appr</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:GlobalSurfApproximation&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;CurvedSurfaceApproxChoice:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;UseSlider&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;SliderMeshSettings:=&quot;</span><span class="p">,</span>
+            <span class="n">level</span><span class="p">,</span>
+        <span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;2D Extractor&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Maxwell 2D&quot;</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:MeshSettings&quot;</span><span class="p">,</span> <span class="n">surface_appr</span><span class="p">,</span> <span class="n">modelres</span><span class="p">,</span> <span class="s2">&quot;MeshMethod:=&quot;</span><span class="p">,</span> <span class="n">method</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:MeshSettings&quot;</span><span class="p">,</span><span class="n">surface_appr</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:GlobalCurvilinear&quot;</span><span class="p">,</span> <span class="s2">&quot;Apply:=&quot;</span><span class="p">,</span> <span class="n">applycurvilinear</span><span class="p">],</span>
-                    <span class="n">modelres</span><span class="p">,</span> <span class="s2">&quot;MeshMethod:=&quot;</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="s2">&quot;UseLegacyFaceterForTauVolumeMesh:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span>
-                    <span class="s2">&quot;DynamicSurfaceResolution:=&quot;</span><span class="p">,</span> <span class="n">usedynamicsurface</span><span class="p">,</span> <span class="s2">&quot;UseFlexMeshingForTAUvolumeMesh:=&quot;</span><span class="p">,</span> <span class="n">useflexmesh</span><span class="p">]</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;NAME:MeshSettings&quot;</span><span class="p">,</span>
+                <span class="n">surface_appr</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:GlobalCurvilinear&quot;</span><span class="p">,</span> <span class="s2">&quot;Apply:=&quot;</span><span class="p">,</span> <span class="n">applycurvilinear</span><span class="p">],</span>
+                <span class="n">modelres</span><span class="p">,</span>
+                <span class="s2">&quot;MeshMethod:=&quot;</span><span class="p">,</span>
+                <span class="n">method</span><span class="p">,</span>
+                <span class="s2">&quot;UseLegacyFaceterForTauVolumeMesh:=&quot;</span><span class="p">,</span>
+                <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;DynamicSurfaceResolution:=&quot;</span><span class="p">,</span>
+                <span class="n">usedynamicsurface</span><span class="p">,</span>
+                <span class="s2">&quot;UseFlexMeshingForTAUvolumeMesh:=&quot;</span><span class="p">,</span>
+                <span class="n">useflexmesh</span><span class="p">,</span>
+            <span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS&quot;</span><span class="p">:</span>
             <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;UseAlternativeMeshMethodsAsFallBack:=&quot;</span><span class="p">)</span>
             <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">usefallback</span><span class="p">)</span>
@@ -579,7 +631,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -626,8 +678,7 @@
         <span class="c1"># Type &quot;Area Based&quot; not included since the delete command causes</span>
         <span class="c1"># desktop to crash</span>
         <span class="c1"># https://tfs.ansys.com:8443/tfs/ANSYS_Development/Portfolio/ACE%20Team/_queries?id=150923</span>
-        <span class="n">mesh_op_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Length Based&quot;</span><span class="p">,</span>
-                         <span class="s2">&quot;Surface Approximation Based&quot;</span><span class="p">]</span>
+        <span class="n">mesh_op_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Length Based&quot;</span><span class="p">,</span> <span class="s2">&quot;Surface Approximation Based&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">mesh_type</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">mesh_type</span> <span class="ow">in</span> <span class="n">mesh_op_types</span><span class="p">:</span>
@@ -664,7 +715,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -702,9 +753,18 @@
         <span class="k">if</span> <span class="n">seltype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Error in Assignment&quot;</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;LengthBased&quot;</span><span class="p">,</span> <span class="s2">&quot;RefineInside&quot;</span><span class="p">:</span> <span class="n">isinside</span><span class="p">,</span> <span class="s2">&quot;Enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
-                             <span class="s2">&quot;RestrictElem&quot;</span><span class="p">:</span> <span class="n">restrictel</span><span class="p">,</span> <span class="s2">&quot;NumMaxElem&quot;</span><span class="p">:</span> <span class="n">numel</span><span class="p">,</span> <span class="s2">&quot;RestrictLength&quot;</span><span class="p">:</span> <span class="n">restrictlength</span><span class="p">,</span>
-                             <span class="s2">&quot;MaxLength&quot;</span><span class="p">:</span> <span class="n">length</span><span class="p">})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;LengthBased&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;RefineInside&quot;</span><span class="p">:</span> <span class="n">isinside</span><span class="p">,</span>
+                <span class="s2">&quot;Enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                <span class="s2">&quot;RestrictElem&quot;</span><span class="p">:</span> <span class="n">restrictel</span><span class="p">,</span>
+                <span class="s2">&quot;NumMaxElem&quot;</span><span class="p">:</span> <span class="n">numel</span><span class="p">,</span>
+                <span class="s2">&quot;RestrictLength&quot;</span><span class="p">:</span> <span class="n">restrictlength</span><span class="p">,</span>
+                <span class="s2">&quot;MaxLength&quot;</span><span class="p">:</span> <span class="n">length</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
 
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;LengthBased&quot;</span><span class="p">)</span>
         <span class="n">mop</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
@@ -712,8 +772,9 @@
         <span class="k">return</span> <span class="n">mop</span></div>
 
 <div class="viewcode-block" id="Mesh.assign_skin_depth"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.Mesh.Mesh.assign_skin_depth.html#pyaedt.modules.Mesh.Mesh.assign_skin_depth">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">assign_skin_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">skindepth</span><span class="p">,</span> <span class="n">maxelements</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triangulation_max_length</span><span class="o">=</span><span class="s2">&quot;0.1mm&quot;</span><span class="p">,</span> <span class="n">numlayers</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="p">,</span>
-                          <span class="n">meshop_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">assign_skin_depth</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">skindepth</span><span class="p">,</span> <span class="n">maxelements</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triangulation_max_length</span><span class="o">=</span><span class="s2">&quot;0.1mm&quot;</span><span class="p">,</span> <span class="n">numlayers</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="n">meshop_name</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Assign a skin depth for the mesh refinement.</span>
 
 <span class="sd">        Parameters</span>
@@ -723,11 +784,9 @@
 <span class="sd">        skindepth : bool</span>
 <span class="sd">            Whether the length mesh is inside the selection. The default is ``True``.</span>
 <span class="sd">        maxelements : int, optional</span>
-<span class="sd">            Maximum number of elements. The default is ``None``, which means</span>
-<span class="sd">            this parameter is disabled.</span>
+<span class="sd">            Maximum number of elements. The default is ``None``, which means this parameter is disabled.</span>
 <span class="sd">        triangulation_max_length : str, optional</span>
-<span class="sd">            Maximum surface triangulation length with units. The default</span>
-<span class="sd">            is ``&quot;0.1mm&quot;``.</span>
+<span class="sd">            Maximum surface triangulation length with units. The default is ``&quot;0.1mm&quot;``.</span>
 <span class="sd">        numlayers : str, optional</span>
 <span class="sd">            Number of layers. The default is ``&quot;2&quot;``.</span>
 <span class="sd">        meshop_name : str, optional</span>
@@ -735,7 +794,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        pyaedt.modules.Mesh.MeshOperation</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -767,9 +826,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Error in Assignment&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;SkinDepthBased&quot;</span><span class="p">,</span> <span class="s2">&quot;Enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
-                             <span class="s2">&quot;RestrictElem&quot;</span><span class="p">:</span> <span class="n">restrictlength</span><span class="p">,</span> <span class="s2">&quot;NumMaxElem&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">maxelements</span><span class="p">),</span> <span class="s2">&quot;SkinDepth&quot;</span><span class="p">:</span> <span class="n">skindepth</span><span class="p">,</span>
-                             <span class="s2">&quot;SurfTriMaxLength&quot;</span><span class="p">:</span> <span class="n">triangulation_max_length</span><span class="p">,</span> <span class="s2">&quot;NumLayers&quot;</span><span class="p">:</span> <span class="n">numlayers</span><span class="p">})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;SkinDepthBased&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Enabled&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                <span class="s2">&quot;RestrictElem&quot;</span><span class="p">:</span> <span class="n">restrictlength</span><span class="p">,</span>
+                <span class="s2">&quot;NumMaxElem&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">maxelements</span><span class="p">),</span>
+                <span class="s2">&quot;SkinDepth&quot;</span><span class="p">:</span> <span class="n">skindepth</span><span class="p">,</span>
+                <span class="s2">&quot;SurfTriMaxLength&quot;</span><span class="p">:</span> <span class="n">triangulation_max_length</span><span class="p">,</span>
+                <span class="s2">&quot;NumLayers&quot;</span><span class="p">:</span> <span class="n">numlayers</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
 
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;SkinDepthBased&quot;</span><span class="p">)</span>
         <span class="n">mop</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
@@ -791,7 +859,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        pyaedt.modules.Mesh.MeshOperation</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -826,20 +894,20 @@
     <span class="k">def</span> <span class="nf">assign_curvature_extraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">disable_for_faceted_surf</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">meshop_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Assign curvature extraction.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        names : list</span>
-<span class="sd">            List of objects or faces.</span>
-<span class="sd">        disable_for_faceted_surf : bool, optional</span>
-<span class="sd">            Whether curvature extraction is enabled for faceted surfaces.</span>
-<span class="sd">            The default is ``True``.</span>
-<span class="sd">        meshop_name : str, optional</span>
-<span class="sd">            Name of the mesh operation. The default is ``None``.</span>
+<span class="sd">         Parameters</span>
+<span class="sd">         ----------</span>
+<span class="sd">         names : list</span>
+<span class="sd">             List of objects or faces.</span>
+<span class="sd">         disable_for_faceted_surf : bool, optional</span>
+<span class="sd">             Whether curvature extraction is enabled for faceted surfaces.</span>
+<span class="sd">             The default is ``True``.</span>
+<span class="sd">         meshop_name : str, optional</span>
+<span class="sd">             Name of the mesh operation. The default is ``None``.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">       :class: `pyaedt.modules.Mesh.MeshOperation`</span>
-<span class="sd">            Mesh operation object.</span>
+<span class="sd">         Returns</span>
+<span class="sd">         -------</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">             Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
@@ -863,7 +931,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Error in Assignment&quot;</span><span class="p">)</span>
             <span class="k">return</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-            <span class="p">{</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;CurvatureExtraction&quot;</span><span class="p">,</span> <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span> <span class="s2">&quot;DisableForFacetedSurfaces&quot;</span><span class="p">:</span> <span class="n">disable_for_faceted_surf</span><span class="p">})</span>
+            <span class="p">{</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;CurvatureExtraction&quot;</span><span class="p">,</span> <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span> <span class="s2">&quot;DisableForFacetedSurfaces&quot;</span><span class="p">:</span> <span class="n">disable_for_faceted_surf</span><span class="p">}</span>
+        <span class="p">)</span>
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CurvatureExtraction&quot;</span><span class="p">)</span>
         <span class="n">mop</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meshoperations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mop</span><span class="p">)</span>
@@ -887,7 +956,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -902,8 +971,14 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">meshop_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;RotationalLayer&quot;</span><span class="p">)</span>
         <span class="n">seltype</span> <span class="o">=</span> <span class="s2">&quot;Objects&quot;</span>
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;RotationalLayerMesh&quot;</span><span class="p">,</span> <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span> <span class="s2">&quot;Number of Layers&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_layers</span><span class="p">),</span>
-                             <span class="s2">&quot;Total Layer Thickenss&quot;</span><span class="p">:</span> <span class="n">total_thickness</span><span class="p">})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;RotationalLayerMesh&quot;</span><span class="p">,</span>
+                <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                <span class="s2">&quot;Number of Layers&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_layers</span><span class="p">),</span>
+                <span class="s2">&quot;Total Layer Thickenss&quot;</span><span class="p">:</span> <span class="n">total_thickness</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
 
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;RotationalLayerMesh&quot;</span><span class="p">)</span>
         <span class="n">mop</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
@@ -925,7 +1000,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -968,7 +1043,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class: `pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
 <span class="sd">            Mesh operation object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -996,9 +1071,16 @@
             <span class="n">restrlay</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">restrlaynum</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">layerNum</span><span class="p">)</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-            <span class="p">{</span><span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;DensityControlBased&quot;</span><span class="p">,</span> <span class="s2">&quot;RefineInside&quot;</span><span class="p">:</span> <span class="n">refine_inside</span><span class="p">,</span> <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
-             <span class="s2">&quot;RestrictMaxElemLength&quot;</span><span class="p">:</span> <span class="n">restr</span><span class="p">,</span> <span class="s2">&quot;MaxElemLength&quot;</span><span class="p">:</span> <span class="n">restrval</span><span class="p">,</span>
-             <span class="s2">&quot;RestrictLayersNum&quot;</span><span class="p">:</span> <span class="n">restrlay</span><span class="p">,</span> <span class="s2">&quot;LayersNum&quot;</span><span class="p">:</span> <span class="n">restrlaynum</span><span class="p">})</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;DensityControlBased&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;RefineInside&quot;</span><span class="p">:</span> <span class="n">refine_inside</span><span class="p">,</span>
+                <span class="n">seltype</span><span class="p">:</span> <span class="n">names</span><span class="p">,</span>
+                <span class="s2">&quot;RestrictMaxElemLength&quot;</span><span class="p">:</span> <span class="n">restr</span><span class="p">,</span>
+                <span class="s2">&quot;MaxElemLength&quot;</span><span class="p">:</span> <span class="n">restrval</span><span class="p">,</span>
+                <span class="s2">&quot;RestrictLayersNum&quot;</span><span class="p">:</span> <span class="n">restrlay</span><span class="p">,</span>
+                <span class="s2">&quot;LayersNum&quot;</span><span class="p">:</span> <span class="n">restrlaynum</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
         <span class="n">mop</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshop_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;DensityControlBased&quot;</span><span class="p">)</span>
         <span class="n">mop</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
 
