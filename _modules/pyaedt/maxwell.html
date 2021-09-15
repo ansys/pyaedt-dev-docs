@@ -1214,7 +1214,56 @@
         <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">bound</span>
-        <span class="k">return</span> <span class="kc">False</span></div></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Maxwell2d.assign_master_slave"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell2d.assign_master_slave.html#pyaedt.Maxwell2d.assign_master_slave">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">assign_master_slave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_edge</span><span class="p">,</span> <span class="n">slave_edge</span><span class="p">,</span> <span class="n">reverse_master</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">reverse_slave</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                            <span class="n">same_as_master</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bound_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign master and slave boundary conditions to two edges of the same object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        master_edge : int</span>
+<span class="sd">            ID of the master edge.</span>
+<span class="sd">        slave_edge : int</span>
+<span class="sd">            ID of the slave edge.</span>
+<span class="sd">        reverse_master : bool, optional</span>
+<span class="sd">            Whether to reverse the master edge to the V direction. The default is ``False``.</span>
+<span class="sd">        reverse_slave : bool, optional</span>
+<span class="sd">            Whether to reverse the master edge to the U direction. The default is ``False``.</span>
+<span class="sd">        same_as_master : bool, optional</span>
+<span class="sd">            Whether the B-Field of the slave edge and master edge are the same. The default is ``True``.</span>
+<span class="sd">        bound_name : str, optional</span>
+<span class="sd">            Name of the master boundary. The name of the slave boundary will have a ``_dep`` suffix.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`, :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Master and slave objects.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">master_edge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_convert_list_to_ids</span><span class="p">(</span><span class="n">master_edge</span><span class="p">)</span>
+        <span class="n">slave_edge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_convert_list_to_ids</span><span class="p">(</span><span class="n">slave_edge</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bound_name</span><span class="p">:</span>
+            <span class="n">bound_name_m</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Independent&quot;</span><span class="p">)</span>
+            <span class="n">bound_name_s</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Dependent&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bound_name_m</span> <span class="o">=</span> <span class="n">bound_name</span>
+            <span class="n">bound_name_s</span> <span class="o">=</span> <span class="n">bound_name</span> <span class="o">+</span> <span class="s2">&quot;_dep&quot;</span>
+        <span class="n">props2</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Edges&quot;</span><span class="p">:</span> <span class="n">master_edge</span><span class="p">,</span> <span class="s2">&quot;ReverseV&quot;</span><span class="p">:</span> <span class="n">reverse_master</span><span class="p">})</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound_name_m</span><span class="p">,</span> <span class="n">props2</span><span class="p">,</span> <span class="s2">&quot;Independent&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+
+            <span class="n">props2</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Edges&quot;</span><span class="p">:</span> <span class="n">slave_edge</span><span class="p">,</span> <span class="s2">&quot;ReverseU&quot;</span><span class="p">:</span> <span class="n">reverse_slave</span><span class="p">,</span> <span class="s2">&quot;Independent&quot;</span><span class="p">:</span> <span class="n">bound_name_m</span><span class="p">,</span>
+                                  <span class="s2">&quot;SameAsMaster&quot;</span><span class="p">:</span> <span class="n">same_as_master</span><span class="p">})</span>
+            <span class="n">bound2</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound_name_s</span><span class="p">,</span> <span class="n">props2</span><span class="p">,</span> <span class="s2">&quot;Independent&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bound2</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound2</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">bound</span><span class="p">,</span> <span class="n">bound2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">bound</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span></div></div>
 </pre></div>
 
               </div>
