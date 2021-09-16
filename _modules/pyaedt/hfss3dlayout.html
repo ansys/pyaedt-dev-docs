@@ -173,9 +173,9 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">.application.Analysis3DLayout</span> <span class="kn">import</span> <span class="n">FieldAnalysis3DLayout</span>
-<span class="kn">from</span> <span class="nn">.desktop</span> <span class="kn">import</span> <span class="n">exception_to_desktop</span>
 <span class="kn">from</span> <span class="nn">.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span>
 
 
@@ -209,11 +209,11 @@
 <span class="sd">    NG : bool, optional</span>
 <span class="sd">        Whether to launch AEDT in the non-graphical mode. The default</span>
 <span class="sd">        is``False``, in which case AEDT is launched in the graphical mode.</span>
-<span class="sd">    AlwaysNew : bool, optional</span>
+<span class="sd">    new_desktop_session : bool, optional</span>
 <span class="sd">        Whether to launch an instance of AEDT in a new thread, even if</span>
 <span class="sd">        another instance of the ``specified_version`` is active on the</span>
 <span class="sd">        machine. The default is ``True``.</span>
-<span class="sd">    release_on_exit : bool, optional</span>
+<span class="sd">    close_on_exit : bool, optional</span>
 <span class="sd">        Whether to release AEDT on exit.</span>
 <span class="sd">    student_version : bool, optional</span>
 <span class="sd">        Whether to open the AEDT student version. The default is ``False``.</span>
@@ -255,9 +255,9 @@
         <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">specified_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">NG</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">AlwaysNew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">release_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">non_graphical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">new_desktop_session</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">close_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">FieldAnalysis3DLayout</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
@@ -268,19 +268,14 @@
             <span class="n">solution_type</span><span class="p">,</span>
             <span class="n">setup_name</span><span class="p">,</span>
             <span class="n">specified_version</span><span class="p">,</span>
-            <span class="n">NG</span><span class="p">,</span>
-            <span class="n">AlwaysNew</span><span class="p">,</span>
-            <span class="n">release_on_exit</span><span class="p">,</span>
+            <span class="n">non_graphical</span><span class="p">,</span>
+            <span class="n">new_desktop_session</span><span class="p">,</span>
+            <span class="n">close_on_exit</span><span class="p">,</span>
             <span class="n">student_version</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
-
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Push exit up to parent object Design.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">ex_type</span><span class="p">:</span>
-            <span class="n">exception_to_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Hfss3dLayout.create_edge_port"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.create_edge_port.html#pyaedt.Hfss3dLayout.create_edge_port">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_edge_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primivitivename</span><span class="p">,</span> <span class="n">edgenumber</span><span class="p">,</span> <span class="n">iscircuit</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -761,6 +756,55 @@
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a frequency sweep.</span>
 
+<span class="sd">        .. deprecated:: 0.4.0</span>
+<span class="sd">           Use :func:`Hfss3dLayout.create_linear_count_sweep` instead.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;`create_frequency_sweep` is deprecated. Use `create_linear_count_sweep` instead.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sweeptype</span> <span class="o">==</span> <span class="s2">&quot;interpolating&quot;</span><span class="p">:</span>
+            <span class="n">sweeptype</span> <span class="o">=</span> <span class="s2">&quot;Interpolating&quot;</span>
+        <span class="k">elif</span> <span class="n">sweeptype</span> <span class="o">==</span> <span class="s1">&#39;discrete&#39;</span><span class="p">:</span>
+            <span class="n">sweeptype</span> <span class="o">=</span> <span class="s2">&quot;Discrete&quot;</span>
+        <span class="k">elif</span> <span class="n">sweeptype</span> <span class="o">==</span> <span class="s1">&#39;fast&#39;</span><span class="p">:</span>
+            <span class="n">sweeptype</span> <span class="o">=</span> <span class="s2">&quot;Fast&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_linear_count_sweep</span><span class="p">(</span>
+                <span class="n">setupname</span><span class="o">=</span><span class="n">setupname</span><span class="p">,</span>
+                <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span>
+                <span class="n">freqstart</span><span class="o">=</span><span class="n">freqstart</span><span class="p">,</span>
+                <span class="n">freqstop</span><span class="o">=</span><span class="n">freqstop</span><span class="p">,</span>
+                <span class="n">num_of_freq_points</span><span class="o">=</span><span class="n">num_of_freq_points</span><span class="p">,</span>
+                <span class="n">sweepname</span><span class="o">=</span><span class="n">sweepname</span><span class="p">,</span>
+                <span class="n">save_fields</span><span class="o">=</span><span class="n">save_fields</span><span class="p">,</span>
+                <span class="n">save_rad_fields_only</span><span class="o">=</span><span class="n">save_rad_fields_only</span><span class="p">,</span>
+                <span class="n">sweep_type</span><span class="o">=</span><span class="n">sweeptype</span><span class="p">,</span>
+                <span class="n">interpolation_tol_percent</span><span class="o">=</span><span class="n">interpolation_tol_percent</span><span class="p">,</span>
+                <span class="n">interpolation_max_solutions</span><span class="o">=</span><span class="n">interpolation_max_solutions</span><span class="p">,</span>
+                <span class="n">use_q3d_for_dc</span><span class="o">=</span><span class="n">use_q3d_for_dc</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.create_linear_count_sweep"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.create_linear_count_sweep.html#pyaedt.Hfss3dLayout.create_linear_count_sweep">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_linear_count_sweep</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">setupname</span><span class="p">,</span>
+        <span class="n">unit</span><span class="p">,</span>
+        <span class="n">freqstart</span><span class="p">,</span>
+        <span class="n">freqstop</span><span class="p">,</span>
+        <span class="n">num_of_freq_points</span><span class="p">,</span>
+        <span class="n">sweepname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_fields</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">save_rad_fields_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">sweep_type</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span>
+        <span class="n">interpolation_tol_percent</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">interpolation_max_solutions</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+        <span class="n">use_q3d_for_dc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a sweep with the specified number of points.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        setupname : str</span>
@@ -775,7 +819,13 @@
 <span class="sd">            Number of frequency points in the range.</span>
 <span class="sd">        sweepname : str, optional</span>
 <span class="sd">            Name of the sweep. The default is ``None``.</span>
-<span class="sd">        sweeptype : str, optional</span>
+<span class="sd">        save_fields : bool, optional</span>
+<span class="sd">            Whether to save the fields for a discrete sweep only. The</span>
+<span class="sd">            default is ``True``.</span>
+<span class="sd">        save_rad_fields_only : bool, optional</span>
+<span class="sd">            Whether to save only the radiated fields if</span>
+<span class="sd">            ``save_fields=True``. The default is ``False``.</span>
+<span class="sd">        sweep_type : str, optional</span>
 <span class="sd">            Type of the sweep. Options are ``&quot;Fast&quot;``,</span>
 <span class="sd">            ``&quot;Interpolating&quot;``, and ``&quot;Discrete&quot;``.  The default is</span>
 <span class="sd">            ``&quot;Interpolating&quot;``.</span>
@@ -785,46 +835,215 @@
 <span class="sd">        interpolation_max_solutions : int, optional</span>
 <span class="sd">            Maximum number of solutions evaluated for the</span>
 <span class="sd">            interpolation process. The default is ``250``.</span>
+<span class="sd">        use_q3d_for_dc : bool, optional</span>
+<span class="sd">            Whether to use Q3D to solve the DC point. The default is ``False``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.SetupTemplates.SweepHFSS3DLayout` or bool</span>
+<span class="sd">            Sweep object if successful, ``False`` otherwise.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sweep_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Discrete&quot;</span><span class="p">,</span> <span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="s2">&quot;Fast&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Invalid in `sweep_type`. It has to be either &#39;Discrete&#39;, &#39;Interpolating&#39;, or &#39;Fast&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Sweep&quot;</span><span class="p">)</span>
+
+        <span class="n">interpolation</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">sweep_type</span> <span class="o">==</span> <span class="s2">&quot;Interpolating&quot;</span><span class="p">:</span>
+            <span class="n">interpolation</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">save_fields</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">save_fields</span><span class="p">:</span>
+            <span class="n">save_rad_fields_only</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">interpolation_tol</span> <span class="o">=</span> <span class="n">interpolation_tol_percent</span> <span class="o">/</span> <span class="mf">100.0</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setups</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">setupname</span><span class="p">:</span>
+                <span class="n">setupdata</span> <span class="o">=</span> <span class="n">s</span>
+                <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">sweep</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">sweep</span> <span class="ow">in</span> <span class="n">setupdata</span><span class="o">.</span><span class="n">sweeps</span><span class="p">]:</span>
+                    <span class="n">oldname</span> <span class="o">=</span> <span class="n">sweepname</span>
+                    <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">oldname</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span>
+                        <span class="s2">&quot;Sweep </span><span class="si">{}</span><span class="s2"> is already present. Sweep has been renamed in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oldname</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">sweep</span> <span class="o">=</span> <span class="n">setupdata</span><span class="o">.</span><span class="n">add_sweep</span><span class="p">(</span><span class="n">sweepname</span><span class="o">=</span><span class="n">sweepname</span><span class="p">)</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">change_range</span><span class="p">(</span><span class="s2">&quot;LinearCount&quot;</span><span class="p">,</span> <span class="n">freqstart</span><span class="p">,</span> <span class="n">freqstop</span><span class="p">,</span> <span class="n">num_of_freq_points</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;GenerateSurfaceCurrent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_fields</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveRadFieldsOnly&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_rad_fields_only</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;FastSweep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SAbsError&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation_tol</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;EnforcePassivity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseQ3DForDC&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">use_q3d_for_dc</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaxSolutions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation_max_solutions</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Linear count sweep </span><span class="si">{}</span><span class="s2"> has been correctly created&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sweepname</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">sweep</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.create_linear_step_sweep"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.create_linear_step_sweep.html#pyaedt.Hfss3dLayout.create_linear_step_sweep">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_linear_step_sweep</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">setupname</span><span class="p">,</span>
+        <span class="n">unit</span><span class="p">,</span>
+        <span class="n">freqstart</span><span class="p">,</span>
+        <span class="n">freqstop</span><span class="p">,</span>
+        <span class="n">step_size</span><span class="p">,</span>
+        <span class="n">sweepname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_fields</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">save_rad_fields_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">sweep_type</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span>
+        <span class="n">interpolation_tol_percent</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">interpolation_max_solutions</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+        <span class="n">use_q3d_for_dc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a sweep with the specified frequency step.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        setupname : str</span>
+<span class="sd">            Name of the setup to attach to the sweep.</span>
+<span class="sd">        unit : str</span>
+<span class="sd">            Unit of the frequency, such as ``&quot;MHz&quot;`` or ``&quot;GHz&quot;``.</span>
+<span class="sd">        freqstart : float</span>
+<span class="sd">            Starting frequency of the sweep.</span>
+<span class="sd">        freqstop : float</span>
+<span class="sd">            Stopping frequency of the sweep.</span>
+<span class="sd">        step_size : float</span>
+<span class="sd">            Frequency size of the step.</span>
+<span class="sd">        sweepname : str, optional</span>
+<span class="sd">            Name of the sweep. The default is ``None``.</span>
 <span class="sd">        save_fields : bool, optional</span>
 <span class="sd">            Whether to save the fields for a discrete sweep only. The</span>
 <span class="sd">            default is ``True``.</span>
 <span class="sd">        save_rad_fields_only : bool, optional</span>
 <span class="sd">            Whether to save only the radiated fields if</span>
 <span class="sd">            ``save_fields=True``. The default is ``False``.</span>
+<span class="sd">        sweep_type : str, optional</span>
+<span class="sd">            Type of the sweep. Options are ``&quot;Fast&quot;``,</span>
+<span class="sd">            ``&quot;Interpolating&quot;``, and ``&quot;Discrete&quot;``.  The default is</span>
+<span class="sd">            ``&quot;Interpolating&quot;``.</span>
+<span class="sd">        interpolation_tol_percent : float, optional</span>
+<span class="sd">            Error tolerance threshold for the interpolation</span>
+<span class="sd">            process. The default is ``0.5``.</span>
+<span class="sd">        interpolation_max_solutions : int, optional</span>
+<span class="sd">            Maximum number of solutions evaluated for the</span>
+<span class="sd">            interpolation process. The default is ``250``.</span>
 <span class="sd">        use_q3d_for_dc : bool, optional</span>
 <span class="sd">            Whether to use Q3D to solve the DC point. The default is ``False``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Name of the setup when successful, ``False`` otherwise.</span>
+<span class="sd">        :class:`pyaedt.modules.SetupTemplates.SweepHFSS3DLayout` or bool</span>
+<span class="sd">            Sweep object if successful, ``False`` otherwise.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sweep_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Discrete&quot;</span><span class="p">,</span> <span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="s2">&quot;Fast&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Invalid in `sweep_type`. It has to be either &#39;Discrete&#39;, &#39;Interpolating&#39;, or &#39;Fast&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Sweep&quot;</span><span class="p">)</span>
+
         <span class="n">interpolation</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">sweeptype</span> <span class="o">==</span> <span class="s2">&quot;interpolating&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sweep_type</span> <span class="o">==</span> <span class="s2">&quot;Interpolating&quot;</span><span class="p">:</span>
             <span class="n">interpolation</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">save_fields</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">save_fields</span><span class="p">:</span>
             <span class="n">save_rad_fields_only</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">interpolation_tol</span> <span class="o">=</span> <span class="n">interpolation_tol_percent</span> <span class="o">/</span> <span class="mf">100.0</span>
-        <span class="n">setup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_setup</span><span class="p">(</span><span class="n">setupname</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">setup</span><span class="o">.</span><span class="n">sweeps</span><span class="p">]:</span>
-            <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">sweepname</span><span class="p">)</span>
-        <span class="n">sweep</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">add_sweep</span><span class="p">(</span><span class="n">sweepname</span><span class="o">=</span><span class="n">sweepname</span><span class="p">)</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">change_range</span><span class="p">(</span><span class="s2">&quot;LinearCount&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">freqstart</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">freqstop</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span><span class="p">,</span> <span class="n">num_of_freq_points</span><span class="p">)</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;GenerateSurfaceCurrent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_fields</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveRadFieldsOnly&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_rad_fields_only</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;FastSweep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SAbsError&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation_tol</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;EnforcePassivity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseQ3DForDC&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">use_q3d_for_dc</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaxSolutions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation_max_solutions</span>
-        <span class="n">sweep</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">sweep</span></div>
+        <span class="n">interpolation_tol</span> <span class="o">=</span> <span class="n">interpolation_tol_percent</span> <span class="o">/</span> <span class="mf">100.0</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setups</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">setupname</span><span class="p">:</span>
+                <span class="n">setupdata</span> <span class="o">=</span> <span class="n">s</span>
+                <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">sweep</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">sweep</span> <span class="ow">in</span> <span class="n">setupdata</span><span class="o">.</span><span class="n">sweeps</span><span class="p">]:</span>
+                    <span class="n">oldname</span> <span class="o">=</span> <span class="n">sweepname</span>
+                    <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">oldname</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span>
+                        <span class="s2">&quot;Sweep </span><span class="si">{}</span><span class="s2"> is already present. Sweep has been renamed in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oldname</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">sweep</span> <span class="o">=</span> <span class="n">setupdata</span><span class="o">.</span><span class="n">add_sweep</span><span class="p">(</span><span class="n">sweepname</span><span class="o">=</span><span class="n">sweepname</span><span class="p">)</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">change_range</span><span class="p">(</span><span class="s2">&quot;LinearStep&quot;</span><span class="p">,</span> <span class="n">freqstart</span><span class="p">,</span> <span class="n">freqstop</span><span class="p">,</span> <span class="n">step_size</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;GenerateSurfaceCurrent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_fields</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveRadFieldsOnly&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_rad_fields_only</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;FastSweep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SAbsError&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation_tol</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;EnforcePassivity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseQ3DForDC&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">use_q3d_for_dc</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaxSolutions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interpolation_max_solutions</span>
+                <span class="n">sweep</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Linear step sweep </span><span class="si">{}</span><span class="s2"> has been correctly created&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sweepname</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">sweep</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.create_single_point_sweep"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.create_single_point_sweep.html#pyaedt.Hfss3dLayout.create_single_point_sweep">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_single_point_sweep</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">setupname</span><span class="p">,</span>
+        <span class="n">unit</span><span class="p">,</span>
+        <span class="n">freq</span><span class="p">,</span>
+        <span class="n">sweepname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">save_rad_fields_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a Sweep with a single frequency point.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        setupname : str</span>
+<span class="sd">            Name of the setup.</span>
+<span class="sd">        unit : str</span>
+<span class="sd">            Unit of the frequency. For example, ``&quot;MHz`` or ``&quot;GHz&quot;``.</span>
+<span class="sd">        freq : float, list</span>
+<span class="sd">            Frequency of the single point or list of frequencies to create distinct single points.</span>
+<span class="sd">        sweepname : str, optional</span>
+<span class="sd">            Name of the sweep. The default is ``None``.</span>
+<span class="sd">        save_fields : bool, optional</span>
+<span class="sd">            Whether to save the fields for all points and subranges defined in the sweep. The default is ``False``.</span>
+<span class="sd">        save_rad_fields_only : bool, optional</span>
+<span class="sd">            Whether to save only the radiating fields. The default is ``False``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.SetupTemplates.SweepHFSS` or bool</span>
+<span class="sd">            Sweep object if successful, ``False`` otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;SinglePoint&quot;</span><span class="p">)</span>
+
+        <span class="n">add_subranges</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">freq</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Frequency list is empty! Specify at least one frequency point.&quot;</span><span class="p">)</span>
+            <span class="n">freq0</span> <span class="o">=</span> <span class="n">freq</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">:</span>
+                <span class="n">add_subranges</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">freq0</span> <span class="o">=</span> <span class="n">freq</span>
+
+        <span class="k">if</span> <span class="n">setupname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_names</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">setups</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">setupname</span><span class="p">:</span>
+                <span class="n">setupdata</span> <span class="o">=</span> <span class="n">s</span>
+                <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">in</span> <span class="p">[</span><span class="n">sweep</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">sweep</span> <span class="ow">in</span> <span class="n">setupdata</span><span class="o">.</span><span class="n">sweeps</span><span class="p">]:</span>
+                    <span class="n">oldname</span> <span class="o">=</span> <span class="n">sweepname</span>
+                    <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">oldname</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span>
+                        <span class="s2">&quot;Sweep </span><span class="si">{}</span><span class="s2"> is already present. Sweep has been renamed in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">oldname</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">sweepdata</span> <span class="o">=</span> <span class="n">setupdata</span><span class="o">.</span><span class="n">add_sweep</span><span class="p">(</span><span class="n">sweepname</span><span class="p">,</span> <span class="s2">&quot;Discrete&quot;</span><span class="p">)</span>
+                <span class="n">sweepdata</span><span class="o">.</span><span class="n">change_range</span><span class="p">(</span><span class="s2">&quot;SinglePoint&quot;</span><span class="p">,</span> <span class="n">freq0</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span>
+                <span class="n">sweepdata</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;GenerateSurfaceCurrent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_fields</span>
+                <span class="n">sweepdata</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveRadFieldsOnly&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_rad_fields_only</span>
+                <span class="n">sweepdata</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">add_subranges</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">freq</span><span class="p">:</span>
+                        <span class="n">sweepdata</span><span class="o">.</span><span class="n">add_subrange</span><span class="p">(</span><span class="n">rangetype</span><span class="o">=</span><span class="s2">&quot;SinglePoint&quot;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">unit</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Single point sweep </span><span class="si">{}</span><span class="s2"> has been correctly created&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sweepname</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">sweepdata</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Hfss3dLayout.import_gds"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_gds.html#pyaedt.Hfss3dLayout.import_gds">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">import_gds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gds_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xml_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>

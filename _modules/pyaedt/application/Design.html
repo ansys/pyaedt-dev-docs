@@ -640,6 +640,8 @@
 <span class="k">class</span> <span class="nc">Design</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Contains all functions and objects connected to the active project and design.</span>
 
+<span class="sd">    This class is inherited in the caller application and is accessible through it ( eg. ``hfss.method_name``).</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    design_type : str</span>
@@ -662,11 +664,11 @@
 <span class="sd">    NG : bool, optional</span>
 <span class="sd">        Whether to run AEDT in the non-graphical mode. The default</span>
 <span class="sd">        is ``False``, in which case AEDT launches in the graphical mode.</span>
-<span class="sd">    AlwaysNew : bool, optional</span>
+<span class="sd">    new_desktop_session : bool, optional</span>
 <span class="sd">        Whether to launch an instance of AEDT in a new thread, even if</span>
 <span class="sd">        another instance of the ``specified_version`` is active on the</span>
 <span class="sd">        machine. The default is ``True``.</span>
-<span class="sd">    release_on_exit : bool, optional</span>
+<span class="sd">    close_on_exit : bool, optional</span>
 <span class="sd">        Whether to release AEDT on exit. The default is ``False``.</span>
 <span class="sd">    student_version : bool, optional</span>
 <span class="sd">        Whether to enable the student version of AEDT. The default</span>
@@ -686,6 +688,8 @@
     <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ex_type</span><span class="p">:</span>
             <span class="n">exception_to_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">release_on_exit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">release_desktop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
@@ -706,9 +710,9 @@
         <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">specified_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">NG</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">AlwaysNew</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">release_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">non_graphical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">new_desktop_session</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">close_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="c1"># Get Desktop from global Desktop Environment</span>
@@ -717,8 +721,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">project_datasets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">main_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span> <span class="o">=</span> <span class="n">close_on_exit</span>
+
         <span class="k">if</span> <span class="s2">&quot;pyaedt_initialized&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">main_module</span><span class="p">):</span>
-            <span class="n">Desktop</span><span class="p">(</span><span class="n">specified_version</span><span class="p">,</span> <span class="n">NG</span><span class="p">,</span> <span class="n">AlwaysNew</span><span class="p">,</span> <span class="n">release_on_exit</span><span class="p">,</span> <span class="n">student_version</span><span class="p">)</span>
+            <span class="n">Desktop</span><span class="p">(</span><span class="n">specified_version</span><span class="p">,</span> <span class="n">non_graphical</span><span class="p">,</span> <span class="n">new_desktop_session</span><span class="p">,</span> <span class="n">close_on_exit</span><span class="p">,</span> <span class="n">student_version</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">release_on_exit</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">release_on_exit</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span> <span class="o">=</span> <span class="n">main_module</span><span class="o">.</span><span class="n">oDesktop</span>
@@ -2275,6 +2285,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">msg_txt</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">legacy_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span>
         <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_list</span><span class="p">,</span> <span class="s2">&quot;Invalid project name </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
             <span class="n">msg_txt</span> <span class="o">=</span> <span class="s2">&quot;specified &quot;</span> <span class="o">+</span> <span class="n">name</span>
@@ -2282,14 +2293,27 @@
             <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span>
             <span class="n">msg_txt</span> <span class="o">=</span> <span class="s2">&quot;active &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Closing the </span><span class="si">{}</span><span class="s2"> AEDT Project&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg_txt</span><span class="p">),</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;Global&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
-            <span class="n">oproj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetActiveProject</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">oproj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span>
+        <span class="n">oproj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetActiveProject</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">proj_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">GetProjectDirectory</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">saveproject</span><span class="p">:</span>
             <span class="n">oproj</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">CloseProject</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">timeout</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">locked</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">legacy_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">while</span> <span class="n">locked</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">proj_path</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.aedt.lock&quot;</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Project Closed Correctly&quot;</span><span class="p">,</span> <span class="s2">&quot;Global&quot;</span><span class="p">)</span>
+                <span class="n">locked</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;Lock File still exists.&quot;</span><span class="p">,</span> <span class="s2">&quot;Global&quot;</span><span class="p">)</span>
+                <span class="n">locked</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mf">0.2</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@aedt_exception_handler</span>
@@ -2380,7 +2404,10 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Circuit Design&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edb</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">close_edb</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">projectname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">designname</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">projectname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">designname</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">projectname</span><span class="o">=</span><span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Project&quot;</span><span class="p">),</span> <span class="n">designname</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insert_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">design_type</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">design_type</span> <span class="ow">in</span> <span class="n">design_solutions</span><span class="p">,</span> <span class="s2">&quot;Invalid design type for insert: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">design_type</span><span class="p">)</span>
@@ -2699,7 +2726,7 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">!=</span> <span class="n">project_name</span><span class="p">,</span> <span class="s2">&quot;You cannot delete the active design.&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">!=</span> <span class="n">project_name</span><span class="p">,</span> <span class="s2">&quot;You cannot delete the active project.&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">DeleteProject</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 

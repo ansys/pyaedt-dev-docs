@@ -172,12 +172,13 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">is_ironpython</span><span class="p">,</span> <span class="n">retry_ntimes</span><span class="p">,</span> <span class="n">generate_unique_name</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">is_ironpython</span><span class="p">,</span> <span class="n">retry_ntimes</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">get_filename_without_extension</span>
 
-<span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">get_filename_without_extension</span>
 <span class="kn">from</span> <span class="nn">.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBComponent</span>
-<span class="kn">from</span> <span class="nn">.general</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">clr</span>
@@ -718,8 +719,13 @@
             <span class="n">cmp_name</span> <span class="o">=</span> <span class="n">pins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetComponent</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
             <span class="n">net_name</span> <span class="o">=</span> <span class="n">pins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
             <span class="n">group_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">_&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmp_name</span><span class="p">,</span> <span class="n">net_name</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="n">pingroup</span> <span class="o">=</span> <span class="n">retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">PinGroup</span><span class="o">.</span><span class="n">Create</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">group_name</span><span class="p">,</span>
-                                <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pins</span><span class="p">))</span>
+        <span class="n">pingroup</span> <span class="o">=</span> <span class="n">retry_ntimes</span><span class="p">(</span>
+            <span class="mi">10</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">PinGroup</span><span class="o">.</span><span class="n">Create</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span>
+            <span class="n">group_name</span><span class="p">,</span>
+            <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pins</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">pingroup</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
             <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
