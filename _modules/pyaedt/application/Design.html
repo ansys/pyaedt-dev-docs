@@ -687,7 +687,7 @@
 
     <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_type</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ex_type</span><span class="p">:</span>
-            <span class="n">exception_to_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">)</span>
+            <span class="n">exception_to_desktop</span><span class="p">(</span><span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">release_on_exit</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">release_desktop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">)</span>
 
@@ -1430,6 +1430,118 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_manager</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_license_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">license_type</span><span class="o">=</span><span class="s2">&quot;Pool&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the License Type between ``Pack`` and ``Pool``.</span>
+
+<span class="sd">        ..note: The command returns True even if the Key is wrong due to API limitation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        license_type : str, optional</span>
+<span class="sd">            Set License Type between ``Pack`` and ``Pool``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetRegistryString</span><span class="p">(</span><span class="s2">&quot;Desktop/Settings/ProjectOptions/HPCLicenseType&quot;</span><span class="p">,</span> <span class="n">license_type</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_registry_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_full_name</span><span class="p">,</span> <span class="n">key_value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change a specific registry key to new value.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key_full_name : str</span>
+<span class="sd">            Desktop Registry Key full name.</span>
+<span class="sd">        key_value : str, int</span>
+<span class="sd">            Desktop Registry Key value.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetRegistryString</span><span class="p">(</span><span class="n">key_full_name</span><span class="p">,</span> <span class="n">key_value</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> correctly changed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_full_name</span><span class="p">))</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;Error setting up Key </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_full_name</span><span class="p">))</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key_value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetRegistryInt</span><span class="p">(</span><span class="n">key_full_name</span><span class="p">,</span> <span class="n">key_value</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Key </span><span class="si">{}</span><span class="s2"> correctly changed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_full_name</span><span class="p">))</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;Error setting up Key </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_full_name</span><span class="p">))</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;Key Value must be an int or str.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_active_dso_config_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product_name</span><span class="o">=</span><span class="s2">&quot;HFSS&quot;</span><span class="p">,</span> <span class="n">config_name</span><span class="o">=</span><span class="s2">&quot;Local&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change a specific registry key to new value.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        product_name : str</span>
+<span class="sd">            Name of the tool to which apply the active Configuration.</span>
+<span class="sd">        config_name : str</span>
+<span class="sd">            Name of configuration to apply.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_registry_key</span><span class="p">(</span><span class="s2">&quot;Desktop/ActiveDSOConfigurations/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">product_name</span><span class="p">),</span> <span class="n">config_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span>
+                <span class="s2">&quot;Configuration Changed correctly to </span><span class="si">{}</span><span class="s2"> for </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_name</span><span class="p">,</span> <span class="n">product_name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span>
+                <span class="s2">&quot;Error Setting Up Configuration </span><span class="si">{}</span><span class="s2"> for </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">config_name</span><span class="p">,</span> <span class="n">product_name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_registry_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">registry_file</span><span class="p">,</span> <span class="n">make_active</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply desktop Registry settings from acf file. A way to get an editable ACF file is to export a</span>
+<span class="sd">        configuration from Desktop UI, edit and reuse it.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        registry_file : str</span>
+<span class="sd">            Full path to acf file.</span>
+<span class="sd">        make_active : bool, optional</span>
+<span class="sd">            Set imported Configuration as active.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetRegistryFromFile</span><span class="p">(</span><span class="n">registry_file</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">make_active</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">registry_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">stripped_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="s2">&quot;ConfigName&quot;</span> <span class="ow">in</span> <span class="n">stripped_line</span><span class="p">:</span>
+                            <span class="n">config_name</span> <span class="o">=</span> <span class="n">stripped_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="s2">&quot;DesignType&quot;</span> <span class="ow">in</span> <span class="n">stripped_line</span><span class="p">:</span>
+                            <span class="n">design_type</span> <span class="o">=</span> <span class="n">stripped_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span>
+                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">design_type</span> <span class="ow">and</span> <span class="n">config_name</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">set_active_dso_config_name</span><span class="p">(</span><span class="n">design_type</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">config_name</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_optimetrics_variable_args</span><span class="p">(</span>
@@ -2743,19 +2855,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
-
-    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">update_registry_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update HPC options from a configuration file.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        filename : str</span>
-<span class="sd">            Full path and name of the configuration file, which can be an ACF or TXT file.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">SetRegistryFromFile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@aedt_exception_handler</span>

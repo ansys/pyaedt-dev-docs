@@ -515,16 +515,10 @@
         <span class="n">center</span> <span class="o">=</span> <span class="p">[</span><span class="n">bound_center</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bound_center</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
         <span class="n">center2</span> <span class="o">=</span> <span class="p">[</span><span class="n">bound_center2</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bound_center2</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
         <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">calc_slope</span><span class="p">(</span><span class="n">center2</span><span class="p">,</span> <span class="n">center</span><span class="p">)</span>
-        <span class="c1"># bounding = self.get_polygon_bounding_box(polygon)</span>
-        <span class="c1"># bounding2 =self.get_polygon_bounding_box(selection_polygon)</span>
-        <span class="c1"># center = [(bounding[0] + bounding[2]) / 2, (bounding[1] + bounding[3]) / 2]</span>
-        <span class="c1"># center2 = [(bounding2[0] + bounding2[2]) / 2, (bounding2[1] + bounding2[3]) / 2]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">origin</span><span class="p">:</span>
             <span class="n">origin</span> <span class="o">=</span> <span class="p">[</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">y1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10000</span><span class="p">]</span>
-
-        <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
-        <span class="n">var_server</span><span class="o">.</span><span class="n">AddVariable</span><span class="p">(</span><span class="n">offset_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">add_design_variable</span><span class="p">(</span><span class="n">offset_name</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">continue_iterate</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">prev_point</span> <span class="o">=</span> <span class="kc">None</span>
@@ -801,7 +795,49 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">centerPoint</span> <span class="o">=</span> <span class="n">centerPoint</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">points</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">properties</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">properties</span>
+
+<div class="viewcode-block" id="EdbLayout.parametrize_trace_width"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.parametrize_trace_width.html#pyaedt.edb_core.layout.EdbLayout.parametrize_trace_width">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">parametrize_trace_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nets_name</span><span class="p">,</span> <span class="n">layers_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter_name</span><span class="o">=</span><span class="s2">&quot;trace_width&quot;</span><span class="p">,</span> <span class="n">variable_value</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parametrize a Trace on specific layer or all stackup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nets_name : str, list</span>
+<span class="sd">            name of the net or list of nets to parametrize.</span>
+<span class="sd">        layers_name : str, optional</span>
+<span class="sd">            name of the layer or list of layers to which the net to parametrize has to be included.</span>
+<span class="sd">        parameter_name : str, optional</span>
+<span class="sd">            name of the parameter to create.</span>
+<span class="sd">        variable_value : str, float, optional</span>
+<span class="sd">            value with units of parameter to create.</span>
+<span class="sd">            If None, the first trace width of Net will be used as parameter value.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nets_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">nets_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">nets_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layers_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">layers_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">layers_name</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">net_name</span> <span class="ow">in</span> <span class="n">nets_name</span><span class="p">:</span>
+            <span class="n">var_server</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="n">net_name</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">layers_name</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">var_server</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">variable_value</span><span class="p">:</span>
+                                <span class="n">variable_value</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">GetWidth</span><span class="p">()</span>
+                            <span class="n">result</span><span class="p">,</span> <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">add_design_variable</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">)</span>
+                        <span class="n">p</span><span class="o">.</span><span class="n">SetWidth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">var_server</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="n">p</span><span class="o">.</span><span class="n">GetLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">layers_name</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">var_server</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">variable_value</span><span class="p">:</span>
+                                <span class="n">variable_value</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">GetWidth</span><span class="p">()</span>
+                            <span class="n">result</span><span class="p">,</span> <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">add_design_variable</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">)</span>
+                        <span class="n">p</span><span class="o">.</span><span class="n">SetWidth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">var_server</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </div>

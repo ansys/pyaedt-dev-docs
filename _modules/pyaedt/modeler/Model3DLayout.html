@@ -594,7 +594,56 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Duplicate</span><span class="p">(</span>
             <span class="p">[</span><span class="s2">&quot;NAME:options&quot;</span><span class="p">,</span> <span class="s2">&quot;count:=&quot;</span><span class="p">,</span> <span class="n">count</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;NAME:elements&quot;</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">objectlists</span><span class="p">)],</span> <span class="n">direction_vector</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Modeler3DLayout.set_temperature_dependence"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Model3DLayout.Modeler3DLayout.set_temperature_dependence.html#pyaedt.modeler.Model3DLayout.Modeler3DLayout.set_temperature_dependence">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_temperature_dependence</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">include_temperature_dependence</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">enable_feedback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">ambient_temp</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span>
+            <span class="n">create_project_var</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the temperature dependence for the design.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        include_temperature_dependence : bool, optional</span>
+<span class="sd">            Set the temperature setting for the design. The default is ``True``.</span>
+<span class="sd">        enable_feedback : bool, optional</span>
+<span class="sd">            Enable the feedback. The default is ``True``.</span>
+<span class="sd">        ambient_temp : float, optional</span>
+<span class="sd">            Ambient temperature. The default is ``22``.</span>
+<span class="sd">        create_project_var : bool, optional</span>
+<span class="sd">            Whether to create a project variable for the ambient temperature.</span>
+<span class="sd">            The default is ``False``. If ``True,`` ``$AmbientTemp`` is created.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Set the temperature dependence for the design.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">create_project_var</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">variable_manager</span><span class="p">[</span><span class="s2">&quot;$AmbientTemp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ambient_temp</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel&quot;</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="s2">&quot;$AmbientTemp&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ambient_temp</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel&quot;</span>
+        <span class="n">vargs1</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:TemperatureSettings&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;IncludeTempDependence:=&quot;</span><span class="p">,</span> <span class="n">include_temperature_dependence</span><span class="p">,</span>
+            <span class="s2">&quot;EnableFeedback:=&quot;</span><span class="p">,</span> <span class="n">enable_feedback</span><span class="p">,</span>
+            <span class="s2">&quot;Temperature:=&quot;</span><span class="p">,</span> <span class="n">var</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetTemperatureSettings</span><span class="p">(</span><span class="n">vargs1</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Failed to enable the temperature dependence.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Assigned Objects Temperature&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </div>
