@@ -182,7 +182,7 @@
 <span class="sd">&gt;&gt;&gt; hfss[&quot;postd&quot;] = &quot;1W&quot;</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -1629,7 +1629,7 @@
 <span class="sd">        Divide a number by a variable with units ``&quot;s&quot;`` and automatically determine that</span>
 <span class="sd">        the result is in ``&quot;Hz&quot;``.</span>
 
-<span class="sd">        &gt;&gt;&gt; from pyaedt.application.Core.Variables import Variable</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt.application.Variables import Variable</span>
 <span class="sd">        &gt;&gt;&gt; v = Variable(&quot;1s&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; result = 3.0 / v</span>
 <span class="sd">        &gt;&gt;&gt; assert result.numeric_value == 3.0</span>
@@ -1637,15 +1637,20 @@
 <span class="sd">        &gt;&gt;&gt; assert result.unit_system == &quot;Freq&quot;</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">is_number</span><span class="p">(</span><span class="n">other</span><span class="p">),</span> <span class="s2">&quot;Dividend must be a numerical quantity!&quot;</span>
-        <span class="n">result_value</span> <span class="o">=</span> <span class="n">other</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
-        <span class="n">result_units</span> <span class="o">=</span> <span class="n">_resolve_unit_system</span><span class="p">(</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_system</span><span class="p">,</span> <span class="s2">&quot;divide&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result_value</span><span class="p">,</span> <span class="n">result_units</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">is_number</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="n">result_value</span> <span class="o">=</span> <span class="n">other</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">numeric_value</span>
+            <span class="n">result_units</span> <span class="o">=</span> <span class="n">_resolve_unit_system</span><span class="p">(</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_system</span><span class="p">,</span> <span class="s2">&quot;divide&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Python 2.7 version</span>
-    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__rtruediv__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result_value</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">numeric_value</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">numeric_value</span>
+            <span class="n">result_units</span> <span class="o">=</span> <span class="n">_resolve_unit_system</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">unit_system</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit_system</span><span class="p">,</span> <span class="s2">&quot;divide&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">result_value</span><span class="p">,</span> <span class="n">result_units</span><span class="p">))</span></div>
+
+    <span class="c1"># # Python 2.7 version</span>
+    <span class="c1"># @aedt_exception_handler</span>
+    <span class="c1"># def __div__(self, other):</span>
+    <span class="c1">#     return self.__rtruediv__(other)</span>
 
 
 <span class="k">class</span> <span class="nc">Expression</span><span class="p">(</span><span class="n">Variable</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>

@@ -1598,8 +1598,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">objects</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_warning_message</span><span class="p">(</span><span class="s2">&quot;No objects to delete&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Deleting objects: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">objects</span><span class="p">))</span>
-
         <span class="nb">slice</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">))</span>
         <span class="n">num_objects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span>
         <span class="n">remaining</span> <span class="o">=</span> <span class="n">num_objects</span>
@@ -1619,7 +1617,7 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cleanup_objects</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Deleted </span><span class="si">{}</span><span class="s2"> Objects&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_objects</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Deleted </span><span class="si">{}</span><span class="s2"> Objects : </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_objects</span><span class="p">,</span> <span class="n">objects_str</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="kc">True</span>
 
@@ -3212,10 +3210,9 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objListSolids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">objList</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">objListSolids</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objList</span><span class="p">:</span>
-            <span class="n">edgeIDs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetEdgeIDsFromObject</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">lval</span><span class="p">)</span> <span class="ow">in</span> <span class="n">edgeIDs</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetEdgeIDsFromObject</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">bool</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">lval</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">obj</span>
-
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_find_object_from_face_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lval</span><span class="p">):</span>
