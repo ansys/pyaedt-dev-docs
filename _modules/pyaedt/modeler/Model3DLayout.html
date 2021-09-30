@@ -271,7 +271,11 @@
 <div class="viewcode-block" id="Modeler3DLayout.fit_all"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Model3DLayout.Modeler3DLayout.fit_all.html#pyaedt.modeler.Model3DLayout.Modeler3DLayout.fit_all">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">fit_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Fit all.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ZoomToFit</span><span class="p">()</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">RestoreWindow</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ZoomToFit</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">RestoreWindow</span><span class="p">()</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">model_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -296,6 +300,86 @@
     <span class="k">def</span> <span class="nf">obounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Bounding box.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetModelBoundingBox</span><span class="p">()</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+
+    <span class="k">def</span> <span class="nf">_pos_with_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">posx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">units</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">posy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">posy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">units</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">posz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">posz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">units</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">posx</span><span class="p">,</span> <span class="n">posy</span><span class="p">,</span> <span class="n">posz</span>
+
+<div class="viewcode-block" id="Modeler3DLayout.change_property"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Model3DLayout.Modeler3DLayout.change_property.html#pyaedt.modeler.Model3DLayout.Modeler3DLayout.change_property">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">change_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">property_object</span><span class="p">,</span> <span class="n">property_name</span><span class="p">,</span> <span class="n">property_value</span><span class="p">,</span> <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;BaseElementTab&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change an oeditor property.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        property_object : str</span>
+<span class="sd">            Property Obcject name. It can be the name of excitation or field reporter. Eg. ``FieldsReporter:Mag_H``,</span>
+<span class="sd">            ``Excitations:Port1``.</span>
+<span class="sd">        property_name : str</span>
+<span class="sd">            Property name. Eg. ``Rotation Angle``</span>
+<span class="sd">        property_value : str, list</span>
+<span class="sd">            Property value. It&#39;s a string in case of single value. and a list of 3 elements in case of [X,Y,Z]</span>
+<span class="sd">        property_tab : str</span>
+<span class="sd">            Name of the tab to update. Default ``BaseElementTab``. Other options are ``EM Design``,</span>
+<span class="sd">            ``FieldsPostProcessorTab``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` if successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">property_value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">property_value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">xpos</span><span class="p">,</span> <span class="n">ypos</span><span class="p">,</span> <span class="n">zpos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_with_arg</span><span class="p">(</span><span class="n">property_value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">property_tab</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">property_object</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span>
+                    <span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">property_name</span><span class="p">,</span> <span class="s2">&quot;X:=&quot;</span><span class="p">,</span> <span class="n">xpos</span><span class="p">,</span> <span class="s2">&quot;Y:=&quot;</span><span class="p">,</span> <span class="n">ypos</span><span class="p">,</span> <span class="s2">&quot;Z:=&quot;</span><span class="p">,</span> <span class="n">zpos</span><span class="p">]]]])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">property_value</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+            <span class="n">posx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">property_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span><span class="o">+</span><span class="n">property_tab</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">property_object</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span><span class="o">+</span><span class="n">property_name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">posx</span><span class="p">]]]])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Wrong Property Value&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Property </span><span class="si">{}</span><span class="s2"> Changed correctly.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">property_name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Modeler3DLayout.change_clip_plane_position"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Model3DLayout.Modeler3DLayout.change_clip_plane_position.html#pyaedt.modeler.Model3DLayout.Modeler3DLayout.change_clip_plane_position">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">change_clip_plane_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clip_name</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the Clip Plane position.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        clip_name : str</span>
+<span class="sd">            clip plane name.</span>
+<span class="sd">        position : list</span>
+<span class="sd">            List of [X,Y,Z] position</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` if successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="n">clip_name</span><span class="p">,</span> <span class="s2">&quot;Location&quot;</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Modeler3DLayout.colinear_heal"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Model3DLayout.Modeler3DLayout.colinear_heal.html#pyaedt.modeler.Model3DLayout.Modeler3DLayout.colinear_heal">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">colinear_heal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
