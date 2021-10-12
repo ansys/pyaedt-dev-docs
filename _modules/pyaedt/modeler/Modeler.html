@@ -847,7 +847,7 @@
             <span class="n">cs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryOperations&quot;</span><span class="p">][</span><span class="s2">&quot;CoordinateSystems&quot;</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">cs</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">])</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">],</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
                         <span class="n">props</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;RelativeCSParameters&quot;</span><span class="p">]</span>
                         <span class="n">name</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;Attributes&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
                         <span class="n">cs_id</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;ID&quot;</span><span class="p">]</span>
@@ -1085,8 +1085,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        pyaedt.modeler.Modeler.CoordinateSystem</span>
-
+<span class="sd">        :class:`pyaedt.modeler.Modeler.CoordinateSystem`</span>
+<span class="sd">            Coordinate System Object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">cs_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_systems</span><span class="p">]</span>
@@ -1676,7 +1676,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        objtosplit : str, int, or list</span>
+<span class="sd">        objtosplit : str, int, list</span>
 <span class="sd">            One or more objects to convert to selections. A list can contain</span>
 <span class="sd">            both strings (object names) and integers (object IDs).</span>
 <span class="sd">        return_list : bool, option</span>
@@ -1952,7 +1952,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        objid :</span>
 <span class="sd">            Name or ID of the object.</span>
-<span class="sd">        thickness : float</span>
+<span class="sd">        thickness : float, str</span>
 <span class="sd">            Amount to thicken the sheet by.</span>
 <span class="sd">        bBothSides : bool, optional</span>
 <span class="sd">            Whether to thicken the sheet on both side. The default is ``False``.</span>
@@ -2326,12 +2326,24 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">szSelections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">theList</span><span class="p">)</span>
-
-        <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="n">szSelections</span><span class="p">]</span>
-        <span class="n">vArg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:UniteParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;KeepOriginals:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Unite</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
+        <span class="nb">slice</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">theList</span><span class="p">))</span>
+        <span class="n">num_objects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theList</span><span class="p">)</span>
+        <span class="n">remaining</span> <span class="o">=</span> <span class="n">num_objects</span>
+        <span class="n">objs_groups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">objs</span> <span class="o">=</span> <span class="n">theList</span><span class="p">[:</span><span class="nb">slice</span><span class="p">]</span>
+            <span class="n">szSelections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span>
+            <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="n">szSelections</span><span class="p">]</span>
+            <span class="n">vArg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:UniteParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;KeepOriginals:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Unite</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
+            <span class="n">objs_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">remaining</span> <span class="o">-=</span> <span class="nb">slice</span>
+            <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">theList</span> <span class="o">=</span> <span class="n">theList</span><span class="p">[</span><span class="nb">slice</span><span class="p">:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">cleanup_objects</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs_groups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unite</span><span class="p">(</span><span class="n">objs_groups</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Union of </span><span class="si">{}</span><span class="s2"> objects has been executed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_objects</span><span class="p">))</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="GeometryModeler.clone"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Modeler.GeometryModeler.clone.html#pyaedt.modeler.Modeler.GeometryModeler.clone">[docs]</a>    <span class="nd">@aedt_exception_handler</span>

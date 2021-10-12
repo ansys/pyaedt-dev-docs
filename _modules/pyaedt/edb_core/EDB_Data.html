@@ -1564,38 +1564,187 @@
 <span class="sd">    ----------</span>
 <span class="sd">    parent : str</span>
 <span class="sd">        Inherited AEDT object.</span>
-<span class="sd">    component :</span>
-
-<span class="sd">    name :</span>
+<span class="sd">    component : object</span>
+<span class="sd">        Edb Component Object</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">cmp</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span> <span class="o">=</span> <span class="n">component</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">refdes</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">partname</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">PartName</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">numpins</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">NumPins</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">PartType</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">get_pin_from_component</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">get_nets_from_pin_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">res_value</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pins</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">EDBPinInstances</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pins</span><span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPinInstances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span> <span class="o">=</span> <span class="n">cmp</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">res_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="n">RValue</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">res_value</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cap_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="n">CValue</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cap_value</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ind_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">Model</span><span class="o">.</span><span class="n">LValue</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ind_value</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refdes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reference Designator Name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Reference Designator Name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">res_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Resitance Value.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Resitance Value. ``None`` if not an RLC Type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">cmp_type</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">componentProperty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span>
+            <span class="n">pinpairs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">PinPairs</span>
+            <span class="k">for</span> <span class="n">pinpair</span> <span class="ow">in</span> <span class="n">pinpairs</span><span class="p">:</span>
+                <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">pair</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cap_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Capacitance Value.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Capacitance Value. ``None`` if not an RLC Type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">cmp_type</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">componentProperty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span>
+            <span class="n">pinpairs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">PinPairs</span>
+            <span class="k">for</span> <span class="n">pinpair</span> <span class="ow">in</span> <span class="n">pinpairs</span><span class="p">:</span>
+                <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">pair</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ind_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Inductance Value.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Inductance Value. ``None`` if not an RLC Type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">cmp_type</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">componentProperty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span>
+            <span class="n">pinpairs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">PinPairs</span>
+            <span class="k">for</span> <span class="n">pinpair</span> <span class="ow">in</span> <span class="n">pinpairs</span><span class="p">:</span>
+                <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">pair</span><span class="o">.</span><span class="n">L</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_parallel_rlc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Define if model is Parallel or Series.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` if it is a parallel rlc model. ``False`` for series RLC. ``None`` if not an RLC Type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">cmp_type</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">componentProperty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span>
+            <span class="n">pinpairs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">PinPairs</span>
+            <span class="k">for</span> <span class="n">pinpair</span> <span class="ow">in</span> <span class="n">pinpairs</span><span class="p">:</span>
+                <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">pair</span><span class="o">.</span><span class="n">IsParallel</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pinlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pins of Component.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of Pins of Component.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pins</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">LayoutObjs</span> <span class="k">if</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">GetObjType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayoutObjType</span><span class="o">.</span><span class="n">PadstackInstance</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">IsLayoutPin</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="n">pins</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Nets of Component.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of Nets of Component.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">netlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">:</span>
+            <span class="n">netlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pin</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">netlist</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;EDBPinInstances of Component.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of EDBPinInstances of Component.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pins</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="n">EDBPinInstances</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">:</span>
+            <span class="n">pins</span><span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPinInstances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pins</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Component type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Component type.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Resistor&quot;</span>
+        <span class="k">elif</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Inductor&quot;</span>
+        <span class="k">elif</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Capacitor&quot;</span>
+        <span class="k">elif</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;IC&quot;</span>
+        <span class="k">elif</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;IO&quot;</span>
+        <span class="k">elif</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;Other&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">numpins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of Pins of Component.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            Number of Pins of Component.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetNumberOfPins</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">partname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Component Part Name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Component Part Name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentDef</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

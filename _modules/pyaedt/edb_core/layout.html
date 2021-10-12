@@ -180,6 +180,7 @@
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;This module requires the &quot;pythonnet&quot; package.&#39;</span><span class="p">)</span>
 
@@ -248,17 +249,19 @@
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">layoutInstance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span>
-        <span class="n">layoutObjectInstances</span> <span class="o">=</span> <span class="n">layoutInstance</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">layoutObjectInstances</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">())</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polygons_by_layer</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Primitives Updated&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">:</span>
+            <span class="n">layoutInstance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span>
+            <span class="n">layoutObjectInstances</span> <span class="o">=</span> <span class="n">layoutInstance</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">layoutObjectInstances</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">())</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polygons_by_layer</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Primitives Updated&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">primitives</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -642,8 +645,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Null path created&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
-            <span class="k">return</span> <span class="kc">True</span></div>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">polygon</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbLayout.create_polygon"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.create_polygon.html#pyaedt.edb_core.layout.EdbLayout.create_polygon">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_polygon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main_shape</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">voids</span><span class="o">=</span><span class="p">[],</span> <span class="n">net_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
@@ -667,24 +677,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">find_or_create_net</span><span class="p">(</span><span class="n">net_name</span><span class="p">)</span>
         <span class="n">polygonData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">main_shape</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">polygonData</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">polygonData</span><span class="o">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="ow">or</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Failed to create main shape polygon data&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">voids</span><span class="p">:</span>
             <span class="n">voidPolygonData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">voidPolygonData</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">voidPolygonData</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">voidPolygonData</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">voidPolygonData</span><span class="o">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="ow">or</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Failed to create void polygon data&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="n">polygonData</span><span class="o">.</span><span class="n">AddHole</span><span class="p">(</span><span class="n">voidPolygonData</span><span class="p">)</span>
         <span class="n">polygon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Polygon</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">polygonData</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">polygon</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">polygon</span><span class="o">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="ow">or</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Null polygon created&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">polygon</span><span class="p">]</span>
             <span class="k">return</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="EdbLayout.shape_to_polygon_data"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.shape_to_polygon_data.html#pyaedt.edb_core.layout.EdbLayout.shape_to_polygon_data">[docs]</a>    <span class="k">def</span> <span class="nf">shape_to_polygon_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+<div class="viewcode-block" id="EdbLayout.shape_to_polygon_data"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.shape_to_polygon_data.html#pyaedt.edb_core.layout.EdbLayout.shape_to_polygon_data">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">shape_to_polygon_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Convert a shape to polygon data.</span>
 
 <span class="sd">        Parameters</span>
@@ -702,6 +720,7 @@
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
+    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_createPolygonDataFromPolygon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">points</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validatePoint</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
@@ -739,33 +758,34 @@
                 <span class="n">arcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arc</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">CreateFromArcs</span><span class="p">(</span><span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">arcs</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span>
 
+    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_validatePoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="n">allowArcs</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point X value must be a float.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point X value must be a number.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point Y value must be a float.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point Y value must be a number.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">allowArcs</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Arc found but arcs are not allowed in _validatePoint.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point X value must be a float.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point X value must be a number.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point Y value must be a float.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Point Y value must be a number.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cw&quot;</span><span class="p">,</span> <span class="s2">&quot;ccw&quot;</span><span class="p">]:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Invalid rotation direction </span><span class="si">{}</span><span class="s2"> is specified.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Arc center point X value must be a float.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Arc center point X value must be a number.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Arc center point Y value must be a float.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_error_message</span><span class="p">(</span><span class="s2">&quot;Arc center point Y value must be a number.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
@@ -855,6 +875,59 @@
                                 <span class="n">variable_value</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">GetWidth</span><span class="p">()</span>
                             <span class="n">result</span><span class="p">,</span> <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">add_design_variable</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">)</span>
                         <span class="n">p</span><span class="o">.</span><span class="n">SetWidth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">parameter_name</span><span class="p">,</span> <span class="n">var_server</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EdbLayout.unite_polygons_on_layer"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.unite_polygons_on_layer.html#pyaedt.edb_core.layout.EdbLayout.unite_polygons_on_layer">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">unite_polygons_on_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delete_padstack_gemometries</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Try to unite all Polygons on specified layer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layer_name : str, optional</span>
+<span class="sd">            Layer Name on which unite objects. If ``None``, all layers will be taken.</span>
+<span class="sd">        delete_padstack_gemometries : bool, optional</span>
+<span class="sd">            ``True`` to delete all padstack geometry.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` is successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">layer_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">layer_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">layer_name</span><span class="p">:</span>
+            <span class="n">layer_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="n">layer_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Uniting Objects on layer </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lay</span><span class="p">))</span>
+            <span class="n">poly_by_nets</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">lay</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">polygons_by_layer</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygons_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly_by_nets</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                        <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">poly</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">poly_by_nets</span><span class="p">:</span>
+                <span class="n">list_polygon_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]]</span>
+                <span class="n">all_voids</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">Voids</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]]</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">Unite</span><span class="p">(</span><span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">list_polygon_data</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">all_voids</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">void</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">())</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                <span class="n">item</span><span class="o">.</span><span class="n">AddHole</span><span class="p">(</span><span class="n">void</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">())</span>
+                    <span class="n">poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Polygon</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">lay</span><span class="p">,</span>
+                                                                   <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">],</span> <span class="n">item</span><span class="p">)</span>
+
+                <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]]</span>
+
+        <span class="k">if</span> <span class="n">delete_padstack_gemometries</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Deleting Padstack Definitions&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">pad</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstacks</span><span class="p">:</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">pad</span><span class="p">]</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">remove_pads_from_padstack</span><span class="p">(</span><span class="n">pad</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 

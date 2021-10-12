@@ -318,18 +318,16 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict</span>
+
 <span class="sd">            Default dictionary for the EDB component.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Refreshing the Components dictionary.&quot;</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">cmplist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_list</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="n">cmplist</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span><span class="p">[</span><span class="n">cmp</span><span class="o">.</span><span class="n">RefDes</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">,</span> <span class="n">cmp</span><span class="o">.</span><span class="n">RefDes</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Groups</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">cmp</span><span class="o">.</span><span class="n">GetType</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Ansys.Ansoft.Edb.Cell.Hierarchy.Component&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span><span class="p">[</span><span class="n">cmp</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">resistors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -505,7 +503,7 @@
 <span class="sd">            List of component setup information.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cmp_setup_info_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edbutils</span><span class="o">.</span><span class="n">ComponentSetupInfo</span><span class="o">.</span><span class="n">GetFromLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="o">.</span><span class="n">EdbHandler</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+        <span class="n">cmp_setup_info_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edbutils</span><span class="o">.</span><span class="n">ComponentSetupInfo</span><span class="o">.</span><span class="n">GetFromLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">)</span>
         <span class="n">cmp_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">cmp_setup_info_list</span><span class="p">:</span>
             <span class="n">cmp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comp</span><span class="p">)</span>
@@ -583,14 +581,14 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">new_cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="o">.</span><span class="n">EdbHandler</span><span class="p">,</span> <span class="n">component_name</span><span class="p">)</span>
-            <span class="n">new_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="o">.</span><span class="n">EdbHandler</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="n">component_name</span><span class="p">)</span>
+            <span class="n">new_cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">component_name</span><span class="p">)</span>
+            <span class="n">new_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">component_name</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">:</span>
                 <span class="n">new_group</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span>
             <span class="n">new_cmp</span><span class="o">.</span><span class="n">SetGroup</span><span class="p">(</span><span class="n">new_group</span><span class="p">)</span>
             <span class="n">new_cmp_layer_name</span> <span class="o">=</span> <span class="n">pins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetPadstackDef</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">()</span><span class="o">.</span><span class="n">First</span><span class="p">()</span>
             <span class="n">new_cmp_placement_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="o">.</span><span class="n">EdbHandler</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">(),</span> <span class="n">new_cmp_layer_name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">(),</span> <span class="n">new_cmp_layer_name</span>
             <span class="p">)</span>
             <span class="n">new_cmp</span><span class="o">.</span><span class="n">SetPlacementLayer</span><span class="p">(</span><span class="n">new_cmp_placement_layer</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">new_cmp</span><span class="p">)</span>

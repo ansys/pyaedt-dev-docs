@@ -181,8 +181,8 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">string</span>
-<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">..application.Variables</span> <span class="kn">import</span> <span class="n">AEDT_units</span>
@@ -214,6 +214,16 @@
     <span class="s2">&quot;2D Extractor&quot;</span><span class="p">:</span> <span class="s2">&quot;Matrix&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 
+
+<span class="n">orientation_to_view</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;isometric&quot;</span><span class="p">:</span> <span class="s2">&quot;iso&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;top&quot;</span><span class="p">:</span> <span class="s2">&quot;XY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;bottom&quot;</span><span class="p">:</span> <span class="s2">&quot;XY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right&quot;</span><span class="p">:</span> <span class="s2">&quot;XZ&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left&quot;</span><span class="p">:</span> <span class="s2">&quot;XZ&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;front&quot;</span><span class="p">:</span> <span class="s2">&quot;YZ&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;back&quot;</span><span class="p">:</span> <span class="s2">&quot;YZ&quot;</span><span class="p">,</span>
+<span class="p">}</span>
 
 <div class="viewcode-block" id="SolutionData"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.html#pyaedt.modules.PostProcessor.SolutionData">[docs]</a><span class="k">class</span> <span class="nc">SolutionData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Contains information from the :func:`GetSolutionDataPerVariation` method.&quot;&quot;&quot;</span>
@@ -608,7 +618,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">solutionName</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">objlist</span><span class="o">=</span><span class="p">[],</span> <span class="n">solutionName</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">quantityName</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="o">=</span><span class="p">{}):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oField</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">ofieldsreporter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="n">objlist</span>
@@ -618,6 +628,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="s2">&quot;Surface&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">listtype</span> <span class="o">=</span> <span class="s2">&quot;FaceList&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Field_Plot&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotFolder</span> <span class="o">=</span> <span class="s2">&quot;Field_Plot&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Filled</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">IsoVal</span> <span class="o">=</span> <span class="s2">&quot;Fringe&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">SmoothShade</span> <span class="o">=</span> <span class="kc">True</span>
@@ -636,53 +647,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">CloudSpacing</span> <span class="o">=</span> <span class="mf">0.5</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">CloudMinSpacing</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">CloudMaxSpacing</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-
-<div class="viewcode-block" id="FieldPlot.create"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.create.html#pyaedt.modules.PostProcessor.FieldPlot.create">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a field plot.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">CreateFieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surfacePlotInstruction</span><span class="p">,</span> <span class="s2">&quot;Field&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="FieldPlot.update"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.update.html#pyaedt.modules.PostProcessor.FieldPlot.update">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update the field plot.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">ModifyFieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfacePlotInstruction</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="FieldPlot.modify_folder"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.modify_folder.html#pyaedt.modules.PostProcessor.FieldPlot.modify_folder">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">modify_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Modify the field plot folder.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">SetFieldPlotSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotFolder</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:FieldsPlotItemSettings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsettings</span><span class="p">])</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="FieldPlot.delete"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.delete.html#pyaedt.modules.PostProcessor.FieldPlot.delete">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Delete the field plot.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">DeleteFieldPlot</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">])</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">plotFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Field plot folder.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">plotGeomInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -807,7 +771,7 @@
             <span class="s2">&quot;PlotFolder:=&quot;</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">plotFolder</span><span class="p">,</span>
             <span class="s2">&quot;UserSpecifyName:=&quot;</span><span class="p">,</span>
-            <span class="mi">0</span><span class="p">,</span>
+            <span class="mi">1</span><span class="p">,</span>
             <span class="s2">&quot;UserSpecifyFolder:=&quot;</span><span class="p">,</span>
             <span class="mi">1</span><span class="p">,</span>
             <span class="s2">&quot;StreamlinePlot:=&quot;</span><span class="p">,</span>
@@ -826,6 +790,71 @@
             <span class="s2">&quot;EnableGaussianSmoothing:=&quot;</span><span class="p">,</span>
             <span class="kc">False</span><span class="p">,</span>
         <span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">field_plot_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Field Plot Settings.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            Field Plot Settings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;NAME:FieldsPlotItemSettings&quot;</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:PlotOnSurfaceSettings&quot;</span><span class="p">,</span> <span class="s2">&quot;Filled:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Filled</span><span class="p">,</span> <span class="s2">&quot;IsoValType:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">IsoVal</span><span class="p">,</span> <span class="s2">&quot;AddGrid:=&quot;</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">AddGrid</span><span class="p">,</span> <span class="s2">&quot;MapTransparency:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">MapTransparency</span><span class="p">,</span> <span class="s2">&quot;Refinement:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Refinement</span><span class="p">,</span>
+                 <span class="s2">&quot;Transparency:=&quot;</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">Transparency</span><span class="p">,</span> <span class="s2">&quot;SmoothingLevel:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SmoothingLevel</span><span class="p">,</span> <span class="s2">&quot;ShadingType:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">SmoothShade</span><span class="p">,</span>
+                 <span class="p">[</span><span class="s2">&quot;NAME:Arrow3DSpacingSettings&quot;</span><span class="p">,</span> <span class="s2">&quot;ArrowUniform:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ArrowUniform</span><span class="p">,</span> <span class="s2">&quot;ArrowSpacing:=&quot;</span><span class="p">,</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">ArrowSpacing</span><span class="p">,</span> <span class="s2">&quot;MinArrowSpacing:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">MinArrowSpacing</span><span class="p">,</span> <span class="s2">&quot;MaxArrowSpacing:=&quot;</span><span class="p">,</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">MaxArrowSpacing</span><span class="p">],</span> <span class="s2">&quot;GridColor:=&quot;</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">GridColor</span><span class="p">]]</span>
+
+<div class="viewcode-block" id="FieldPlot.create"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.create.html#pyaedt.modules.PostProcessor.FieldPlot.create">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a field plot.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">CreateFieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surfacePlotInstruction</span><span class="p">,</span> <span class="s2">&quot;Field&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="FieldPlot.update"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.update.html#pyaedt.modules.PostProcessor.FieldPlot.update">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the field plot.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           This method works on any plot created inside PyAEDT.</span>
+<span class="sd">           For Plot already existing in AEDT Design it may produce incorrect results.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">ModifyFieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfacePlotInstruction</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FieldPlot.update_field_plot_settings"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.update_field_plot_settings.html#pyaedt.modules.PostProcessor.FieldPlot.update_field_plot_settings">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">update_field_plot_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Modify the field plot settings.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">SetFieldPlotSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:FieldsPlotItemSettings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotsettings</span><span class="p">])</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="FieldPlot.delete"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.delete.html#pyaedt.modules.PostProcessor.FieldPlot.delete">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete the field plot.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">DeleteFieldPlot</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="FieldPlot.change_plot_scale"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.change_plot_scale.html#pyaedt.modules.PostProcessor.FieldPlot.change_plot_scale">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">change_plot_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minimum_value</span><span class="p">,</span> <span class="n">maximum_value</span><span class="p">,</span> <span class="n">is_log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">is_db</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -852,8 +881,89 @@
                   <span class="p">[</span><span class="mi">127</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">],</span> <span class="s2">&quot;RampColor:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">127</span><span class="p">]]]</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="p">[[</span><span class="s2">&quot;NAME:Scale3DSettings&quot;</span><span class="p">,</span> <span class="s2">&quot;minvalue:=&quot;</span><span class="p">,</span> <span class="n">minimum_value</span><span class="p">,</span> <span class="s2">&quot;maxvalue:=&quot;</span><span class="p">,</span> <span class="n">maximum_value</span><span class="p">,</span> <span class="s2">&quot;log:=&quot;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">is_log</span><span class="p">,</span>
                  <span class="s2">&quot;dB:=&quot;</span><span class="p">,</span> <span class="n">is_db</span><span class="p">,</span> <span class="s2">&quot;ScaleType:=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">SetPlotFolderSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">SetPlotFolderSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotFolder</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="FieldPlot.export_image"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.export_image.html#pyaedt.modules.PostProcessor.FieldPlot.export_image">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">export_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1920</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1080</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;isometric&quot;</span><span class="p">,</span> <span class="n">display_wireframe</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export an image of active Plot.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           Works with some limitation on HFSS3DLayout.</span>
+
+<span class="sd">        full_path : str, optional</span>
+<span class="sd">            Path where image will be saved. It supports png and gif format.</span>
+<span class="sd">        width : int, optional</span>
+<span class="sd">            Plot Width.</span>
+<span class="sd">        height : int, optional</span>
+<span class="sd">            Plot Height.</span>
+<span class="sd">        orientation : str, optional</span>
+<span class="sd">            View of the exported plot. Options are ``isometric``, ``top``, ``bottom``, ``right``, ``left``, ``front``,</span>
+<span class="sd">            ``back``any custom orientation.</span>
+<span class="sd">        display_wireframe : bool, optional</span>
+<span class="sd">            Set to ``True`` if the objects has to be put in wireframe mode.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Full path to exported file if successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oField</span><span class="o">.</span><span class="n">UpdateQuantityFieldsPlots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotFolder</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">full_path</span><span class="p">:</span>
+            <span class="n">full_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.png&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">export_field_jpg</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotFolder</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">,</span>
+                                               <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">display_wireframe</span><span class="o">=</span><span class="n">display_wireframe</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">full_path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="FieldPlot.export_image_from_aedtplt"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.export_image_from_aedtplt.html#pyaedt.modules.PostProcessor.FieldPlot.export_image_from_aedtplt">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">export_image_from_aedtplt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;isometric&quot;</span><span class="p">,</span> <span class="n">plot_mesh</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scale_min</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                  <span class="n">scale_max</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export an image of Active Plot using PyVista.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           Only working in CPython with PyVista Module Installed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        export_path : str, optional</span>
+<span class="sd">            Path where image will be saved</span>
+<span class="sd">        view : str, optional</span>
+<span class="sd">            View of the exported plot. Options are ``isometric``, ``top``, ``front``, ``left``, ``all``.</span>
+<span class="sd">        plot_mesh : bool, optional</span>
+<span class="sd">            Plot Mesh.</span>
+<span class="sd">        scale_min : float, optional</span>
+<span class="sd">            Scale output min.</span>
+<span class="sd">        scale_max : float, optional</span>
+<span class="sd">            Scale output max.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Full path to exported file if successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">export_path</span><span class="p">:</span>
+            <span class="n">export_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">project_path</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">plot_field_from_fieldplot</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">project_path</span><span class="o">=</span><span class="n">export_path</span><span class="p">,</span>
+                    <span class="n">meshplot</span><span class="o">=</span><span class="n">plot_mesh</span><span class="p">,</span>
+                    <span class="n">setup_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solutionName</span><span class="p">,</span>
+                    <span class="n">intrinsic_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsincList</span><span class="p">,</span>
+                    <span class="n">imageformat</span><span class="o">=</span><span class="s2">&quot;jpg&quot;</span><span class="p">,</span>
+                    <span class="n">view</span><span class="o">=</span><span class="n">view</span><span class="p">,</span>
+                    <span class="n">plot_label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quantityName</span><span class="p">,</span>
+                    <span class="n">off_screen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">scale_min</span><span class="o">=</span><span class="n">scale_min</span><span class="p">,</span>
+                    <span class="n">scale_max</span><span class="o">=</span><span class="n">scale_max</span><span class="p">,</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;This method wors only on CPython with PyVista&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div></div>
+
 
 <span class="k">class</span> <span class="nc">PostProcessorCommon</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages the main AEDT postprocessing functions.</span>
@@ -1130,7 +1240,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
             <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">nominal_sweep</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">report_type</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solution not supported&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Solution not supported&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">report_category</span><span class="p">:</span>
             <span class="n">modal_data</span> <span class="o">=</span> <span class="n">report_type</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span><span class="p">]</span>
@@ -1301,7 +1411,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span> <span class="o">=</span> <span class="n">parent</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fields_plot</span><span class="p">()</span>
         <span class="n">PostProcessorCommon</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -1369,6 +1479,137 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">GetAvailableDisplayTypes</span><span class="p">(</span><span class="n">report_type</span><span class="p">)</span></div>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_base_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">):</span>
+        <span class="n">setups_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;FieldsReporter&quot;</span><span class="p">][</span><span class="s2">&quot;FieldsPlotManagerID&quot;</span><span class="p">]</span>
+        <span class="n">base_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;SimDataExtractors&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;SolutionManager&quot;</span><span class="p">]:</span>
+            <span class="n">sim_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;SolutionManager&quot;</span><span class="p">][</span><span class="s1">&#39;SimDataExtractors&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sim_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;SolutionManager&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;SimSetup&#39;</span> <span class="ow">in</span> <span class="n">sim_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sim_data</span><span class="p">[</span><span class="s2">&quot;SimSetup&quot;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">solution</span> <span class="ow">in</span> <span class="n">sim_data</span><span class="p">[</span><span class="s2">&quot;SimSetup&quot;</span><span class="p">]:</span>
+                    <span class="n">base_name</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">sol</span> <span class="ow">in</span> <span class="n">solution</span><span class="p">[</span><span class="s1">&#39;Solution&#39;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">sol</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;SolutionId&quot;</span><span class="p">]:</span>
+                            <span class="n">base_name</span> <span class="o">+=</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">sol</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span>
+                            <span class="k">return</span> <span class="n">base_name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">base_name</span> <span class="o">=</span> <span class="n">sim_data</span><span class="p">[</span><span class="s2">&quot;SimSetup&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">sol</span> <span class="ow">in</span> <span class="n">sim_data</span><span class="p">[</span><span class="s2">&quot;SimSetup&quot;</span><span class="p">][</span><span class="s1">&#39;Solution&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">sol</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;SolutionId&quot;</span><span class="p">]:</span>
+                        <span class="n">base_name</span> <span class="o">+=</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">sol</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span>
+                        <span class="k">return</span> <span class="n">base_name</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_intrinsic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">):</span>
+        <span class="n">setups_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;FieldsReporter&quot;</span><span class="p">][</span><span class="s2">&quot;FieldsPlotManagerID&quot;</span><span class="p">]</span>
+        <span class="n">intrinsics</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;IntrinsicVar&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)]</span>
+        <span class="n">intr_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">intrinsics</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">intr</span> <span class="ow">in</span> <span class="n">intrinsics</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intr</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">intr</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">intr_dict</span><span class="p">[</span><span class="n">intr</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">intr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&#39;</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">intr_dict</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_volume_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_objs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">]:</span>
+            <span class="n">obj_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">4</span><span class="p">:]:</span>
+                <span class="n">obj_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetActiveEditor</span><span class="p">(</span><span class="s2">&quot;3D Modeler&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetObjectNameByID</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">obj_list</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj_list</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_surface_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_objs</span><span class="p">):</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">4</span><span class="p">:]]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">]:</span>
+            <span class="n">planes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cs_plane_ids</span><span class="p">()</span>
+            <span class="n">objs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">faces</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">face</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">planes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="n">objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">planes</span><span class="p">[</span><span class="n">face</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">objs</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;CutPlane&quot;</span><span class="p">,</span> <span class="n">objs</span>
+        <span class="k">return</span> <span class="s2">&quot;FacesList&quot;</span><span class="p">,</span> <span class="n">faces</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_cs_plane_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">name2refid</span> <span class="o">=</span> <span class="p">{</span><span class="o">-</span><span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;Global:XY&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;Global:YZ&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Global:XZ&quot;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span> <span class="ow">and</span> <span class="s2">&quot;ModelSetup&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">:</span>
+            <span class="n">cs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryOperations&quot;</span><span class="p">][</span><span class="s2">&quot;CoordinateSystems&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">cs</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">],</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;Attributes&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
+                        <span class="n">cs_id</span> <span class="o">=</span> <span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;XYPlaneID&quot;</span><span class="p">]</span>
+                        <span class="n">name2refid</span><span class="p">[</span><span class="n">cs_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span><span class="o">+</span><span class="s2">&quot;:XY&quot;</span>
+                        <span class="n">name2refid</span><span class="p">[</span><span class="n">cs_id</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span><span class="o">+</span><span class="s2">&quot;:YZ&quot;</span>
+                        <span class="n">name2refid</span><span class="p">[</span><span class="n">cs_id</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span><span class="o">+</span><span class="s2">&quot;:XZ&quot;</span>
+                    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">cs</span><span class="p">[</span><span class="n">ds</span><span class="p">]:</span>
+                            <span class="n">cs_id</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;XYPlaneID&quot;</span><span class="p">]</span>
+                            <span class="n">name</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
+                            <span class="n">name2refid</span><span class="p">[</span><span class="n">cs_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;:XY&quot;</span>
+                            <span class="n">name2refid</span><span class="p">[</span><span class="n">cs_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;:YZ&quot;</span>
+                            <span class="n">name2refid</span><span class="p">[</span><span class="n">cs_id</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;:XZ&quot;</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">name2refid</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_fields_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">plots</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span> \
+                <span class="ow">and</span> <span class="s2">&quot;FieldsReporter&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span> <span class="ow">and</span> <span class="s2">&quot;FieldsPlotManagerID&quot;</span> <span class="ow">in</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;FieldsReporter&quot;</span><span class="p">]:</span>
+            <span class="n">setups_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;FieldsReporter&quot;</span><span class="p">][</span><span class="s2">&quot;FieldsPlotManagerID&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">setup</span> <span class="ow">in</span> <span class="n">setups_data</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">],</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">))</span> <span class="ow">and</span> <span class="s2">&quot;PlotDefinition&quot;</span> <span class="ow">in</span> <span class="n">setup</span><span class="p">:</span>
+                        <span class="n">plot_name</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotName&quot;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">solutionName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_base_name</span><span class="p">(</span><span class="n">setup</span><span class="p">)</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">quantityName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">GetFieldPlotQuantityName</span><span class="p">(</span>
+                            <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotName&quot;</span><span class="p">])</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">intrinsincList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_intrinsic</span><span class="p">(</span><span class="n">setup</span><span class="p">)</span>
+                        <span class="n">list_objs</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;FieldPlotGeometry&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">64</span><span class="p">:</span>
+                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="s2">&quot;Volume&quot;</span>
+                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">listtype</span> <span class="o">=</span> <span class="s2">&quot;ObjList&quot;</span>
+                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_volume_objects</span><span class="p">(</span><span class="n">list_objs</span><span class="p">)</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="s2">&quot;Surface&quot;</span>
+                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">listtype</span><span class="p">,</span> <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_surface_objects</span><span class="p">(</span>
+                                <span class="n">list_objs</span><span class="p">)</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotName&quot;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">plotFolder</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotFolder&quot;</span><span class="p">]</span>
+                        <span class="n">surf_setts</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotOnSurfaceSettings&quot;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">Filled</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;Filled&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">IsoVal</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;IsoValType&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">AddGrid</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;AddGrid&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">MapTransparency</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;MapTransparency&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">Refinement</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;Refinement&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">Transparency</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;Transparency&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">SmoothingLevel</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;SmoothingLevel&#39;</span><span class="p">]</span>
+                        <span class="n">arrow_setts</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;Arrow3DSpacingSettings&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">ArrowUniform</span> <span class="o">=</span> <span class="n">arrow_setts</span><span class="p">[</span><span class="s1">&#39;ArrowUniform&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">ArrowSpacing</span> <span class="o">=</span> <span class="n">arrow_setts</span><span class="p">[</span><span class="s1">&#39;ArrowSpacing&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">MinArrowSpacing</span> <span class="o">=</span> <span class="n">arrow_setts</span><span class="p">[</span><span class="s1">&#39;MinArrowSpacing&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">MaxArrowSpacing</span> <span class="o">=</span> <span class="n">arrow_setts</span><span class="p">[</span><span class="s1">&#39;MaxArrowSpacing&#39;</span><span class="p">]</span>
+                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">GridColor</span> <span class="o">=</span> <span class="n">surf_setts</span><span class="p">[</span><span class="s1">&#39;GridColor&#39;</span><span class="p">]</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">plots</span>
 
     <span class="c1"># TODO: define a fields calculator module and make robust !!</span>
 <div class="viewcode-block" id="PostProcessor.volumetric_loss"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.volumetric_loss.html#pyaedt.modules.PostProcessor.PostProcessor.volumetric_loss">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -1822,22 +2063,25 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
             <span class="n">setup_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">existing_analysis_sweeps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">CloseAllWindows</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">fit_all</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">TileWindows</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
+
         <span class="n">char_set</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_name</span><span class="p">:</span>
             <span class="n">plot_name</span> <span class="o">=</span> <span class="n">quantityName</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">char_set</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
         <span class="n">plot</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="p">)</span>
         <span class="n">plot</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">plot_name</span>
+        <span class="n">plot</span><span class="o">.</span><span class="n">plotFolder</span> <span class="o">=</span> <span class="n">plot_name</span>
 
         <span class="n">plot</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="n">objtype</span>
         <span class="n">plot</span><span class="o">.</span><span class="n">listtype</span> <span class="o">=</span> <span class="n">listtype</span>
         <span class="n">plt</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">plt</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">plot</span>
             <span class="k">return</span> <span class="n">plot</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -1867,9 +2111,9 @@
 <span class="sd">            Plot object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Plot </span><span class="si">{}</span><span class="s2"> exists. returning the object.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;Surface&quot;</span><span class="p">,</span> <span class="s2">&quot;FacesList&quot;</span><span class="p">,</span>
                                       <span class="n">plot_name</span><span class="p">)</span></div>
 
@@ -1899,9 +2143,9 @@
 <span class="sd">            Plot object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Plot </span><span class="si">{}</span><span class="s2"> exists. returning the object.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;Surface&quot;</span><span class="p">,</span> <span class="s2">&quot;CutPlane&quot;</span><span class="p">,</span>
                                       <span class="n">plot_name</span><span class="p">)</span></div>
 
@@ -1927,17 +2171,17 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        type</span>
+<span class="sd">        :class:``pyaedt.modules.PostProcessor.FieldPlot``</span>
 <span class="sd">            Plot object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;Plot </span><span class="si">{}</span><span class="s2"> exists. returning the object.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;Volume&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjList&quot;</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PostProcessor.export_field_jpg"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.export_field_jpg.html#pyaedt.modules.PostProcessor.PostProcessor.export_field_jpg">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">export_field_jpg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">coordinateSystemName</span><span class="o">=</span><span class="s2">&quot;Global&quot;</span><span class="p">):</span>
-        <span class="c1">#TODO Check the ExportPlotImageWithViewToFile in HFSS 3D Layout</span>
+    <span class="k">def</span> <span class="nf">export_field_jpg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">foldername</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">&quot;isometric&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">1920</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1080</span><span class="p">,</span>
+                         <span class="n">display_wireframe</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Export a field plot and coordinate system to a JPG file.</span>
 
 <span class="sd">        Parameters</span>
@@ -1946,23 +2190,50 @@
 <span class="sd">            Full path and name to save the JPG file to.</span>
 <span class="sd">        plotName : str</span>
 <span class="sd">            Name of the plot.</span>
-<span class="sd">        coordinateSystemName :str</span>
-<span class="sd">            Name of the coordinate system.</span>
-
+<span class="sd">        foldername : str</span>
+<span class="sd">            Name of the folder plot.</span>
+<span class="sd">        orientation : str</span>
+<span class="sd">            Name of the orientation to apply.</span>
+<span class="sd">        width : int</span>
+<span class="sd">            Plot Width.</span>
+<span class="sd">        height : int</span>
+<span class="sd">            Plot Height.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS3DLayout&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ExportImage</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="mi">1920</span><span class="p">,</span> <span class="mi">1080</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">]:</span>
+            <span class="n">wireframes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">display_wireframe</span><span class="p">:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">object_names</span>
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">display_wireframe</span><span class="p">:</span>
+                        <span class="n">wireframes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">display_wireframe</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent</span><span class="o">.</span><span class="n">_aedt_version</span> <span class="o">&lt;</span> <span class="s2">&quot;2021.2&quot;</span><span class="p">:</span>
+                <span class="n">bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_model_bounding_box</span><span class="p">()</span>
+                <span class="n">center</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">5</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="p">]</span>
+                <span class="n">view</span> <span class="o">=</span> <span class="n">orientation_to_view</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="s2">&quot;iso&quot;</span><span class="p">)</span>
+                <span class="n">cs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">create_coordinate_system</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="n">center</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;view&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="n">view</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">ExportPlotImageToFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">foldername</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">cs</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">ExportPlotImageWithViewToFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">foldername</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span>
+                                                                   <span class="n">orientation</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">solid</span> <span class="ow">in</span> <span class="n">wireframes</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="p">[</span><span class="n">solid</span><span class="p">]</span><span class="o">.</span><span class="n">display_wireframe</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">ExportPlotImageToFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">coordinateSystemName</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ExportImage</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="mi">1920</span><span class="p">,</span> <span class="mi">1080</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="PostProcessor.export_field_image_with_View"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.export_field_image_with_View.html#pyaedt.modules.PostProcessor.PostProcessor.export_field_image_with_View">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">export_field_image_with_View</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">exportFilePath</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;iso&quot;</span><span class="p">,</span> <span class="n">wireframe</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="PostProcessor.export_field_image_with_view"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.export_field_image_with_view.html#pyaedt.modules.PostProcessor.PostProcessor.export_field_image_with_view">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">export_field_image_with_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">foldername</span><span class="p">,</span> <span class="n">exportFilePath</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;isometric&quot;</span><span class="p">,</span> <span class="n">wireframe</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Export a field plot image with a view.</span>
 
 <span class="sd">        .. note::</span>
@@ -1976,8 +2247,9 @@
 <span class="sd">        exportFilePath :</span>
 <span class="sd">            Path for exporting the image file.</span>
 <span class="sd">        view : str, optional</span>
-<span class="sd">            View to export. Options are ``&quot;iso&quot;``, ``&quot;XZ&quot;``, ``&quot;XY&quot;``, and ``&quot;YZ&quot;``.</span>
-<span class="sd">            The default is ``&quot;iso&quot;``.</span>
+<span class="sd">            View to export. Options are ``&quot;isometric&quot;``, ``&quot;top&quot;``, ``&quot;bottom&quot;``, ``&quot;right&quot;``, ``&quot;left&quot;`` and any</span>
+<span class="sd">            custom orientation.</span>
+<span class="sd">            The default is ``&quot;isometric&quot;``.</span>
 <span class="sd">        wireframe : bool, optional</span>
 <span class="sd">            Whether to put the objects in the wireframe mode. The default is ``True``.</span>
 
@@ -1986,28 +2258,8 @@
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS3DLayout&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">:</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_field_jpg</span><span class="p">(</span><span class="n">exportFilePath</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_model_bounding_box</span><span class="p">()</span>
-            <span class="n">center</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">bound</span><span class="p">[</span><span class="mi">5</span><span class="p">]))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="p">]</span>
-            <span class="n">coordinateSystemForExportPlot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">create_coordinate_system</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="n">center</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;view&quot;</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="n">view</span><span class="p">)</span>
-            <span class="n">wireframes</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="n">wireframe</span><span class="p">:</span>
-                <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">object_names</span>
-                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">display_wireframe</span><span class="p">:</span>
-                        <span class="n">wireframes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">display_wireframe</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_field_jpg</span><span class="p">(</span><span class="n">exportFilePath</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">coordinateSystemForExportPlot</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">solid</span> <span class="ow">in</span> <span class="n">wireframes</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="p">[</span><span class="n">solid</span><span class="p">]</span><span class="o">.</span><span class="n">display_wireframe</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">coordinateSystemForExportPlot</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">status</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_field_jpg</span><span class="p">(</span><span class="n">exportFilePath</span><span class="p">,</span> <span class="n">plotName</span><span class="p">,</span> <span class="n">foldername</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="n">view</span><span class="p">,</span>
+                                     <span class="n">display_wireframe</span><span class="o">=</span><span class="n">wireframe</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PostProcessor.delete_field_plot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.delete_field_plot.html#pyaedt.modules.PostProcessor.PostProcessor.delete_field_plot">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">delete_field_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -2024,7 +2276,7 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">DeleteFieldPlot</span><span class="p">([</span><span class="n">name</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">FieldsPlot</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="PostProcessor.export_model_picture"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.PostProcessor.export_model_picture.html#pyaedt.modules.PostProcessor.PostProcessor.export_model_picture">[docs]</a>    <span class="nd">@aedt_exception_handler</span>

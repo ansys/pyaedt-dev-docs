@@ -199,6 +199,9 @@
 <span class="kn">from</span> <span class="nn">..generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 
 
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">base64</span>
+
 <span class="n">design_solutions</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;Maxwell 2D&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="s2">&quot;MagnetostaticXY&quot;</span><span class="p">,</span>
@@ -717,7 +720,7 @@
     <span class="p">):</span>
         <span class="c1"># Get Desktop from global Desktop Environment</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">project_datasets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">main_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">]</span>
@@ -729,7 +732,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">release_on_exit</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span> <span class="o">=</span> <span class="n">main_module</span><span class="o">.</span><span class="n">oDesktop</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_version</span> <span class="o">=</span> <span class="n">main_module</span><span class="o">.</span><span class="n">AEDTVersion</span>
@@ -768,11 +770,18 @@
 <span class="sd">        dict</span>
 <span class="sd">            Dictionary of the project properties.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">):</span>
-            <span class="n">_mttime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">_mttime</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="n">load_entire_aedt_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span> <span class="o">=</span> <span class="n">_mttime</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="n">load_entire_aedt_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">add_info_message</span><span class="p">(</span><span class="s2">&quot;AEDT Load time </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
+        <span class="c1"># import time</span>
+        <span class="c1"># start = time.time()</span>
+        <span class="c1"># if os.path.exists(self.project_file):</span>
+        <span class="c1">#     _mttime = os.path.getmtime(self.project_file)</span>
+        <span class="c1">#     if _mttime != self._mttime:</span>
+        <span class="c1">#         self._project_dictionary = load_entire_aedt_file(self.project_file)</span>
+        <span class="c1">#         self._mttime = _mttime</span>
+        <span class="c1">#         self._messenger.add_info_message(&quot;AEDT Load time {}&quot;.format(time.time()-start))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span>
 
     <span class="nd">@property</span>
@@ -1825,12 +1834,17 @@
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_get_boundaries_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieve boundary data.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve boundary data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        [:class:`pyaedt.modules.Boundary.BoundaryObject`]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">boundaries</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span> <span class="ow">and</span> <span class="s2">&quot;BoundarySetup&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;BoundarySetup&quot;</span><span class="p">][</span><span class="s2">&quot;Boundaries&quot;</span><span class="p">]:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;BoundarySetup&quot;</span><span class="p">][</span><span class="s2">&quot;Boundaries&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">])</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;BoundarySetup&quot;</span><span class="p">][</span><span class="s2">&quot;Boundaries&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">],</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
                         <span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                             <span class="n">BoundaryObject</span><span class="p">(</span>
                                 <span class="bp">self</span><span class="p">,</span>
@@ -2701,6 +2715,34 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span> <span class="o">=</span> <span class="n">newname</span>
         <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
 
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">export_design_preview_to_jpg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export design preview image to a jpg file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Full path and name for the JPG file</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">design_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;ProjectPreview&quot;</span><span class="p">][</span><span class="s2">&quot;DesignInfo&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">design_info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1">#there are multiple designs, find the right one</span>
+            <span class="c1">#is self.design_name guaranteed to be there?</span>
+            <span class="n">design_info</span> <span class="o">=</span> <span class="p">[</span><span class="n">design</span> <span class="k">for</span> <span class="n">design</span> <span class="ow">in</span> <span class="n">design_info</span> <span class="k">if</span> <span class="n">design</span><span class="p">[</span><span class="s2">&quot;DesignName&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">image_data_str</span> <span class="o">=</span> <span class="n">design_info</span><span class="p">[</span><span class="s2">&quot;Image64&quot;</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">bytestring</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">image_data_str</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;base64&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bytestring</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">image_data_str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bytestring</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@aedt_exception_handler</span>
