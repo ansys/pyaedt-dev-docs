@@ -340,6 +340,58 @@
         <span class="k">return</span> <span class="n">components_dict</span>
 
     <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">objects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">export_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot_as_separate_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">plot_air_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">force_opacity_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">clean_files</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plot the model or a substet of objects.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objects : list, optional</span>
+<span class="sd">            Optional list of objects to plot. If `None` all objects will be exported.</span>
+<span class="sd">        show : bool, optional</span>
+<span class="sd">            Show the plot after generation or simply return the</span>
+<span class="sd">            generated Class for more customization before plot.</span>
+<span class="sd">        export_path : str, optional</span>
+<span class="sd">            If available, an image is saved to file. If `None` no image will be saved.</span>
+<span class="sd">        plot_as_separate_objects : bool, optional</span>
+<span class="sd">            Plot each object separately. It may require more time to export from AEDT.</span>
+<span class="sd">        plot_air_objects : bool, optional</span>
+<span class="sd">            Plot also air and vacuum objects.</span>
+<span class="sd">        force_opacity_value : float, optional</span>
+<span class="sd">            Opacity value between 0 and 1 to be applied to all model.</span>
+<span class="sd">            If `None` aedt opacity will be applied to each object.</span>
+<span class="sd">        clean_files : bool, optional</span>
+<span class="sd">            Clean created files after plot. Cache is mainteined into the model object returned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.AdvancedPostProcessing.ModelPlotter`</span>
+<span class="sd">            Model Object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Plot is available only on CPython&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_version</span> <span class="o">&lt;</span> <span class="s2">&quot;2021.2&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Plot is supported from AEDT 2021 R2.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">plot_model_obj</span><span class="p">(</span>
+                <span class="n">objects</span><span class="o">=</span><span class="n">objects</span><span class="p">,</span>
+                <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">,</span>
+                <span class="n">export_path</span><span class="o">=</span><span class="n">export_path</span><span class="p">,</span>
+                <span class="n">plot_as_separate_objects</span><span class="o">=</span><span class="n">plot_as_separate_objects</span><span class="p">,</span>
+                <span class="n">plot_air_objects</span><span class="o">=</span><span class="n">plot_air_objects</span><span class="p">,</span>
+                <span class="n">force_opacity_value</span><span class="o">=</span><span class="n">force_opacity_value</span><span class="p">,</span>
+                <span class="n">clean_files</span><span class="o">=</span><span class="n">clean_files</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">export_mesh_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">variation_string</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">mesh_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Export mesh statistics to a file.</span>
 
@@ -719,41 +771,23 @@
 <span class="sd">        &gt;&gt;&gt; hfss.assign_material(obj_names_list, &quot;aluminum&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-        <span class="n">arg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">]</span>
-        <span class="n">arg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Selections:=&quot;</span><span class="p">),</span> <span class="n">arg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>
-        <span class="n">arg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">]</span>
-        <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;MaterialValue:=&quot;</span><span class="p">),</span> <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="mi">34</span><span class="p">)</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">34</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">mat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">:</span>
-            <span class="n">Mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="p">]</span>
-            <span class="n">Mat</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">Mat</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">():</span>
-                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;SolveInside:=&quot;</span><span class="p">),</span> <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;SolveInside:=&quot;</span><span class="p">),</span> <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">AssignMaterial</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Assign Material &quot;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s2">&quot; to object &quot;</span> <span class="o">+</span> <span class="n">selections</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">mat</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">mat</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">checkifmaterialexists</span><span class="p">(</span><span class="n">mat</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_aedmattolibrary</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
-            <span class="n">Mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">Mat</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">():</span>
-                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;SolveInside:=&quot;</span><span class="p">),</span> <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;SolveInside:=&quot;</span><span class="p">),</span> <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">AssignMaterial</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Assign Material &quot;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s2">&quot; to object &quot;</span> <span class="o">+</span> <span class="n">selections</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">mat</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">mat</span>
+        <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
+        <span class="n">mat_exists</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">mat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">:</span>
+            <span class="n">mat_exists</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">mat_exists</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">checkifmaterialexists</span><span class="p">(</span><span class="n">mat</span><span class="p">):</span>
+            <span class="n">Mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">mat_exists</span><span class="p">:</span>
+                <span class="n">Mat</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Assign Material &quot;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s2">&quot; to object &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">selections</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">mat</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="p">]</span><span class="o">.</span><span class="n">material_appearance</span>
+                <span class="k">if</span> <span class="n">Mat</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Material does not exist.&quot;</span><span class="p">)</span>
