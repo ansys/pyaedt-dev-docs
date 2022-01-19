@@ -201,7 +201,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_edb</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span> <span class="o">=</span> <span class="n">p_edb</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -680,6 +680,7 @@
         <span class="n">fromlayer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">tolayer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">solderlayer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_pin</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Place the padstack.</span>
 
@@ -727,10 +728,12 @@
         <span class="k">if</span> <span class="n">solderlayer</span><span class="p">:</span>
             <span class="n">solderlayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">solderlayer</span><span class="p">]</span><span class="o">.</span><span class="n">_layer</span>
         <span class="k">if</span> <span class="n">padstack</span><span class="p">:</span>
-            <span class="n">via</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PadstackInstance</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+            <span class="n">padstack_instance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PadstackInstance</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">via_name</span><span class="p">,</span> <span class="n">padstack</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">fromlayer</span><span class="p">,</span> <span class="n">tolayer</span><span class="p">,</span> <span class="n">solderlayer</span><span class="p">,</span> <span class="kc">None</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">via</span>
+            <span class="n">padstack_instance</span><span class="o">.</span><span class="n">SetIsLayoutPin</span><span class="p">(</span><span class="n">is_pin</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_padstack_instances</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">padstack_instance</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
@@ -772,11 +775,11 @@
     <span class="k">def</span> <span class="nf">update_padstack_instances</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update Padstack Instance List.&quot;&quot;&quot;</span>
         <span class="n">layout_lobj_collection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">layout_lobj_collection</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
             <span class="n">lobj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">lobj</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PadstackInstance</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPadstackInstance</span><span class="p">(</span><span class="n">lobj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span><span class="p">[</span><span class="n">lobj</span><span class="o">.</span><span class="n">GetId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPadstackInstance</span><span class="p">(</span><span class="n">lobj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbPadstacks.get_padstack_instance_by_net_name"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.get_padstack_instance_by_net_name.html#pyaedt.edb_core.padstack.EdbPadstacks.get_padstack_instance_by_net_name">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_padstack_instance_by_net_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="p">):</span>
@@ -790,11 +793,11 @@
 <span class="sd">        -------</span>
 <span class="sd">        list of Edb.Cell.Primitive.PadstackInstance</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">via_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstack_instances</span><span class="p">:</span>
+        <span class="n">padstack_instances</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">inst_id</span><span class="p">,</span> <span class="n">inst</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">inst</span><span class="o">.</span><span class="n">net_name</span> <span class="o">==</span> <span class="n">net_name</span><span class="p">:</span>
-                <span class="n">via_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inst</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">via_list</span></div></div>
+                <span class="n">padstack_instances</span><span class="p">[</span><span class="n">inst_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">inst</span>
+        <span class="k">return</span> <span class="n">padstack_instances</span></div></div>
 </pre></div>
 
               </div>

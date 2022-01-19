@@ -1215,10 +1215,7 @@
 <span class="sd">        type</span>
 <span class="sd">            Design solution type.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetSolutionType</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_design_type</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">solution_type</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">all_report_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1353,7 +1350,7 @@
 <span class="sd">        &gt;&gt;&gt; m3d.post.get_report_data(&quot;Wind(LoadA,LaodA)&quot;)    # TransientAnalsysis</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">,</span> <span class="s2">&quot;TR&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;DC&quot;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Sweep&quot;</span><span class="p">:</span>
                 <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1367,7 +1364,9 @@
             <span class="n">ctxt</span> <span class="o">=</span> <span class="n">domain</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Domain:=&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">]</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;TR&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;DC&quot;</span><span class="p">]:</span>
+            <span class="n">ctxt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctxt</span><span class="p">[</span><span class="mi">2</span><span class="p">][:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
@@ -1377,7 +1376,10 @@
             <span class="n">report_input_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">report_type</span>
 
         <span class="k">if</span> <span class="n">families_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">families_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Freq&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]}</span>
+            <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Time&quot;</span><span class="p">:</span>
+                <span class="n">families_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Time&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">families_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Freq&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]}</span>
 
         <span class="n">solution_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_data_per_variation</span><span class="p">(</span>
             <span class="n">report_input_type</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">families_dict</span><span class="p">,</span> <span class="n">expression</span>
@@ -1433,7 +1435,7 @@
         <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
             <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">nominal_sweep</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">,</span> <span class="s2">&quot;TR&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;DC&quot;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="s2">&quot;Freq&quot;</span> <span class="o">==</span> <span class="n">primary_sweep_variable</span> <span class="ow">or</span> <span class="s2">&quot;Freq&quot;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">families_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
                 <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1448,7 +1450,9 @@
                 <span class="n">ctxt</span> <span class="o">=</span> <span class="n">context</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Context:=&quot;</span><span class="p">,</span> <span class="n">context</span><span class="p">]</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;TR&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;DC&quot;</span><span class="p">]:</span>
+            <span class="n">ctxt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">ctxt</span><span class="p">[</span><span class="mi">2</span><span class="p">][:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
