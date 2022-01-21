@@ -180,6 +180,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
@@ -1923,7 +1924,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        objid : str, int, or Object3d</span>
 <span class="sd">            Name or ID of the object.</span>
-<span class="sd">        position : float</span>
+<span class="sd">        position : int or float</span>
 <span class="sd">            List of the ``[x, y, z]`` coordinates or the</span>
 <span class="sd">            Application.Position object for the selection.</span>
 <span class="sd">        vector : float</span>
@@ -1955,6 +1956,41 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Mirror</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
 
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objid</span><span class="p">,</span> <span class="n">vector</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move objects from a list.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objid : list, Position object</span>
+<span class="sd">            List of object IDs.</span>
+<span class="sd">        vector : list</span>
+<span class="sd">            Vector of the direction move. It can be a list of the ``[x, y, z]``</span>
+<span class="sd">            coordinates or a Position object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.Move</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Xvec</span><span class="p">,</span> <span class="n">Yvec</span><span class="p">,</span> <span class="n">Zvec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_pos_with_arg</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+        <span class="n">szSelections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objid</span><span class="p">)</span>
+
+        <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="n">szSelections</span><span class="p">,</span> <span class="s2">&quot;NewPartsModelFlag:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Model&quot;</span><span class="p">]</span>
+        <span class="n">vArg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:TranslateParameters&quot;</span><span class="p">]</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;TranslateVectorX:=&quot;</span><span class="p">),</span> <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Xvec</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;TranslateVectorY:=&quot;</span><span class="p">),</span> <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Yvec</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;TranslateVectorZ:=&quot;</span><span class="p">),</span> <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Zvec</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Move</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@aedt_exception_handler</span>
@@ -2647,6 +2683,7 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.Move</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`translate` is deprecated. Use `move` instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
         <span class="n">Xvec</span><span class="p">,</span> <span class="n">Yvec</span><span class="p">,</span> <span class="n">Zvec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_pos_with_arg</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
         <span class="n">szSelections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objid</span><span class="p">)</span>
 
