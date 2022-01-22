@@ -1480,7 +1480,7 @@
 <span class="sd">            position is a list of 2D or 3D coordinates. Position</span>
 <span class="sd">            coordinate values can be numbers or valid AEDT string</span>
 <span class="sd">            expressions. For example, ``[0, 1, 2]``, ``[&quot;0mm&quot;, &quot;5mm&quot;,</span>
-<span class="sd">            &quot;1mm&quot;]``, or ``[&quot;x1&quot;, &quot;y1&quot;]``.</span>
+<span class="sd">            &quot;1mm&quot;]``, or ``[&quot;x1&quot;, &quot;y1&quot;, &quot;z1&quot;]``.</span>
 <span class="sd">        segment_type : str or PolylineSegment or list, optional</span>
 <span class="sd">            The default behavior is to connect all points as</span>
 <span class="sd">            ``&quot;Line&quot;`` segments. The default is ``None``. For a</span>
@@ -1541,7 +1541,7 @@
 <span class="sd">        Set up the desktop environment.</span>
 
 <span class="sd">        &gt;&gt;&gt; from pyaedt.desktop import Desktop</span>
-<span class="sd">        &gt;&gt;&gt; from pyaedt.Maxwell import Maxwell3d</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt.maxwell import Maxwell3d</span>
 <span class="sd">        &gt;&gt;&gt; from pyaedt.modeler.Primitives import PolylineSegment</span>
 <span class="sd">        &gt;&gt;&gt; desktop=Desktop(specified_version=&quot;2021.2&quot;, new_desktop_session=False)</span>
 <span class="sd">        &gt;&gt;&gt; aedtapp = Maxwell3D()</span>
@@ -1586,6 +1586,14 @@
 <span class="sd">        &gt;&gt;&gt; segment_def = PolylineSegment(type=&quot;AngularArc&quot;, arc_center=center_point, arc_angle=&quot;90deg&quot;, arc_plane=&quot;XY&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; primitives.create_polyline(start_point, segment_type=segment_def, name=&quot;PL_center_point_arc&quot;)</span>
 
+<span class="sd">        Create a spline using a list of variables for the coordinates of the points.</span>
+
+<span class="sd">        &gt;&gt;&gt; x0, y0, z0 = &quot;0&quot;, &quot;0&quot;, &quot;1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; x1, y1, z1 = &quot;1&quot;, &quot;3&quot;, &quot;1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; x2, y2, z2 = &quot;2&quot;, &quot;2&quot;, &quot;1&quot;</span>
+<span class="sd">        &gt;&gt;&gt; P5 = primitives.create_polyline(position_list = [[x0, y0, z0], [x1, y1, z1], [x2, y2, z2]],</span>
+<span class="sd">        ...                                 segment_type=&quot;Spline&quot;, name=&quot;polyline_with_variables&quot;)</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_polyline</span> <span class="o">=</span> <span class="n">Polyline</span><span class="p">(</span>
             <span class="n">primitives</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
@@ -1604,6 +1612,68 @@
             <span class="n">xsection_bend_type</span><span class="o">=</span><span class="n">xsection_bend_type</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">new_polyline</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_spiral_on_face</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">poly_width</span><span class="p">,</span> <span class="n">filling_factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a Spiral Polyline inside a face.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        face : int or str or :class:`pyaedt.modeler.Object3d.FacePrimitive`</span>
+<span class="sd">        poly_width : float</span>
+<span class="sd">        filling_factor : float</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.Polyline`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># fmt: off</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">FacePrimitive</span><span class="p">):</span>
+            <span class="n">face_id</span> <span class="o">=</span> <span class="n">face</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">face_id</span> <span class="o">=</span> <span class="n">face</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">face_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">face</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">vertices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_face_vertices</span><span class="p">(</span><span class="n">face_id</span><span class="p">)</span>
+        <span class="n">vertex_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">:</span>
+            <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_vertex_position</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+
+        <span class="n">centroid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_face_center</span><span class="p">(</span><span class="n">face_id</span><span class="p">)</span>
+
+        <span class="n">segments_lengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vc</span> <span class="ow">in</span> <span class="n">vertex_coordinates</span><span class="p">:</span>
+            <span class="n">segments_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">vc</span><span class="p">,</span> <span class="n">centroid</span><span class="p">))</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">segments_lengths</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">poly_width</span> <span class="o">*</span> <span class="n">filling_factor</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">n</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_points</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">n_points</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span>
+
+        <span class="n">inner_points</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vc</span> <span class="ow">in</span> <span class="n">vertex_coordinates</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>  <span class="c1"># loop for x, y, z</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">centroid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">vc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_points</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_points</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">temp</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">inner_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+
+        <span class="n">poly_points_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">inner_points</span><span class="p">:</span>
+                <span class="n">poly_points_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">p</span><span class="p">])</span>
+
+        <span class="k">del</span> <span class="n">poly_points_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># fmt: on</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">poly_points_list</span><span class="p">,</span> <span class="n">xsection_type</span><span class="o">=</span><span class="s2">&quot;Line&quot;</span><span class="p">,</span> <span class="n">xsection_width</span><span class="o">=</span><span class="n">poly_width</span><span class="p">)</span>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_existing_polyline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
@@ -1859,8 +1929,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_currentId</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_all_ids_from_aedt_file</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">add_new_objects</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">cleanup_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clean up objects that no longer exist in the modeler because</span>
@@ -3231,37 +3301,36 @@
                 <span class="n">attribs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryOperations&quot;</span><span class="p">][</span>
                     <span class="s2">&quot;ToplevelParts&quot;</span>
                 <span class="p">][</span><span class="s2">&quot;GeometryPart&quot;</span><span class="p">][</span><span class="s2">&quot;Attributes&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span><span class="p">:</span>
+                <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">])</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">_part_coordinate_system</span> <span class="o">=</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;PartCoordinateSystem&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s2">&quot;NonModel&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Flags&quot;</span><span class="p">]:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="s2">&quot;Wireframe&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Flags&quot;</span><span class="p">]:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_wireframe</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_wireframe</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">groupname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;GroupId&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;GroupID&quot;</span><span class="p">]:</span>
+                        <span class="n">groupname</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
 
-            <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">])</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">_m_groupName</span> <span class="o">=</span> <span class="n">groupname</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_color</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Color&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">))</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_color</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span> <span class="o">=</span> <span class="n">attribs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SurfaceMaterialValue&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s2">&quot;MaterialValue&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;MaterialValue&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">attribs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MaterialName&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-            <span class="n">o</span><span class="o">.</span><span class="n">_part_coordinate_system</span> <span class="o">=</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;PartCoordinateSystem&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s2">&quot;NonModel&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Flags&quot;</span><span class="p">]:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="s2">&quot;Wireframe&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Flags&quot;</span><span class="p">]:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_wireframe</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_wireframe</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">groupname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;GroupId&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;GroupID&quot;</span><span class="p">]:</span>
-                    <span class="n">groupname</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
-
-            <span class="n">o</span><span class="o">.</span><span class="n">_m_groupName</span> <span class="o">=</span> <span class="n">groupname</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_color</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Color&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">))</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_color</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span> <span class="o">=</span> <span class="n">attribs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SurfaceMaterialValue&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="k">if</span> <span class="s2">&quot;MaterialValue&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;MaterialValue&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">attribs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MaterialName&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-            <span class="n">o</span><span class="o">.</span><span class="n">_is_updated</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">_is_updated</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_default_object_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

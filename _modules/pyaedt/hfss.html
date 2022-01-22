@@ -484,9 +484,10 @@
         <span class="k">if</span> <span class="n">boundary</span><span class="p">:</span>
             <span class="n">new_ports</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetExcitationsOfType</span><span class="p">(</span><span class="s2">&quot;Terminal&quot;</span><span class="p">))</span>
             <span class="n">terminals</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_ports</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ports</span><span class="p">]</span>
+            <span class="nb">id</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">terminal</span> <span class="ow">in</span> <span class="n">terminals</span><span class="p">:</span>
-                <span class="n">name_split</span> <span class="o">=</span> <span class="n">terminal</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
-                <span class="n">new_name</span> <span class="o">=</span> <span class="n">portname</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">name_split</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">new_name</span> <span class="o">=</span> <span class="n">portname</span> <span class="o">+</span> <span class="s2">&quot;_T&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+                <span class="nb">id</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">properties</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
                     <span class="p">[</span>
@@ -499,6 +500,22 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed To rename Terminals&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
+                <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;WavePort&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;LumpedPort&quot;</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">objectname</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;NumModes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseLineModeAlignment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DoDeembed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DeembedDist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;0mm&quot;</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;RenormalizeAllTerminals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ShowReporterFilter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseAnalyticAlignment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">boundary</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">props</span>
+            <span class="n">boundary</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">boundary</span>
 
     <span class="nd">@aedt_exception_handler</span>
@@ -1636,8 +1653,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Name of port created when successful, ``False`` otherwise.</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -1673,8 +1690,7 @@
                 <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Port&quot;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">portname</span> <span class="o">+</span> <span class="s2">&quot;:1&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">():</span>
                 <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">portname</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_circuit_port</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">impedance</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="p">,</span> <span class="n">deemb</span><span class="p">,</span> <span class="n">renorm_impedance</span><span class="o">=</span><span class="n">renorm_impedance</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">portname</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_circuit_port</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">impedance</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="p">,</span> <span class="n">deemb</span><span class="p">,</span> <span class="n">renorm_impedance</span><span class="o">=</span><span class="n">renorm_impedance</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Hfss.create_lumped_port_between_objects"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.create_lumped_port_between_objects.html#pyaedt.Hfss.create_lumped_port_between_objects">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -1707,8 +1723,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Name of port created when successful, ``False`` otherwise.</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -1750,12 +1766,213 @@
             <span class="k">elif</span> <span class="n">portname</span> <span class="o">+</span> <span class="s2">&quot;:1&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">():</span>
                 <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">portname</span><span class="p">)</span>
             <span class="k">if</span> <span class="s2">&quot;Modal&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_create_lumped_driven</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">impedance</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="p">,</span> <span class="n">deemb</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_lumped_driven</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">impedance</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="p">,</span> <span class="n">deemb</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span><span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">portname</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span><span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss.create_spiral_lumped_port"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.create_spiral_lumped_port.html#pyaedt.Hfss.create_spiral_lumped_port">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_spiral_lumped_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_object</span><span class="p">,</span> <span class="n">end_object</span><span class="p">,</span> <span class="n">port_width</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a spiral lumped port between two adjacent objects.</span>
+<span class="sd">        The two objects must have two adjacent, parallel and identical faces</span>
+<span class="sd">        and the faces must be a polygon (not a circle).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        start_object : str or int or :class:`pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        end_object: str or int or :class:`pyaedt.modeler.Object3d.Object3d`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># fmt: off</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;Terminal&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;This method can be used only in Terminal Solutions.&quot;</span><span class="p">)</span>
+        <span class="n">start_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">start_object</span><span class="p">)</span>
+        <span class="n">end_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">end_object</span><span class="p">)</span>
+        <span class="n">closest_distance</span> <span class="o">=</span> <span class="mf">1e9</span>
+        <span class="n">closest_faces</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">face1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">start_object</span><span class="p">]</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">face2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">end_object</span><span class="p">]</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+                <span class="n">facecenter_distance</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">face1</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">face2</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">facecenter_distance</span> <span class="o">&lt;=</span> <span class="n">closest_distance</span><span class="p">:</span>
+                    <span class="n">closest_distance</span> <span class="o">=</span> <span class="n">facecenter_distance</span>
+                    <span class="n">closest_faces</span> <span class="o">=</span> <span class="p">[</span><span class="n">face1</span><span class="p">,</span> <span class="n">face2</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;The two object must have parallel adjacent faces.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]):</span>
+            <span class="n">plane</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]):</span>
+            <span class="n">plane</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+            <span class="n">plane</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;The two object must have the adjacent faces aligned with the main planes.&#39;</span><span class="p">)</span>
+
+        <span class="n">move_vector</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_sub</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="n">move_vector</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_prod</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">move_vector</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">port_width</span><span class="p">:</span>
+            <span class="n">spiral_width</span> <span class="o">=</span> <span class="n">port_width</span>
+            <span class="n">filling</span> <span class="o">=</span> <span class="mf">1.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># get face bounding box</span>
+            <span class="n">face_bb</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e15</span><span class="p">,</span> <span class="mf">1e15</span><span class="p">,</span> <span class="mf">1e15</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e15</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e15</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e15</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">vertices</span><span class="p">:</span>
+                    <span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span> <span class="n">v</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="c1"># get the ratio in 2D</span>
+            <span class="n">bb_dim</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">face_bb</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">]</span>
+            <span class="n">bb_ratio</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">bb_dim</span><span class="p">)</span><span class="o">/</span><span class="nb">min</span><span class="p">(</span><span class="n">bb_dim</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bb_ratio</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">spiral_width</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">bb_dim</span><span class="p">)</span> <span class="o">/</span> <span class="mi">12</span>
+                <span class="n">filling</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.2828</span><span class="o">*</span><span class="n">bb_ratio</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">3.4141</span><span class="o">*</span><span class="n">bb_ratio</span> <span class="o">-</span> <span class="mf">4.197</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">filling</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">vertex_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">vertices</span><span class="p">:</span>
+                    <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+                <span class="n">segments_lengths</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">vc</span> <span class="ow">in</span> <span class="n">vertex_coordinates</span><span class="p">:</span>
+                    <span class="n">segments_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">vc</span><span class="p">,</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">center</span><span class="p">))</span>
+                <span class="n">spiral_width</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">segments_lengths</span><span class="p">)</span> <span class="o">/</span> <span class="mi">15</span>
+                <span class="n">filling</span> <span class="o">=</span> <span class="mf">1.5</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">create_spiral_on_face</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">spiral_width</span><span class="p">,</span> <span class="n">filling_factor</span><span class="o">=</span><span class="n">filling</span><span class="p">)</span>
+        <span class="n">poly</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">poly</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">move_vector</span><span class="p">)</span>
+
+        <span class="n">vert_position_x</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vert_position_y</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vert</span> <span class="ow">in</span> <span class="n">poly</span><span class="o">.</span><span class="n">vertices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">vert_position_x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">vert_position_y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">vert_position_x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">vert_position_y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">vert_position_x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">vert_position_y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vert</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">vert_position_x</span><span class="p">,</span> <span class="n">vert_position_y</span><span class="p">)</span>
+
+        <span class="n">list_a_val</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">y2</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">list_a_val</span><span class="p">:</span>
+                <span class="n">x1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">y1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">y2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dist</span> <span class="o">-</span> <span class="n">spiral_width</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
+                <span class="n">list_a_val</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">list_a_val</span>
+        <span class="c1"># set the last point</span>
+        <span class="k">if</span> <span class="n">list_a_val</span><span class="p">:</span>
+            <span class="n">x1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">y1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">y2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">faces_mid_point</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">get_mid_point</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+
+        <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">)</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">faces_mid_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">closest_distance</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">faces_mid_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">closest_distance</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">faces_mid_point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">closest_distance</span><span class="o">/</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_points</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_points</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">norm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dy</span> <span class="o">&lt;</span> <span class="n">dz</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Y&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Z&quot;</span>
+        <span class="k">elif</span> <span class="nb">abs</span><span class="p">(</span><span class="n">norm</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;</span> <span class="n">dz</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Z&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;</span> <span class="n">dy</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Y&quot;</span>
+        <span class="n">poly1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span>
+            <span class="n">coords</span><span class="p">,</span>
+            <span class="n">xsection_type</span><span class="o">=</span><span class="s2">&quot;Line&quot;</span><span class="p">,</span>
+            <span class="n">xsection_orient</span><span class="o">=</span><span class="n">orient</span><span class="p">,</span>
+            <span class="n">xsection_width</span><span class="o">=</span><span class="n">closest_distance</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">start_object</span> <span class="o">+</span> <span class="s2">&quot;_sheet&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assign_perfecte_to_sheets</span><span class="p">(</span><span class="n">poly1</span><span class="p">,</span> <span class="n">sourcename</span><span class="o">=</span><span class="n">start_object</span><span class="p">)</span>
+
+        <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">faces_mid_point</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">get_mid_point</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">center</span><span class="p">,</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">faces_mid_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">closest_distance</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">faces_mid_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">closest_distance</span><span class="o">/</span><span class="mi">4</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">plane</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">faces_mid_point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">closest_distance</span><span class="o">/</span><span class="mi">4</span><span class="p">])</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_points</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_points</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">norm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dy</span> <span class="o">&lt;</span> <span class="n">dz</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Y&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Z&quot;</span>
+        <span class="k">elif</span> <span class="nb">abs</span><span class="p">(</span><span class="n">norm</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;</span> <span class="n">dz</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Z&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;</span> <span class="n">dy</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;X&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">orient</span> <span class="o">=</span> <span class="s2">&quot;Y&quot;</span>
+        <span class="n">poly2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span>
+            <span class="n">coords</span><span class="p">,</span>
+            <span class="n">xsection_type</span><span class="o">=</span><span class="s2">&quot;Line&quot;</span><span class="p">,</span>
+            <span class="n">xsection_orient</span><span class="o">=</span><span class="n">orient</span><span class="p">,</span>
+            <span class="n">xsection_width</span><span class="o">=</span><span class="n">closest_distance</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">end_object</span> <span class="o">+</span> <span class="s2">&quot;_sheet&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assign_perfecte_to_sheets</span><span class="p">(</span><span class="n">poly2</span><span class="p">,</span> <span class="n">sourcename</span><span class="o">=</span><span class="n">end_object</span><span class="p">)</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_lumped_port_to_sheet</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">reference_object_list</span><span class="o">=</span><span class="p">[</span><span class="n">poly2</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="n">portname</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># fmt: on</span>
+        <span class="k">return</span> <span class="n">port</span></div>
 
 <div class="viewcode-block" id="Hfss.create_voltage_source_from_objects"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.create_voltage_source_from_objects.html#pyaedt.Hfss.create_voltage_source_from_objects">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_voltage_source_from_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">startobj</span><span class="p">,</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">axisdir</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sourcename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source_on_plane</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -3020,6 +3237,10 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">faces</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong Input object. it has to be a face id or a sheet.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">portname</span><span class="p">:</span>
+                <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Port&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">portname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">():</span>
+                <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">portname</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">terminal_references</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">terminal_references</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -3074,23 +3295,9 @@
 <span class="sd">        ...                                  &quot;LumpedPortFromSheet&quot;, True, False)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">sheet_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">oname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectNameByFaceID</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="n">oname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">oname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">sheet_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient Network&quot;</span><span class="p">]:</span>
             <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
-
-            <span class="n">cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_conductors_names</span><span class="p">()</span>
-            <span class="n">touching</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">get_bodynames_from_position</span><span class="p">(</span><span class="n">point0</span><span class="p">)</span>
-            <span class="n">listcond</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">touching</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">cond</span><span class="p">:</span>
-                    <span class="n">listcond</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">portname</span><span class="p">:</span>
                 <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Port&quot;</span><span class="p">)</span>
@@ -3197,8 +3404,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Name of the source created when successful, ``False`` otherwise.</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -3223,9 +3430,7 @@
                 <span class="n">sourcename</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Current&quot;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">sourcename</span> <span class="o">+</span> <span class="s2">&quot;:1&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">():</span>
                 <span class="n">sourcename</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">sourcename</span><span class="p">)</span>
-            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_source_excitation</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">sourcename</span><span class="p">,</span> <span class="n">sourcetype</span><span class="o">=</span><span class="s2">&quot;Current&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">status</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">sourcename</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_source_excitation</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">sourcename</span><span class="p">,</span> <span class="n">sourcetype</span><span class="o">=</span><span class="s2">&quot;Current&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Hfss.assign_perfecte_to_sheets"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.assign_perfecte_to_sheets.html#pyaedt.Hfss.assign_perfecte_to_sheets">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -3263,7 +3468,7 @@
 <span class="sd">        &lt;class &#39;pyaedt.modules.Boundary.BoundaryObject&#39;&gt;</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-
+        <span class="n">sheet_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">sheet_list</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient Network&quot;</span><span class="p">,</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sourcename</span><span class="p">:</span>
                 <span class="n">sourcename</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;PerfE&quot;</span><span class="p">)</span>
@@ -3490,8 +3695,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Name of the port created when successful, ``False`` otherwise.</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -3529,12 +3734,9 @@
         <span class="k">elif</span> <span class="n">port_name</span> <span class="o">+</span> <span class="s2">&quot;:1&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">():</span>
             <span class="n">port_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">port_name</span><span class="p">)</span>
 
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_circuit_port</span><span class="p">(</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_circuit_port</span><span class="p">(</span>
             <span class="n">edge_list</span><span class="p">,</span> <span class="n">port_impedance</span><span class="p">,</span> <span class="n">port_name</span><span class="p">,</span> <span class="n">renormalize</span><span class="p">,</span> <span class="n">deembed</span><span class="p">,</span> <span class="n">renorm_impedance</span><span class="o">=</span><span class="n">renorm_impedance</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">port_name</span>
-        <span class="k">return</span> <span class="kc">False</span></div>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="Hfss.edit_source"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.edit_source.html#pyaedt.Hfss.edit_source">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">edit_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">portandmode</span><span class="p">,</span> <span class="n">powerin</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0deg&quot;</span><span class="p">):</span>
