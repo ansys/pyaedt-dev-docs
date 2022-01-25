@@ -174,6 +174,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;This module contains the `Components` class.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -554,6 +555,99 @@
                 <span class="n">cmp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cmp_list</span></div>
 
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_get_edb_pin_from_pin_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cmp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">pin</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="n">pins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin_from_component</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">cmp</span><span class="p">,</span> <span class="n">pinName</span><span class="o">=</span><span class="n">pin</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pins</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Components.get_component_placement_vector"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.get_component_placement_vector.html#pyaedt.edb_core.components.Components.get_component_placement_vector">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">get_component_placement_vector</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mounted_component</span><span class="p">,</span>
+        <span class="n">hosting_component</span><span class="p">,</span>
+        <span class="n">mounted_component_pin1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">mounted_component_pin2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hosting_component_pin1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hosting_component_pin2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the placement vector between 2 components.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mounted_component : str</span>
+<span class="sd">            Mounted component name.</span>
+<span class="sd">        hosting_component : str</span>
+<span class="sd">            Hosting component name.</span>
+<span class="sd">        mounted_component_pin1 : str</span>
+<span class="sd">            Mounted component Pin 1 name.</span>
+<span class="sd">        mounted_component_pin2 : str</span>
+<span class="sd">            Mounted component Pin 2 name.</span>
+<span class="sd">        hosting_component_pin1 : str</span>
+<span class="sd">            Hosted component Pin 1 name.</span>
+<span class="sd">        hosting_component_pin2 : str</span>
+<span class="sd">            Hosted component Pin 2 name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Tuple of Vector offset, rotation and solder height.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; edb1 = Edb(edbpath=targetfile1,  edbversion=&quot;2021.2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; hosting_cmp = edb1.core_components.get_component_by_name(&quot;U100&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; mounted_cmp = edb2.core_components.get_component_by_name(&quot;BGA&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; vector, rotation, solder_ball_height = edb1.core_components.get_component_placement_vector(</span>
+<span class="sd">        ...                                             mounted_component=mounted_cmp,</span>
+<span class="sd">        ...                                             hosting_component=hosting_cmp,</span>
+<span class="sd">        ...                                             mounted_component_pin1=&quot;A12&quot;,</span>
+<span class="sd">        ...                                             mounted_component_pin2=&quot;A14&quot;,</span>
+<span class="sd">        ...                                             hosting_component_pin1=&quot;A12&quot;,</span>
+<span class="sd">        ...                                             hosting_component_pin2=&quot;A14&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">m_pin1_pos</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="n">m_pin2_pos</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="n">h_pin1_pos</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="n">h_pin2_pos</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mounted_component</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hosting_component</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">mounted_component_pin1</span><span class="p">:</span>
+            <span class="n">m_pin1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_pin_from_pin_name</span><span class="p">(</span><span class="n">mounted_component</span><span class="p">,</span> <span class="n">mounted_component_pin1</span><span class="p">)</span>
+            <span class="n">m_pin1_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin_position</span><span class="p">(</span><span class="n">m_pin1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mounted_component_pin2</span><span class="p">:</span>
+            <span class="n">m_pin2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_pin_from_pin_name</span><span class="p">(</span><span class="n">mounted_component</span><span class="p">,</span> <span class="n">mounted_component_pin2</span><span class="p">)</span>
+            <span class="n">m_pin2_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin_position</span><span class="p">(</span><span class="n">m_pin2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hosting_component_pin1</span><span class="p">:</span>
+            <span class="n">h_pin1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_pin_from_pin_name</span><span class="p">(</span><span class="n">hosting_component</span><span class="p">,</span> <span class="n">hosting_component_pin1</span><span class="p">)</span>
+            <span class="n">h_pin1_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin_position</span><span class="p">(</span><span class="n">h_pin1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">hosting_component_pin2</span><span class="p">:</span>
+            <span class="n">h_pin2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_pin_from_pin_name</span><span class="p">(</span><span class="n">hosting_component</span><span class="p">,</span> <span class="n">hosting_component_pin2</span><span class="p">)</span>
+            <span class="n">h_pin2_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin_position</span><span class="p">(</span><span class="n">h_pin2</span><span class="p">)</span>
+        <span class="n">vector</span> <span class="o">=</span> <span class="p">[</span><span class="n">h_pin1_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m_pin1_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">h_pin1_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m_pin1_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">d_m_pin1_h_pin2</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">h_pin2_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m_pin1_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">h_pin2_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m_pin1_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">d_m_pin2_h_pin2</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+            <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">h_pin2_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">m_pin2_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">h_pin2_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">m_pin2_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">rotation</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="n">d_m_pin2_h_pin2</span> <span class="o">/</span> <span class="n">d_m_pin1_h_pin2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vector</span><span class="p">:</span>
+            <span class="n">solder_ball_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solder_ball_height</span><span class="p">(</span><span class="n">mounted_component</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">solder_ball_height</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">solder_ball_height</span> <span class="o">=</span> <span class="mf">150e-6</span>
+            <span class="c1"># mounted_component_name = mounted_component.GetName()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_solder_ball</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">mounted_component</span><span class="p">,</span> <span class="n">sball_height</span><span class="o">=</span><span class="n">solder_ball_height</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">solder_ball_height</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
 <div class="viewcode-block" id="Components.get_solder_ball_height"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.get_solder_ball_height.html#pyaedt.edb_core.components.Components.get_solder_ball_height">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_solder_ball_height</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get component solder ball height.</span>
@@ -766,64 +860,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">pingroup</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span> <span class="n">term_name</span><span class="p">,</span> <span class="n">pingroup</span><span class="p">,</span> <span class="n">isref</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">pingroup_term</span>
-
-    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">set_solder_ball</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">,</span> <span class="n">sball_height</span><span class="o">=</span><span class="mf">100e-6</span><span class="p">,</span> <span class="n">sball_diam</span><span class="o">=</span><span class="mf">150e-6</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Define component solder ball ready for port assignment.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        cmp : str or self._edb.Cell.Hierarchy.Component</span>
-<span class="sd">            Edb component or str component name..</span>
-<span class="sd">        sball_height : str or double</span>
-<span class="sd">            Solder balls height value.</span>
-<span class="sd">        sball_diam : str or double</span>
-<span class="sd">            Solder balls diameter value.</span>
-<span class="sd">        orientation : FlipChipOrientation</span>
-<span class="sd">            Gives the orientation for flip chip (only applied on IC component).</span>
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        --------</span>
-
-<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
-<span class="sd">        &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; set_solder_ball = edbapp.core_components.set_solder_ball(&quot;A1&quot;)</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">cmp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">cmp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="p">)):</span>
-                <span class="n">cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_by_name</span><span class="p">(</span><span class="n">cmp</span><span class="p">)</span>
-            <span class="n">cmp_prop</span> <span class="o">=</span> <span class="n">cmp</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-            <span class="n">cmp_type</span> <span class="o">=</span> <span class="n">cmp</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IC</span><span class="p">:</span>
-                <span class="n">die_prop</span> <span class="o">=</span> <span class="n">cmp_prop</span><span class="o">.</span><span class="n">GetDieProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_top_component</span><span class="p">(</span><span class="n">cmp</span><span class="p">):</span>
-                    <span class="n">die_prop</span><span class="o">.</span><span class="n">SetOrientation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">DieOrientation</span><span class="o">.</span><span class="n">ChipDown</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">die_prop</span><span class="o">.</span><span class="n">SetOrientation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">DieOrientation</span><span class="o">.</span><span class="n">ChipUp</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">cmp_prop</span><span class="o">.</span><span class="n">SetDieProperty</span><span class="p">(</span><span class="n">die_prop</span><span class="p">):</span>
-                    <span class="k">return</span> <span class="kc">False</span>
-            <span class="n">solder_prop</span> <span class="o">=</span> <span class="n">cmp_prop</span><span class="o">.</span><span class="n">GetSolderBallProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">solder_prop</span><span class="o">.</span><span class="n">SetDiameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">sball_diam</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">sball_diam</span><span class="p">)):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">solder_prop</span><span class="o">.</span><span class="n">SetHeight</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">sball_height</span><span class="p">)):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">cmp_prop</span><span class="o">.</span><span class="n">SetSolderBallProperty</span><span class="p">(</span><span class="n">solder_prop</span><span class="p">):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-
-            <span class="n">port_prop</span> <span class="o">=</span> <span class="n">cmp_prop</span><span class="o">.</span><span class="n">GetPortProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-            <span class="n">port_prop</span><span class="o">.</span><span class="n">SetReferenceSizeAuto</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">cmp_prop</span><span class="o">.</span><span class="n">SetPortProperty</span><span class="p">(</span><span class="n">port_prop</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">cmp</span><span class="o">.</span><span class="n">SetComponentProperty</span><span class="p">(</span><span class="n">cmp_prop</span><span class="p">):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_is_top_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">):</span>
@@ -1130,12 +1166,12 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Components.set_solder_ball"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.set_solder_ball.html#pyaedt.edb_core.components.Components.set_solder_ball">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">set_solder_ball</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">componentname</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">sball_diam</span><span class="o">=</span><span class="s2">&quot;100um&quot;</span><span class="p">,</span> <span class="n">sball_height</span><span class="o">=</span><span class="s2">&quot;150um&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">set_solder_ball</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">sball_diam</span><span class="o">=</span><span class="s2">&quot;100um&quot;</span><span class="p">,</span> <span class="n">sball_height</span><span class="o">=</span><span class="s2">&quot;150um&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set cylindrical solder balls on a given component.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        componentname : str</span>
+<span class="sd">        componentname : str or EDB component</span>
 <span class="sd">            Name of the discret component.</span>
 
 <span class="sd">        sball_diam  : str, float</span>
@@ -1157,7 +1193,10 @@
 <span class="sd">        &gt;&gt;&gt; edbapp.core_components.set_solder_ball(&quot;A1&quot;)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">edb_cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_by_name</span><span class="p">(</span><span class="n">componentname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="p">):</span>
+            <span class="n">edb_cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_component_by_name</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edb_cmp</span> <span class="o">=</span> <span class="n">component</span>
         <span class="k">if</span> <span class="n">edb_cmp</span><span class="p">:</span>
             <span class="n">cmp_type</span> <span class="o">=</span> <span class="n">edb_cmp</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IC</span><span class="p">:</span>
@@ -1191,6 +1230,17 @@
                 <span class="n">io_cmp_prop</span><span class="o">.</span><span class="n">SetPortProperty</span><span class="p">(</span><span class="n">io_port_prop</span><span class="p">)</span>
                 <span class="n">edb_cmp</span><span class="o">.</span><span class="n">SetComponentProperty</span><span class="p">(</span><span class="n">io_cmp_prop</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">cmp_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">Other</span><span class="p">:</span>
+                <span class="n">other_cmp_prop</span> <span class="o">=</span> <span class="n">edb_cmp</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                <span class="n">other_solder_ball_prop</span> <span class="o">=</span> <span class="n">other_cmp_prop</span><span class="o">.</span><span class="n">GetSolderBallProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                <span class="n">other_solder_ball_prop</span><span class="o">.</span><span class="n">SetDiameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">sball_diam</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">sball_diam</span><span class="p">))</span>
+                <span class="n">other_solder_ball_prop</span><span class="o">.</span><span class="n">SetHeight</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">sball_height</span><span class="p">))</span>
+                <span class="n">other_solder_ball_prop</span><span class="o">.</span><span class="n">SetShape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">SolderballShape</span><span class="o">.</span><span class="n">Cylinder</span><span class="p">)</span>
+                <span class="n">other_cmp_prop</span><span class="o">.</span><span class="n">SetSolderBallProperty</span><span class="p">(</span><span class="n">other_solder_ball_prop</span><span class="p">)</span>
+                <span class="n">other_port_prop</span> <span class="o">=</span> <span class="n">other_cmp_prop</span><span class="o">.</span><span class="n">GetPortProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                <span class="n">other_port_prop</span><span class="o">.</span><span class="n">SetReferenceSizeAuto</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">other_cmp_prop</span><span class="o">.</span><span class="n">SetPortProperty</span><span class="p">(</span><span class="n">other_port_prop</span><span class="p">)</span>
+                <span class="n">edb_cmp</span><span class="o">.</span><span class="n">SetComponentProperty</span><span class="p">(</span><span class="n">other_port_prop</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1327,13 +1377,13 @@
         <span class="k">return</span> <span class="n">found</span></div>
 
 <div class="viewcode-block" id="Components.get_pin_from_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.get_pin_from_component.html#pyaedt.edb_core.components.Components.get_pin_from_component">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">get_pin_from_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmpName</span><span class="p">,</span> <span class="n">netName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pinName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_pin_from_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">netName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pinName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the pins of a component.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        cmpName : str</span>
-<span class="sd">            Name of the component.</span>
+<span class="sd">        component : str or EDB component</span>
+<span class="sd">            Name of the component or the EDB component object.</span>
 <span class="sd">        netName : str, optional</span>
 <span class="sd">            Filter on the net name as an alternative to</span>
 <span class="sd">            ``pinName``. The default is ``None``.</span>
@@ -1354,8 +1404,8 @@
 <span class="sd">        &gt;&gt;&gt; edbapp.core_components.get_pin_from_component(&quot;R1&quot;, refdes)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">cmpName</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="p">):</span>
+            <span class="n">component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">netName</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">netName</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                 <span class="n">netName</span> <span class="o">=</span> <span class="p">[</span><span class="n">netName</span><span class="p">]</span>
@@ -1369,7 +1419,7 @@
             <span class="c1">#                pins.append(p)</span>
             <span class="n">pins</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">p</span>
-                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cmp</span><span class="o">.</span><span class="n">LayoutObjs</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">LayoutObjs</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">GetObjType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">IsLayoutPin</span><span class="p">()</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">netName</span>
             <span class="p">]</span>
         <span class="k">elif</span> <span class="n">pinName</span><span class="p">:</span>
@@ -1377,13 +1427,13 @@
                 <span class="n">pinName</span> <span class="o">=</span> <span class="p">[</span><span class="n">pinName</span><span class="p">]</span>
             <span class="n">pins</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">p</span>
-                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cmp</span><span class="o">.</span><span class="n">LayoutObjs</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">LayoutObjs</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">GetObjType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span>
                 <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">IsLayoutPin</span><span class="p">()</span>
                 <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_aedt_pin_name</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinName</span><span class="p">)</span> <span class="ow">or</span> <span class="n">p</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinName</span><span class="p">))</span>
             <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">pins</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">cmp</span><span class="o">.</span><span class="n">LayoutObjs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">GetObjType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">IsLayoutPin</span><span class="p">()]</span>
+            <span class="n">pins</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">LayoutObjs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">GetObjType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">IsLayoutPin</span><span class="p">()]</span>
         <span class="k">return</span> <span class="n">pins</span></div>
 
 <div class="viewcode-block" id="Components.get_aedt_pin_name"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.get_aedt_pin_name.html#pyaedt.edb_core.components.Components.get_aedt_pin_name">[docs]</a>    <span class="nd">@aedt_exception_handler</span>

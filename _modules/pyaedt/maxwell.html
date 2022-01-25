@@ -279,6 +279,85 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_core_losses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable/Disable core losses for a set of objects.</span>
+<span class="sd">        It works only on `EddyCurrent` and `Transient` solutions.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objects : list, str</span>
+<span class="sd">            List of object to apply core losses to.</span>
+<span class="sd">        value : bool</span>
+<span class="sd">            Either to enable or disable core losses for given list.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.SetCoreLoss</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Set Core Losses in Maxwell 3d.</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Maxwell3d</span>
+<span class="sd">        &gt;&gt;&gt; maxwell_3d = Maxwell3d()</span>
+<span class="sd">        &gt;&gt;&gt; maxwell_3d.set_core_losses([&quot;PQ_Core_Bottom&quot;, &quot;PQ_Core_Top&quot;], True)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;EddyCurrent&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient&quot;</span><span class="p">]:</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">SetCoreLoss</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Core losses is only available with `EddyCurrent` and `Transient` solutions.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">assign_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">matrix_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign a Matrix to the selection.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objects : list, str</span>
+<span class="sd">            List of objects to apply core losses.</span>
+<span class="sd">        matrix_name : str, optional</span>
+<span class="sd">            Boundary condition name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The matrix name when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.AssignMatrix</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Set Matrix in Maxwell 3d analysis.</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Maxwell3d</span>
+<span class="sd">        &gt;&gt;&gt; maxwell_3d = Maxwell3d()</span>
+<span class="sd">        &gt;&gt;&gt; maxwell_3d.assign_matrix([&quot;pri&quot;, &quot;sec&quot;])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;EddyCurrent&quot;</span><span class="p">,</span> <span class="s2">&quot;Magnetostatic&quot;</span><span class="p">]:</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_convert_list_to_ids</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">matrix_name</span><span class="p">:</span>
+                <span class="n">matrix_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Matrix&quot;</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">matrix_name</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:MatrixEntry&quot;</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="nb">object</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;NAME:MatrixEntry&quot;</span><span class="p">,</span> <span class="s2">&quot;Source:=&quot;</span><span class="p">,</span> <span class="nb">object</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">o_maxwell_parameters</span><span class="o">.</span><span class="n">AssignMatrix</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">matrix_name</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">setup_ctrlprog</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">file_str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keep_modifications</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">python_interpreter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aedt_lib_dir</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
