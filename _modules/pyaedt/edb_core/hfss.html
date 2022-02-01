@@ -180,6 +180,7 @@
 <span class="sd">This module contains the `EdbHfss` class.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_netdict_to_pydict</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">is_ironpython</span>
 
 
@@ -655,7 +656,194 @@
         <span class="k">if</span> <span class="n">edbpointTerm_pos</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span></div></div>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="EdbHfss.create_lumped_port_on_trace"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_lumped_port_on_trace.html#pyaedt.edb_core.hfss.EdbHfss.create_lumped_port_on_trace">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_lumped_port_on_trace</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">nets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">reference_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_points_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">polygon_trace_threshhold</span><span class="o">=</span><span class="mf">300e-6</span><span class="p">,</span>
+        <span class="n">digit_resolution</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an edge port on traces.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nets : list, optional</span>
+<span class="sd">            List of nets, str or Edb net.</span>
+
+<span class="sd">        reference_layer : str, Edb layer.</span>
+<span class="sd">             Name or Edb layer object.</span>
+
+<span class="sd">        return_points_only : bool, optional</span>
+<span class="sd">            Use this boolean when you want to return only the points from the edges and not creating ports. Default</span>
+<span class="sd">            value is ``False``.</span>
+
+<span class="sd">        polygon_trace_threshhold : float, optional</span>
+<span class="sd">            Used only when selected nets are routed as polygon. The value gives the algorithm the threshold</span>
+<span class="sd">            of the polygon width at the design border for considering placing an edge port. The default value is</span>
+<span class="sd">            ``300-e6``.</span>
+
+<span class="sd">        digit_resolution : int, optional</span>
+<span class="sd">            The number of digits carried for the edges location accuracy. The default value is ``6``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nets</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">nets</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">nets</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="p">):</span>
+                <span class="n">nets</span> <span class="o">=</span> <span class="p">[</span><span class="n">nets</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">temp_nets</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">nn</span> <span class="ow">in</span> <span class="n">nets</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nn</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">temp_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">nn</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="p">):</span>
+                    <span class="n">temp_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="p">)</span>
+            <span class="n">nets</span> <span class="o">=</span> <span class="n">temp_nets</span>
+        <span class="n">edges_pts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">nets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference_layer</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">reference_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">reference_layer</span><span class="p">]</span><span class="o">.</span><span class="n">_layer</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference_layer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">ILayerReadOnly</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">layout</span> <span class="o">=</span> <span class="n">nets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span>
+            <span class="n">layout_bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_layout_bounding_box</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">digit_resolution</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">nets</span><span class="p">:</span>
+                <span class="n">net_primitives</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">Primitives</span><span class="p">)</span>
+                <span class="n">net_paths</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">pp</span> <span class="k">for</span> <span class="n">pp</span> <span class="ow">in</span> <span class="n">net_primitives</span> <span class="k">if</span> <span class="n">pp</span><span class="o">.</span><span class="n">GetPrimitiveType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PrimitiveType</span><span class="o">.</span><span class="n">Path</span>
+                <span class="p">]</span>
+                <span class="n">net_poly</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">pp</span>
+                    <span class="k">for</span> <span class="n">pp</span> <span class="ow">in</span> <span class="n">net_primitives</span>
+                    <span class="k">if</span> <span class="n">pp</span><span class="o">.</span><span class="n">GetPrimitiveType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PrimitiveType</span><span class="o">.</span><span class="n">Polygon</span>
+                <span class="p">]</span>
+                <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">net_paths</span><span class="p">:</span>
+                    <span class="n">trace_path_pts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">GetCenterLine</span><span class="p">()</span><span class="o">.</span><span class="n">Points</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">trace_path_pts</span><span class="p">:</span>
+                        <span class="n">_pt</span> <span class="o">=</span> <span class="p">[</span><span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">)]</span>
+                        <span class="k">if</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">_pt</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">layout_bbox</span><span class="p">)):</span>
+                            <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
+                                <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_pt</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">port_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePort</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span><span class="p">):</span>
+                                    <span class="n">aedt_exception_handler</span><span class="p">(</span>
+                                        <span class="s2">&quot;edge port creation failed on point </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">_pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                                    <span class="p">)</span>
+                <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">net_poly</span><span class="p">:</span>
+                    <span class="n">pt_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span><span class="o">.</span><span class="n">Points</span><span class="p">)</span>
+                    <span class="n">points_at_border</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">pt</span>
+                        <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pt_list</span>
+                        <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">)</span> <span class="ow">in</span> <span class="n">layout_bbox</span>
+                        <span class="ow">or</span> <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">)</span> <span class="ow">in</span> <span class="n">layout_bbox</span>
+                    <span class="p">]</span>
+                    <span class="n">pt_at_left</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">points_at_border</span> <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">)</span> <span class="o">==</span> <span class="n">layout_bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="p">]</span>
+                    <span class="n">pt_at_left_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pt_at_left</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">pt_at_left_values</span><span class="p">:</span>
+                        <span class="n">left_edge_length</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pt_at_left_values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">pt_at_left_values</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">polygon_trace_threshhold</span> <span class="o">&gt;=</span> <span class="n">left_edge_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
+                                <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt_at_left</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">port_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePortOnPolygon</span><span class="p">(</span>
+                                    <span class="n">poly</span><span class="p">,</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pt_at_left</span><span class="p">),</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span>
+                                <span class="p">):</span>
+                                    <span class="n">aedt_exception_handler</span><span class="p">(</span><span class="s2">&quot;Failed to create port on polygon </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">poly</span><span class="o">.</span><span class="n">GetName</span><span class="p">()))</span>
+
+                    <span class="n">pt_at_bottom</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">points_at_border</span> <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">)</span> <span class="o">==</span> <span class="n">layout_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="p">]</span>
+                    <span class="n">pt_at_bottom_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pt_at_bottom</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">pt_at_bottom_values</span><span class="p">:</span>
+                        <span class="n">bot_edge_length</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pt_at_bottom_values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">pt_at_bottom_values</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">polygon_trace_threshhold</span> <span class="o">&gt;=</span> <span class="n">bot_edge_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
+                                <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt_at_bottom</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">port_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePortOnPolygon</span><span class="p">(</span>
+                                    <span class="n">poly</span><span class="p">,</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pt_at_bottom</span><span class="p">),</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span>
+                                <span class="p">):</span>
+                                    <span class="n">aedt_exception_handler</span><span class="p">(</span><span class="s2">&quot;Failed to create port on polygon </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">poly</span><span class="o">.</span><span class="n">GetName</span><span class="p">()))</span>
+
+                    <span class="n">pt_at_right</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">points_at_border</span> <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">)</span> <span class="o">==</span> <span class="n">layout_bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="p">]</span>
+                    <span class="n">pt_at_right_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pt_at_right</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">pt_at_right_values</span><span class="p">:</span>
+                        <span class="n">right_edge_length</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pt_at_right_values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">pt_at_right_values</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">polygon_trace_threshhold</span> <span class="o">&gt;=</span> <span class="n">right_edge_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
+                                <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt_at_right</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">port_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePortOnPolygon</span><span class="p">(</span>
+                                    <span class="n">poly</span><span class="p">,</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pt_at_right</span><span class="p">),</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span>
+                                <span class="p">):</span>
+                                    <span class="n">aedt_exception_handler</span><span class="p">(</span><span class="s2">&quot;Failed to create port on polygon </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">poly</span><span class="o">.</span><span class="n">GetName</span><span class="p">()))</span>
+
+                    <span class="n">pt_at_top</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">pt</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">points_at_border</span> <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">)</span> <span class="o">==</span> <span class="n">layout_bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="p">]</span>
+                    <span class="n">pt_at_top_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">pt_at_top</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">pt_at_top_values</span><span class="p">:</span>
+                        <span class="n">top_edge_length</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pt_at_top_values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">pt_at_top_values</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">polygon_trace_threshhold</span> <span class="o">&gt;=</span> <span class="n">top_edge_length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
+                                <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt</span> <span class="o">-</span> <span class="n">pt_at_top</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">port_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePortOnPolygon</span><span class="p">(</span>
+                                    <span class="n">poly</span><span class="p">,</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pt_at_top</span><span class="p">),</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span>
+                                <span class="p">):</span>
+                                    <span class="n">aedt_exception_handler</span><span class="p">(</span><span class="s2">&quot;Failed to create port on polygon </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">poly</span><span class="o">.</span><span class="n">GetName</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">edges_pts</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EdbHfss.get_layout_bounding_box"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.get_layout_bounding_box.html#pyaedt.edb_core.hfss.EdbHfss.get_layout_bounding_box">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">get_layout_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">digit_resolution</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate the layout bounding box.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layout :</span>
+<span class="sd">            Edb layout.</span>
+
+<span class="sd">        digit_resolution : int, optional</span>
+<span class="sd">            Digit Resolution. The default value is ``6``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            [lower left corner X, lower left corner, upper right corner X, upper right corner Y]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">layout</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">layout_obj_instances</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
+        <span class="n">tuple_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">lobj</span> <span class="ow">in</span> <span class="n">layout_obj_instances</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
+            <span class="n">lobj_bbox</span> <span class="o">=</span> <span class="n">lobj</span><span class="o">.</span><span class="n">GetLayoutInstanceContext</span><span class="p">()</span><span class="o">.</span><span class="n">GetBBox</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">tuple_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lobj_bbox</span><span class="p">)</span>
+        <span class="n">_bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">GetBBoxOfBoxes</span><span class="p">(</span><span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">tuple_list</span><span class="p">))</span>
+        <span class="n">layout_bbox</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">round</span><span class="p">(</span><span class="n">_bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">),</span>
+            <span class="nb">round</span><span class="p">(</span><span class="n">_bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">),</span>
+            <span class="nb">round</span><span class="p">(</span><span class="n">_bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">),</span>
+            <span class="nb">round</span><span class="p">(</span><span class="n">_bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">layout_bbox</span></div></div>
 </pre></div>
 
               </div>
