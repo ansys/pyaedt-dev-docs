@@ -333,6 +333,90 @@
             <span class="n">student_version</span><span class="p">,</span>
         <span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the list of available nets in actual Q3d Project.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.ListNets</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nets_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">ListNets</span><span class="p">())</span>
+        <span class="n">net_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nets_data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                <span class="n">net_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">net_names</span>
+
+<div class="viewcode-block" id="Q3d.net_sources"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.net_sources.html#pyaedt.Q3d.net_sources">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">net_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if a net has sources and returns the list of names.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        net_name : str</span>
+<span class="sd">            Name of the net to search for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List</span>
+<span class="sd">            List of Source names.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Q3d</span>
+<span class="sd">        &gt;&gt;&gt; q3d = Q3d(&quot;my_project&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; net = q3d.net_sources(&quot;Net1&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">net_id</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;SignalNet&quot;</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">net_name</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">net_id</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">break</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Source&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Net&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">net_name</span> <span class="ow">or</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Net&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">net_id</span><span class="p">:</span>
+                    <span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sources</span></div>
+
+<div class="viewcode-block" id="Q3d.net_sinks"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.net_sinks.html#pyaedt.Q3d.net_sinks">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">net_sinks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if a net has sinks and returns the list of them.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        net_name : str</span>
+<span class="sd">            Name of the net to search for.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List</span>
+<span class="sd">            List of Sink names.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Q3d</span>
+<span class="sd">        &gt;&gt;&gt; q3d = Q3d(&quot;my_project&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; net = q3d.net_sinks(&quot;Net1&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sinks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">net_id</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;SignalNet&quot;</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">net_name</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">net_id</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">break</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Sink&quot;</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Net&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">net_name</span> <span class="ow">or</span> <span class="n">i</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Net&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">net_id</span><span class="p">:</span>
+                <span class="n">sinks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sinks</span></div>
+
 <div class="viewcode-block" id="Q3d.auto_identify_nets"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.auto_identify_nets.html#pyaedt.Q3d.auto_identify_nets">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">auto_identify_nets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Automatically identify nets.</span>
@@ -347,8 +431,69 @@
 
 <span class="sd">        &gt;&gt;&gt; oModule.AutoIdentifyNets</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">original_nets</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">AutoIdentifyNets</span><span class="p">()</span>
+        <span class="n">new_nets</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nets</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">original_nets</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">new_nets</span><span class="p">:</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetExcitationAssignment</span><span class="p">(</span><span class="n">net</span><span class="p">))],</span> <span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects</span><span class="p">})</span>
+            <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;SignalNet&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">new_nets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Nets have been identified: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">new_nets</span><span class="p">),</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_nets</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No new nets identified&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Q3d.assign_net"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.assign_net.html#pyaedt.Q3d.assign_net">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">assign_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">net_type</span><span class="o">=</span><span class="s2">&quot;Signal&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign a net to a list of objects.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objects : List, str</span>
+<span class="sd">            List of objects to assign net. Can be a single object.</span>
+<span class="sd">        net_name : str, optional</span>
+<span class="sd">            Name of the net. If `None`, default net name will be provided.</span>
+<span class="sd">        net_type : str, boolean</span>
+<span class="sd">            Type of net to create. Can be `Signal`, `Ground` or `Floating`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Source object.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.AssignSignalNet</span>
+<span class="sd">        &gt;&gt;&gt; oModule.AssignGroundNet</span>
+<span class="sd">        &gt;&gt;&gt; oModule.AssignFloatingNet</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Q3d</span>
+<span class="sd">        &gt;&gt;&gt; q3d = Q3d()</span>
+<span class="sd">        &gt;&gt;&gt; box = q3d.modeler.create_box([30, 30, 30], [10, 10, 10], name=&quot;mybox&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; net_name = &quot;my_net&quot;</span>
+<span class="sd">        &gt;&gt;&gt; net = q3d.assign_net(box, net_name)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">net_name</span><span class="p">:</span>
+            <span class="n">net_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Net&quot;</span><span class="p">)</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects</span><span class="p">})</span>
+        <span class="n">type_bound</span> <span class="o">=</span> <span class="s2">&quot;SignalNet&quot;</span>
+        <span class="k">if</span> <span class="n">net_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;ground&quot;</span><span class="p">:</span>
+            <span class="n">type_bound</span> <span class="o">=</span> <span class="s2">&quot;GroundNet&quot;</span>
+        <span class="k">elif</span> <span class="n">net_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;floating&quot;</span><span class="p">:</span>
+            <span class="n">type_bound</span> <span class="o">=</span> <span class="s2">&quot;FloatingNet&quot;</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">type_bound</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bound</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Q3d.assign_source_to_objectface"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.assign_source_to_objectface.html#pyaedt.Q3d.assign_source_to_objectface">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">assign_source_to_objectface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">source_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -359,7 +504,8 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        object_name : str</span>
+<span class="sd">        object_name : str, int</span>
+<span class="sd">            Name of the object or face id.</span>
 <span class="sd">            Name of the object.</span>
 <span class="sd">        axisdir : optional</span>
 <span class="sd">            Initial axis direction. Options are ``0`` through ``5``. The default is ``0``.</span>
@@ -378,8 +524,11 @@
 
 <span class="sd">        &gt;&gt;&gt; oModule.AssignSource</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_get_faceid_on_axis</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
-
+        <span class="n">object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">object_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_get_faceid_on_axis</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">source_name</span><span class="p">:</span>
             <span class="n">source_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Source&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">net_name</span><span class="p">:</span>
@@ -444,8 +593,8 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        object_name : str</span>
-<span class="sd">            Name of the object.</span>
+<span class="sd">        object_name : str, int</span>
+<span class="sd">            Name of the object or face id.</span>
 <span class="sd">        axisdir : int, optional</span>
 <span class="sd">            Initial axis direction. Options are ``0`` through ``5``. The default is ``0``.</span>
 <span class="sd">        sink_name : str, optional</span>
@@ -463,8 +612,12 @@
 
 <span class="sd">        &gt;&gt;&gt; oModule.AssignSink</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_get_faceid_on_axis</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
-
+        <span class="n">object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">object_name</span>
+            <span class="n">object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectNameByFaceID</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_get_faceid_on_axis</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sink_name</span><span class="p">:</span>
             <span class="n">sink_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Sink&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">net_name</span><span class="p">:</span>

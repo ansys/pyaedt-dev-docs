@@ -181,10 +181,14 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">MethodNotSupportedError</span>
-
-<span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_dict2arg</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">MethodNotSupportedError</span>
+<span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">model_names</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_dict2arg</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.LoadAEDTFile</span> <span class="kn">import</span> <span class="n">load_entire_aedt_file</span>
 
 <span class="n">meshers</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;HFSS&quot;</span><span class="p">:</span> <span class="s2">&quot;MeshSetup&quot;</span><span class="p">,</span>
@@ -303,6 +307,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_meshicepak</span><span class="o">.</span><span class="n">omeshmodule</span><span class="o">.</span><span class="n">EditMeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_args</span><span class="p">())</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;CurvatureExtraction&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_meshicepak</span><span class="o">.</span><span class="n">omeshmodule</span><span class="o">.</span><span class="n">EditSBRCurvatureExtractionOp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_args</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;InitialMeshSettings&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_meshicepak</span><span class="o">.</span><span class="n">omeshmodule</span><span class="o">.</span><span class="n">InitialMeshSettings</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_args</span><span class="p">())</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -349,8 +356,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_omeshmodule</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="n">meshers</span><span class="p">[</span><span class="n">design_type</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meshoperations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_design_mesh_operations</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">globalmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_design_global_mesh</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_globalmesh</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">initial_mesh_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the global mesh object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.MeshOperation`</span>
+<span class="sd">            Mesh operation object.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.InitialMeshSettings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_globalmesh</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_globalmesh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_design_global_mesh</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_globalmesh</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">omeshmodule</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -366,10 +391,31 @@
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_get_design_global_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshSettings&quot;</span><span class="p">]</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshSettings&quot;</span><span class="p">]</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">temp_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;temp_prj&quot;</span><span class="p">)</span>
+            <span class="n">temp_proj</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">temp_name</span> <span class="o">+</span> <span class="s2">&quot;.aedt&quot;</span><span class="p">)</span>
+            <span class="n">oproject_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">NewProject</span><span class="p">(</span><span class="n">temp_name</span><span class="p">)</span>
+            <span class="n">des_target</span> <span class="o">=</span> <span class="n">oproject_target</span><span class="o">.</span><span class="n">InsertDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span><span class="p">,</span> <span class="n">temp_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">solution_type</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">oproject_target</span><span class="o">.</span><span class="n">SaveAs</span><span class="p">(</span><span class="n">temp_proj</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">CloseProject</span><span class="p">(</span><span class="n">temp_name</span><span class="p">)</span>
+            <span class="n">_project_dictionary</span> <span class="o">=</span> <span class="n">load_entire_aedt_file</span><span class="p">(</span><span class="n">temp_proj</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">props</span> <span class="o">=</span> <span class="n">_project_dictionary</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="n">model_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span><span class="p">]][</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span>
+                    <span class="s2">&quot;MeshSettings&quot;</span>
+                <span class="p">]</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">temp_proj</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">temp_proj</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">temp_proj</span> <span class="o">+</span> <span class="s2">&quot;results&quot;</span><span class="p">):</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">temp_proj</span> <span class="o">+</span> <span class="s2">&quot;results&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">props</span><span class="p">:</span>
+            <span class="n">bound</span> <span class="o">=</span> <span class="n">MeshOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;MeshSettings&quot;</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;InitialMeshSettings&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bound</span>
+        <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">()</span>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_get_design_mesh_operations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

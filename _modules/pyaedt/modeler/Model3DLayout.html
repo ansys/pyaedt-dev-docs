@@ -178,6 +178,7 @@
   <h1>Source code for pyaedt.modeler.Model3DLayout</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">AEDT_UNITS</span>
@@ -188,6 +189,7 @@
     <span class="n">is_ironpython</span><span class="p">,</span>
     <span class="n">_pythonver</span><span class="p">,</span>
     <span class="n">inside_desktop</span><span class="p">,</span>
+    <span class="n">get_filename_without_extension</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.LayerStackup</span> <span class="kn">import</span> <span class="n">Layers</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Modeler</span> <span class="kn">import</span> <span class="n">Modeler</span>
@@ -246,7 +248,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Primitives loaded.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">refresh_all_layers</span><span class="p">()</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">o_def_manager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">odefinition_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o_component_manager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">o_def_manager</span><span class="o">.</span><span class="n">GetManager</span><span class="p">(</span><span class="s2">&quot;Component&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o_model_manager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">o_def_manager</span><span class="o">.</span><span class="n">GetManager</span><span class="p">(</span><span class="s2">&quot;Model&quot;</span><span class="p">)</span>
         <span class="k">pass</span>
 
     <span class="nd">@property</span>
@@ -846,7 +850,116 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Assigned Objects Temperature&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span></div></div>
+            <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Modeler3DLayout.set_spice_model"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Model3DLayout.Modeler3DLayout.set_spice_model.html#pyaedt.modeler.Model3DLayout.Modeler3DLayout.set_spice_model">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_spice_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">model_path</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subcircuit_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pin_map</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign a Spice model to a component.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        component_name : str</span>
+<span class="sd">            Name of the component.</span>
+<span class="sd">        model_path : str, optional</span>
+<span class="sd">            Full path to the model file. The default is ``None``.</span>
+<span class="sd">        model_name : str, optional</span>
+<span class="sd">            Name of the model. The default is ``None`` which means that model_name is file name without extension.</span>
+<span class="sd">        subcircuit_name : str, optional</span>
+<span class="sd">            Name of the subcircuit. The default is ``None`` which means that subcircuit name is the model_name.</span>
+<span class="sd">        pin_map : list, optional</span>
+<span class="sd">            List of [spice_pin_name, aedt_pin_name] to optional</span>
+<span class="sd">            customize the pin mapping between Spice Pins and AEDT Pins.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss3dLayout</span>
+<span class="sd">        &gt;&gt;&gt; h3d = Hfss3dLayout(&quot;myproject&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; h3d.modeler.set_spice_model(component_name=&quot;A1&quot;,</span>
+<span class="sd">        ...                             modelpath=&quot;pathtospfile&quot;,</span>
+<span class="sd">        ...                             modelname=&quot;spicemodelname&quot;,</span>
+<span class="sd">        ...                             subcircuit_name=&quot;SUBCK1&quot;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_name</span><span class="p">:</span>
+            <span class="n">model_name</span> <span class="o">=</span> <span class="n">get_filename_without_extension</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">o_model_manager</span><span class="o">.</span><span class="n">GetNames</span><span class="p">()):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">model_name</span><span class="p">,</span>
+                <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
+                <span class="n">model_name</span><span class="p">,</span>
+                <span class="s2">&quot;ModTime:=&quot;</span><span class="p">,</span>
+                <span class="mi">1643711258</span><span class="p">,</span>
+                <span class="s2">&quot;Library:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;LibLocation:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Project&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ModelType:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dcirspice&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Description:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ImageFile:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;SymbolPinConfiguration:=&quot;</span><span class="p">,</span>
+                <span class="mi">0</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:PortInfoBlk&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:PortOrderBlk&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;filename:=&quot;</span><span class="p">,</span>
+                <span class="n">model_path</span><span class="p">,</span>
+                <span class="s2">&quot;modelname:=&quot;</span><span class="p">,</span>
+                <span class="n">model_name</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">o_model_manager</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">subcircuit_name</span><span class="p">:</span>
+            <span class="n">subcircuit_name</span> <span class="o">=</span> <span class="n">model_name</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;subckt&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">pinNames</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; |</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="p">]</span>
+                    <span class="n">pinNames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">pinNames</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">pinNames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">pinNames</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">break</span>
+        <span class="n">componentPins</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">get_pin_from_component</span><span class="p">(</span><span class="n">component_name</span><span class="p">)]</span>
+        <span class="n">componentPins</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pin_map</span><span class="p">:</span>
+            <span class="n">pin_map</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">componentPins</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pinNames</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">pn</span> <span class="ow">in</span> <span class="n">pinNames</span><span class="p">:</span>
+                    <span class="n">pin_map</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pn</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+                    <span class="n">pin_map</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">componentPins</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">args2</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;CompPropEnabled:=&quot;</span><span class="p">,</span>
+            <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;Pid:=&quot;</span><span class="p">,</span>
+            <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;Pmo:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;CompPropType:=&quot;</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;PinPairRLC:=&quot;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;RLCModelType:=&quot;</span><span class="p">,</span>
+                <span class="mi">4</span><span class="p">,</span>
+                <span class="s2">&quot;SPICE_file_path:=&quot;</span><span class="p">,</span>
+                <span class="n">model_path</span><span class="p">,</span>
+                <span class="s2">&quot;SPICE_model_name:=&quot;</span><span class="p">,</span>
+                <span class="n">model_name</span><span class="p">,</span>
+                <span class="s2">&quot;SPICE_subckt:=&quot;</span><span class="p">,</span>
+                <span class="n">subcircuit_name</span><span class="p">,</span>
+                <span class="s2">&quot;terminal_pin_map:=&quot;</span><span class="p">,</span>
+                <span class="n">pin_map</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:ModelChanges&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:UpdateModel0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:ComponentNames&quot;</span><span class="p">,</span> <span class="n">component_name</span><span class="p">],</span> <span class="s2">&quot;Prop:=&quot;</span><span class="p">,</span> <span class="n">args2</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">UpdateModels</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Spice Model Correctly assigned to </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">component_name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </div>
