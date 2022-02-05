@@ -1419,7 +1419,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SweepRanges&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Subrange&quot;</span><span class="p">:</span> <span class="p">[]}</span>
 
 <div class="viewcode-block" id="SweepHFSS.add_subrange"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.SetupTemplates.SweepHFSS.add_subrange.html#pyaedt.modules.SetupTemplates.SweepHFSS.add_subrange">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">add_subrange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rangetype</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;GHz&quot;</span><span class="p">,</span> <span class="n">save_single_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_subrange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rangetype</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;GHz&quot;</span><span class="p">,</span> <span class="n">save_single_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clear</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a subrange to the sweep.</span>
 
 <span class="sd">        Parameters</span>
@@ -1438,6 +1438,9 @@
 <span class="sd">        save_single_fields : bool, optional</span>
 <span class="sd">            Whether to save the fields of the single point. The default is ``False``.</span>
 <span class="sd">            Used only for ``rangetype=&quot;SinglePoints&quot;``.</span>
+<span class="sd">        clear : boolean, optional</span>
+<span class="sd">            If set to ``True``, all other subranges will be suppressed except the current one under creation.</span>
+<span class="sd">            Default value is ``False``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1459,6 +1462,25 @@
         <span class="k">if</span> <span class="n">rangetype</span> <span class="o">==</span> <span class="s2">&quot;LinearCount&quot;</span> <span class="ow">or</span> <span class="n">rangetype</span> <span class="o">==</span> <span class="s2">&quot;LinearStep&quot;</span> <span class="ow">or</span> <span class="n">rangetype</span> <span class="o">==</span> <span class="s2">&quot;LogScale&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">end</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">count</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Parameters &#39;end&#39; and &#39;count&#39; must be present.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">clear</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rangetype</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeStart&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
+            <span class="k">if</span> <span class="n">rangetype</span> <span class="o">==</span> <span class="s2">&quot;LinearCount&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeEnd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeCount&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+            <span class="k">elif</span> <span class="n">rangetype</span> <span class="o">==</span> <span class="s2">&quot;LinearStep&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeEnd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeStep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
+            <span class="k">elif</span> <span class="n">rangetype</span> <span class="o">==</span> <span class="s2">&quot;LogScale&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeEnd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeSamples&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+            <span class="k">elif</span> <span class="n">rangetype</span> <span class="o">==</span> <span class="s2">&quot;SinglePoints&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeEnd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveSingleField&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_single_fields</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SweepRanges&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Subrange&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
         <span class="nb">range</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="nb">range</span><span class="p">[</span><span class="s2">&quot;RangeType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rangetype</span>
         <span class="nb">range</span><span class="p">[</span><span class="s2">&quot;RangeStart&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
@@ -1476,7 +1498,8 @@
             <span class="nb">range</span><span class="p">[</span><span class="s2">&quot;RangeEnd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span>
             <span class="nb">range</span><span class="p">[</span><span class="s2">&quot;SaveSingleField&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_single_fields</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SweepRanges&quot;</span><span class="p">][</span><span class="s2">&quot;Subrange&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">range</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SweepHFSS.create"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.SetupTemplates.SweepHFSS.create.html#pyaedt.modules.SetupTemplates.SweepHFSS.create">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

@@ -196,6 +196,8 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">aedt_exception_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_arg2dict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span><span class="p">,</span> <span class="n">NativeComponentObject</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">random_string</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
 
 <div class="viewcode-block" id="Icepak"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.html#pyaedt.Icepak">[docs]</a><span class="k">class</span> <span class="nc">Icepak</span><span class="p">(</span><span class="n">FieldAnalysisIcepak</span><span class="p">):</span>
@@ -2058,6 +2060,133 @@
         <span class="p">]</span>
 
         <span class="k">return</span> <span class="n">arg</span></div>
+
+<div class="viewcode-block" id="Icepak.create_fan"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.create_fan.html#pyaedt.Icepak.create_fan">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_fan</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_2d</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="s2">&quot;Circular&quot;</span><span class="p">,</span>
+        <span class="n">cross_section</span><span class="o">=</span><span class="s2">&quot;XY&quot;</span><span class="p">,</span>
+        <span class="n">radius</span><span class="o">=</span><span class="s2">&quot;0.008mm&quot;</span><span class="p">,</span>
+        <span class="n">hub_radius</span><span class="o">=</span><span class="s2">&quot;0mm&quot;</span><span class="p">,</span>
+        <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; &quot;Create a fan component in Icepak that is linked to an HFSS 3D Layout object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Fan name.</span>
+<span class="sd">        is_2d : bool</span>
+<span class="sd">            Check if the fan is modeled as 2d or 3d.</span>
+<span class="sd">        shape : str</span>
+<span class="sd">            Fan Shape. It can be Circular or Rectangular.</span>
+<span class="sd">        cross_section : str</span>
+<span class="sd">            Fan Cross Section plane.</span>
+<span class="sd">        radius : str, float</span>
+<span class="sd">            Fan radius in modeler units.</span>
+<span class="sd">        hub_radius : str, float</span>
+<span class="sd">            Fan hub radius in modeler units.</span>
+<span class="sd">        origin : list</span>
+<span class="sd">            List of [x,y,z] position of the fan in the modeler.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.NativeComponentObject`</span>
+<span class="sd">            NativeComponentObject object.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.InsertNativeComponent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Fan&quot;</span><span class="p">)</span>
+
+        <span class="n">basic_component</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;ComponentName&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;Company&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Company URL&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Model Number&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Help URL&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Notes&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;IconType&quot;</span><span class="p">:</span> <span class="s2">&quot;Fan&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_2d</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;2D&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;3D&quot;</span>
+        <span class="n">cross_section</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">cs_plane_to_plane_str</span><span class="p">(</span><span class="n">cross_section</span><span class="p">)</span>
+        <span class="n">native_component</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="s2">&quot;Fan&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Unit&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span><span class="p">,</span>
+                <span class="s2">&quot;ModelAs&quot;</span><span class="p">:</span> <span class="n">model</span><span class="p">,</span>
+                <span class="s2">&quot;Shape&quot;</span><span class="p">:</span> <span class="n">shape</span><span class="p">,</span>
+                <span class="s2">&quot;MovePlane&quot;</span><span class="p">:</span> <span class="n">cross_section</span><span class="p">,</span>
+                <span class="s2">&quot;Radius&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_units</span><span class="p">(</span><span class="n">radius</span><span class="p">),</span>
+                <span class="s2">&quot;HubRadius&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_units</span><span class="p">(</span><span class="n">hub_radius</span><span class="p">),</span>
+                <span class="s2">&quot;CaseSide&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;FlowDirChoice&quot;</span><span class="p">:</span> <span class="s2">&quot;NormalPositive&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;FlowType&quot;</span><span class="p">:</span> <span class="s2">&quot;Curve&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;SwirlType&quot;</span><span class="p">:</span> <span class="s2">&quot;Magnitude&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;FailedFan&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;DimUnits&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;m3_per_s&quot;</span><span class="p">,</span> <span class="s2">&quot;n_per_meter_sq&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;0.01&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;Pressure Loss Curve&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;DimUnits&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;m_per_sec&quot;</span><span class="p">,</span> <span class="s2">&quot;n_per_meter_sq&quot;</span><span class="p">],</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">],</span> <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]}</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;IntakeTemp&quot;</span><span class="p">:</span> <span class="s2">&quot;AmbientTemp&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Swirl&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OperatingRPM&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Magnitude&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">native_props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;TargetCS&quot;</span><span class="p">:</span> <span class="s2">&quot;Global&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;SubmodelDefinitionName&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;ComponentPriorityLists&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({}),</span>
+                <span class="s2">&quot;NextUniqueID&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;MoveBackwards&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;DatasetType&quot;</span><span class="p">:</span> <span class="s2">&quot;ComponentDatasetType&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({}),</span>
+                <span class="s2">&quot;BasicComponentInfo&quot;</span><span class="p">:</span> <span class="n">basic_component</span><span class="p">,</span>
+                <span class="s2">&quot;GeometryDefinitionParameters&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;VariableOrders&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">()}),</span>
+                <span class="s2">&quot;DesignDefinitionParameters&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;VariableOrders&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">()}),</span>
+                <span class="s2">&quot;MaterialDefinitionParameters&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;VariableOrders&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">()}),</span>
+                <span class="s2">&quot;MapInstanceParameters&quot;</span><span class="p">:</span> <span class="s2">&quot;DesignVariable&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;UniqueDefinitionIdentifier&quot;</span><span class="p">:</span> <span class="s2">&quot;57c8ab4e-4db9-4881-b6bb-&quot;</span>
+                <span class="o">+</span> <span class="n">random_string</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="n">char_set</span><span class="o">=</span><span class="s2">&quot;abcdef0123456789&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;OriginFilePath&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;IsLocal&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;ChecksumString&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;ChecksumHistory&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;VersionHistory&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                <span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span><span class="p">:</span> <span class="n">native_component</span><span class="p">,</span>
+                <span class="s2">&quot;InstanceParameters&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;GeometryParameters&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;MaterialParameters&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;DesignParameters&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+                <span class="p">),</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">insts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Get3DComponentInstanceNames</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="n">native</span> <span class="o">=</span> <span class="n">NativeComponentObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Fan&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">native_props</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">native</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="n">new_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Get3DComponentInstanceNames</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">insts</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_load_from_project</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">native_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">native</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">origin</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">new_name</span><span class="p">,</span> <span class="n">origin</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">native</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Icepak.create_ipk_3dcomponent_pcb"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.create_ipk_3dcomponent_pcb.html#pyaedt.Icepak.create_ipk_3dcomponent_pcb">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_ipk_3dcomponent_pcb</span><span class="p">(</span>
