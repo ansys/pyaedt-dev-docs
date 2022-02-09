@@ -1351,23 +1351,32 @@
 <div class="viewcode-block" id="NexximComponents.add_subcircuit_dynamic_link"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.PrimitivesNexxim.NexximComponents.add_subcircuit_dynamic_link.html#pyaedt.modeler.PrimitivesNexxim.NexximComponents.add_subcircuit_dynamic_link">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">add_subcircuit_dynamic_link</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">pyaedt_app</span><span class="p">,</span>
-        <span class="n">solution_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">extrusion_length</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-        <span class="n">map_source_variables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">source_design_name</span><span class="p">,</span>
+        <span class="n">source_project_path</span><span class="p">,</span>
+        <span class="n">solution_name</span><span class="p">,</span>
+        <span class="n">extrusion_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">enable_cable_modeling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default_matrix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">tline_port</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a subcircuit 2D Extractor link.</span>
+        <span class="sd">&quot;&quot;&quot;Add a subcircuit from `HFSS`, `Q3d` or `2D Extractor` in circuit design.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        pyaedt_app : :class:`pyaedt.q3d.Q3d` or :class:`pyaedt.q3d.Q2d` or :class:`pyaedt.q3d.Hfss`</span>
-<span class="sd">            pyaedt application object to include. It could be an Hfss object, a Q3d object or a Q2d.</span>
+<span class="sd">        source_design_name : str</span>
+<span class="sd">            Source Project Design Name.</span>
+<span class="sd">        source_project_path : str</span>
+<span class="sd">            Source Project full path.</span>
 <span class="sd">        solution_name : str, optional</span>
 <span class="sd">            Name of the solution and sweep. The default is ``&quot;Setup1 : Sweep&quot;``.</span>
 <span class="sd">        extrusion_length : float, str, optional</span>
-<span class="sd">            Extrusion length for 2D Models. Default is 10 (in model units).</span>
-<span class="sd">        map_source_variables : bool, optional</span>
-<span class="sd">            Either if the dynamic link object has to map or not the source design variables.</span>
+<span class="sd">            Extrusion length for 2D Models (q2d or Hfss). Default is `None`.</span>
+<span class="sd">        enable_cable_modeling : bool, optional</span>
+<span class="sd">            Either if the Hfss Cable modeling has to be enabled for 2D subcircuits.</span>
+<span class="sd">        default_matrix : str, optional</span>
+<span class="sd">            Matrix to link to the subcircuit. Default to `&quot;Original&quot;`. It only applies to 2D Extractor and Q3D.</span>
+<span class="sd">        tline_port : str, optional</span>
+<span class="sd">            Port to be used for tramsission line. Only applies to Hfss.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1380,55 +1389,29 @@
 <span class="sd">        &gt;&gt;&gt; oModelManager.Add</span>
 <span class="sd">        &gt;&gt;&gt; oComponentManager.Add</span>
 <span class="sd">        &gt;&gt;&gt; oDesign.AddCompInstance</span>
+<span class="sd">        &gt;&gt;&gt; oDesign.AddDynamicLink</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">comp_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
-        <span class="n">source_project_path</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">project_file</span>
-        <span class="n">source_design_name</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_name</span>
-        <span class="n">matrix</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS&quot;</span><span class="p">:</span>
-            <span class="n">pin_names</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Q3D Extractor&quot;</span><span class="p">:</span>
-            <span class="n">excts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetExcitations</span><span class="p">())</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">sources</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">sinks</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">excts</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">excts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Source&quot;</span><span class="p">:</span>
-                    <span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">excts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">excts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Sink&quot;</span><span class="p">:</span>
-                    <span class="n">sinks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">excts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
-            <span class="n">pin_names</span> <span class="o">=</span> <span class="n">sources</span> <span class="o">+</span> <span class="n">sinks</span>
-        <span class="k">elif</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;2D Extractor&quot;</span><span class="p">:</span>
-            <span class="n">excts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetExcitations</span><span class="p">())</span>
-            <span class="n">pins</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">excts</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">excts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;ReferenceGround&quot;</span><span class="p">:</span>
-                    <span class="n">pins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">excts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
-            <span class="n">pin_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;_in&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">]</span>
-            <span class="n">pin_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Input_ref&quot;</span><span class="p">)</span>
-            <span class="n">pin_names</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;_out&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">])</span>
-            <span class="n">pin_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Output_ref&quot;</span><span class="p">)</span>
-        <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">map_source_variables</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">variable_manager</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">string_value</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_name</span><span class="p">:</span>
-            <span class="n">solution_name</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">nominal_sweep</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_subcircuit_link</span><span class="p">(</span>
-            <span class="n">comp_name</span><span class="o">=</span><span class="n">comp_name</span><span class="p">,</span>
-            <span class="n">pin_names</span><span class="o">=</span><span class="n">pin_names</span><span class="p">,</span>
-            <span class="n">source_project_path</span><span class="o">=</span><span class="n">source_project_path</span><span class="p">,</span>
-            <span class="n">source_design_name</span><span class="o">=</span><span class="n">source_design_name</span><span class="p">,</span>
-            <span class="n">solution_name</span><span class="o">=</span><span class="n">solution_name</span><span class="p">,</span>
-            <span class="n">image_subcircuit_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="n">model_type</span><span class="o">=</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span><span class="p">,</span>
-            <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span>
-            <span class="n">extrusion_length_q2d</span><span class="o">=</span><span class="n">extrusion_length</span><span class="p">,</span>
-            <span class="n">matrix</span><span class="o">=</span><span class="n">matrix</span><span class="p">,</span>
-        <span class="p">)</span></div>
+        <span class="n">comp_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">source_design_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">AddDynamicLink</span><span class="p">(</span>
+            <span class="n">source_design_name</span><span class="p">,</span>
+            <span class="n">source_project_path</span><span class="p">,</span>
+            <span class="n">comp_name</span><span class="p">,</span>
+            <span class="n">solution_name</span><span class="p">,</span>
+            <span class="n">tline_port</span><span class="p">,</span>
+            <span class="n">default_matrix</span><span class="p">,</span>
+            <span class="n">enable_cable_modeling</span><span class="p">,</span>
+            <span class="s2">&quot;Pyaedt Dynamic Link&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">comp_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">composed_name</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">extrusion_length</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;Length&quot;</span><span class="p">,</span> <span class="n">extrusion_length</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">tline_port</span> <span class="ow">and</span> <span class="n">extrusion_length</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;TLineLength&quot;</span><span class="p">,</span> <span class="n">extrusion_length</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_add_subcircuit_link</span><span class="p">(</span>
