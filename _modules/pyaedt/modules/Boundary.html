@@ -180,9 +180,8 @@
 <span class="sd">This module contains these classes: `BoundaryCommon` and `BoundaryObject`.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">import</span> <span class="nn">re</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">filter_tuple</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_dict2arg</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">EdgePrimitive</span><span class="p">,</span> <span class="n">FacePrimitive</span><span class="p">,</span> <span class="n">VertexPrimitive</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">random_string</span>
@@ -340,12 +339,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;InsertNativeComponentData&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">()]</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">excitations</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antennaname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">InsertNativeComponent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_args</span><span class="p">())</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">excitations</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">excitation_name</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">excitation_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennaname</span>
@@ -1224,28 +1223,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_sources</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">omatrix</span><span class="o">.</span><span class="n">ListReduceMatrixReducedSources</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sources</span>
 
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_filter</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">search_key1</span><span class="p">,</span> <span class="n">search_key2</span><span class="p">):</span>
-        <span class="n">ignore_case</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="k">def</span> <span class="nf">_create_pattern</span><span class="p">(</span><span class="n">k1</span><span class="p">,</span> <span class="n">k2</span><span class="p">):</span>
-            <span class="n">k1a</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\?&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">k1</span><span class="p">)</span>
-            <span class="n">k1b</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\*&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;.*?&quot;</span><span class="p">,</span> <span class="n">k1a</span><span class="p">)</span>
-            <span class="n">k2a</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\?&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">k2</span><span class="p">)</span>
-            <span class="n">k2b</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\*&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;.*?&quot;</span><span class="p">,</span> <span class="n">k2a</span><span class="p">)</span>
-            <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;.*\(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">\)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k1b</span><span class="p">,</span> <span class="n">k2b</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">pattern</span>
-
-        <span class="k">if</span> <span class="n">ignore_case</span><span class="p">:</span>
-            <span class="n">compiled_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">_create_pattern</span><span class="p">(</span><span class="n">search_key1</span><span class="p">,</span> <span class="n">search_key2</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">compiled_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">_create_pattern</span><span class="p">(</span><span class="n">search_key1</span><span class="p">,</span> <span class="n">search_key2</span><span class="p">))</span>
-
-        <span class="n">m</span> <span class="o">=</span> <span class="n">compiled_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_sources_for_plot</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1293,14 +1270,14 @@
         <span class="k">if</span> <span class="n">get_self_terms</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">(</span><span class="n">is_gc_sources</span><span class="o">=</span><span class="n">is_cg</span><span class="p">):</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">first_element_filter</span><span class="p">,</span> <span class="n">second_element_filter</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">filter_tuple</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">first_element_filter</span><span class="p">,</span> <span class="n">second_element_filter</span><span class="p">):</span>
                     <span class="n">list_output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">get_mutual_terms</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">el1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">(</span><span class="n">is_gc_sources</span><span class="o">=</span><span class="n">is_cg</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">el2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">(</span><span class="n">is_gc_sources</span><span class="o">=</span><span class="n">is_cg</span><span class="p">):</span>
                     <span class="k">if</span> <span class="n">el1</span> <span class="o">!=</span> <span class="n">el2</span><span class="p">:</span>
                         <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="n">el1</span><span class="p">,</span> <span class="n">el2</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">first_element_filter</span><span class="p">,</span> <span class="n">second_element_filter</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">filter_tuple</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">first_element_filter</span><span class="p">,</span> <span class="n">second_element_filter</span><span class="p">):</span>
                             <span class="n">list_output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">list_output</span>
 

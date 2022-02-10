@@ -177,6 +177,7 @@
                 
   <h1>Source code for pyaedt.application.Analysis3DLayout</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Model3DLayout</span> <span class="kn">import</span> <span class="n">Modeler3DLayout</span>
@@ -315,8 +316,28 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">excitations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all excitation names.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of excitation names. Excitations with multiple modes will return one</span>
+<span class="sd">            excitation for each mode.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.GetExcitations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetAllPortsList</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">get_excitations_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Excitation names.</span>
+
+<span class="sd">        .. deprecated:: 0.4.27</span>
+<span class="sd">           Use :func:`excitations` property instead.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -328,7 +349,8 @@
 
 <span class="sd">        &gt;&gt;&gt; oModule.GetAllPortsList</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetAllPortsList</span><span class="p">())</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`get_excitations_name` is deprecated. Use `excitations` property instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">get_all_sparameter_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">excitation_names</span><span class="o">=</span><span class="p">[]):</span>
@@ -349,7 +371,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">excitation_names</span><span class="p">:</span>
-            <span class="n">excitation_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_excitations_name</span>
+            <span class="n">excitation_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span>
         <span class="n">spar</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">excitation_names</span><span class="p">:</span>
@@ -412,7 +434,7 @@
 <span class="sd">        &gt;&gt;&gt; oModule.GetAllPorts</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">excitation_names</span><span class="p">:</span>
-            <span class="n">excitation_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_excitations_name</span>
+            <span class="n">excitation_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span>
         <span class="k">if</span> <span class="n">excitation_name_prefix</span><span class="p">:</span>
             <span class="n">excitation_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">excitation_names</span> <span class="k">if</span> <span class="n">excitation_name_prefix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
         <span class="n">spar</span> <span class="o">=</span> <span class="p">[]</span>
@@ -449,9 +471,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">spar</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">trlist</span><span class="p">:</span>
-            <span class="n">trlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_excitations_name</span> <span class="k">if</span> <span class="n">tx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">trlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span> <span class="k">if</span> <span class="n">tx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">reclist</span><span class="p">:</span>
-            <span class="n">reclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_excitations_name</span> <span class="k">if</span> <span class="n">rx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">reclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span> <span class="k">if</span> <span class="n">rx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trlist</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">reclist</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The TX and RX lists should be same length.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -483,7 +505,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">next</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">trlist</span><span class="p">:</span>
-            <span class="n">trlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_excitations_name</span> <span class="k">if</span> <span class="n">tx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">trlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span> <span class="k">if</span> <span class="n">tx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">trlist</span><span class="p">:</span>
             <span class="n">k</span> <span class="o">=</span> <span class="n">trlist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="k">while</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">trlist</span><span class="p">):</span>
@@ -524,9 +546,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">fext</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">trlist</span><span class="p">:</span>
-            <span class="n">trlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_excitations_name</span> <span class="k">if</span> <span class="n">tx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">trlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span> <span class="k">if</span> <span class="n">tx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">reclist</span><span class="p">:</span>
-            <span class="n">reclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_excitations_name</span> <span class="k">if</span> <span class="n">rx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">reclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span> <span class="k">if</span> <span class="n">rx_prefix</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">trlist</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">reclist</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">skip_same_index_couples</span> <span class="ow">or</span> <span class="n">reclist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">!=</span> <span class="n">trlist</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>

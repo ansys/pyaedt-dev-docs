@@ -180,10 +180,12 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">CSS4_COLORS</span><span class="p">,</span> <span class="n">AEDT_UNITS</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span><span class="p">,</span> <span class="n">convert_remote_object</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 
 <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
@@ -1142,7 +1144,7 @@
 
 <div class="viewcode-block" id="ModelPlotter.plot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.ModelPlotter.plot.html#pyaedt.modules.AdvancedPostProcessing.ModelPlotter.plot">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_image_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Plot the current available Data.</span>
+        <span class="sd">&quot;&quot;&quot;Plot the current available Data. With `s` key a screenshot is saved in export_image_path or in tempdir.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1221,11 +1223,28 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">isometric_view</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">export_image_path</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">screenshot</span><span class="o">=</span><span class="n">export_image_path</span><span class="p">,</span> <span class="n">full_screen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_notebook</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="n">path_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">export_image_path</span><span class="p">)</span>
+            <span class="n">root_name</span><span class="p">,</span> <span class="nb">format</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">export_image_path</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">full_screen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">path_image</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">()</span>  <span class="c1"># pragma: no cover</span>
+            <span class="nb">format</span> <span class="o">=</span> <span class="s2">&quot;.png&quot;</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">root_name</span> <span class="o">=</span> <span class="s2">&quot;Image&quot;</span>  <span class="c1"># pragma: no cover</span>
+
+        <span class="k">def</span> <span class="nf">s_callback</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
+            <span class="sd">&quot;&quot;&quot;save screenshots&quot;&quot;&quot;</span>
+            <span class="n">exp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">path_image</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">root_name</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y_%M_</span><span class="si">%d</span><span class="s2">_%H-%M-%S&quot;</span><span class="p">),</span> <span class="nb">format</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">return_img</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">add_key_event</span><span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="n">s_callback</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">export_image_path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">screenshot</span><span class="o">=</span><span class="n">export_image_path</span><span class="p">,</span> <span class="n">full_screen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_notebook</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pv</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">full_screen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">image_file</span> <span class="o">=</span> <span class="n">export_image_path</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
