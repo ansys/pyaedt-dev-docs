@@ -190,6 +190,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SourceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBComponent</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.padstack</span> <span class="kn">import</span> <span class="n">EdbPadstacks</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">clr</span>
@@ -1663,7 +1664,123 @@
                 <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">threshold</span><span class="p">:</span>
                     <span class="n">through_comp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">through_comp_list</span></div></div>
+        <span class="k">return</span> <span class="n">through_comp_list</span></div>
+
+<div class="viewcode-block" id="Components.short_component_pins"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.short_component_pins.html#pyaedt.edb_core.components.Components.short_component_pins">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">short_component_pins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">pins_to_short</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Short pins of component with a trace.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        component_name : str</span>
+<span class="sd">            Name of the component.</span>
+<span class="sd">        pins_to_short : list, optional</span>
+<span class="sd">            List of pins to short. If `None`, all pins will be shorted.</span>
+<span class="sd">        width : float, optional</span>
+<span class="sd">            Short Trace width. It will be used in trace computation algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; edbapp.core_components.short_component_pins(&quot;J4A2&quot;, [&quot;G4&quot;, &quot;9&quot;, &quot;3&quot;])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">component_name</span><span class="p">]</span>
+        <span class="n">pins</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">pins</span>
+        <span class="n">pins_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">component</span><span class="o">.</span><span class="n">center</span>
+        <span class="k">for</span> <span class="n">pin_name</span><span class="p">,</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">pins</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pins_to_short</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pin_name</span> <span class="ow">in</span> <span class="n">pins_to_short</span><span class="p">:</span>
+                    <span class="n">pins_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pins_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span>
+        <span class="n">positions_to_short</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">center</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">delta_pins</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">width</span>
+        <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">pins_list</span><span class="p">:</span>
+            <span class="n">placement_layer</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">placement_layer</span>
+            <span class="n">positions_to_short</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pin</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+            <span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetPadstackDef</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="n">placement_layer</span><span class="p">]</span>
+            <span class="n">pars</span> <span class="o">=</span> <span class="n">pad</span><span class="o">.</span><span class="n">parameters_values</span>
+            <span class="n">geom</span> <span class="o">=</span> <span class="n">pad</span><span class="o">.</span><span class="n">geometry_type</span>
+            <span class="k">if</span> <span class="n">geom</span> <span class="o">&lt;</span> <span class="mi">6</span> <span class="ow">and</span> <span class="n">pars</span><span class="p">:</span>
+                <span class="n">delta_pins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">pars</span><span class="p">),</span> <span class="n">w</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">pars</span><span class="p">:</span>
+                <span class="n">delta_pins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">pars</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pars</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">w</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">pad</span><span class="o">.</span><span class="n">polygon_data</span><span class="p">:</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">pad</span><span class="o">.</span><span class="n">polygon_data</span><span class="o">.</span><span class="n">GetBBox</span><span class="p">()</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
+                <span class="n">upper</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
+                <span class="n">pars</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">lower</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">upper</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">lower</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">upper</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+                <span class="n">delta_pins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">pars</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">pars</span><span class="p">),</span> <span class="n">w</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delta_pins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.5</span> <span class="o">*</span> <span class="n">width</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">positions_to_short</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">p0</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">p0</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p0</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p0</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p0</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p0</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">l0</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="n">l0_min</span> <span class="o">=</span> <span class="n">l0</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">l0</span><span class="p">))</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">p1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">delta_pins</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">p1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">l1</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+                <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">c</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="n">l1_min</span> <span class="o">=</span> <span class="n">l1</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">l1</span><span class="p">))</span>
+
+            <span class="n">trace_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+
+            <span class="n">trace_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="n">l0_min</span><span class="p">][:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">trace_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">trace_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="n">l1_min</span><span class="p">][:</span><span class="mi">2</span><span class="p">])</span>
+
+            <span class="n">trace_points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">positions_to_short</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span><span class="s2">&quot;polygon&quot;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">trace_points</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">create_path</span><span class="p">(</span>
+                <span class="n">path</span><span class="p">,</span>
+                <span class="n">layer_name</span><span class="o">=</span><span class="n">placement_layer</span><span class="p">,</span>
+                <span class="n">net_name</span><span class="o">=</span><span class="s2">&quot;short&quot;</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">w</span><span class="p">,</span>
+                <span class="n">start_cap_style</span><span class="o">=</span><span class="s2">&quot;Flat&quot;</span><span class="p">,</span>
+                <span class="n">end_cap_style</span><span class="o">=</span><span class="s2">&quot;Flat&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </div>

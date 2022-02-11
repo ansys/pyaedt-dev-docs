@@ -343,6 +343,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_core_net</span> <span class="o">=</span> <span class="n">core_app</span><span class="o">.</span><span class="n">core_nets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">primitive_object</span> <span class="o">=</span> <span class="n">raw_primitive</span>
 
+<div class="viewcode-block" id="EDBPrimitives.area"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPrimitives.area.html#pyaedt.edb_core.EDB_Data.EDBPrimitives.area">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_voids</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the total area.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        include_voids : bool, optional</span>
+<span class="sd">            Either if the voids have to be included in computation.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span><span class="o">.</span><span class="n">Area</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">include_voids</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">Voids</span><span class="p">:</span>
+                <span class="n">area</span> <span class="o">-=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span><span class="o">.</span><span class="n">Area</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">area</span></div>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_void</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Either if the primitive is a void or not.</span>
@@ -1451,6 +1469,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_pad_parameters_parameters</span><span class="p">(</span><span class="n">geom_type</span><span class="o">=</span><span class="n">geom_type</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parameters.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item2</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">polygon_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parameters.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPolygonalPadParameters</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item1</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Parameters.</span>
 
@@ -2402,6 +2449,19 @@
                 <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">pair</span><span class="o">.</span><span class="n">IsParallel</span>
         <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the component center.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">layinst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span>
+        <span class="n">cmpinst</span> <span class="o">=</span> <span class="n">layinst</span><span class="o">.</span><span class="n">GetLayoutObjInstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">cmpinst</span><span class="o">.</span><span class="n">GetCenter</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">center</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">center</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pinlist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

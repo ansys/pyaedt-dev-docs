@@ -485,7 +485,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;LumpedPort&quot;</span><span class="p">)</span>
 
     <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">_create_port_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectname</span><span class="p">,</span> <span class="n">int_line_stop</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_port_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectname</span><span class="p">,</span> <span class="n">int_line_stop</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">ref_conductors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">int_line_stop</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">objectname</span><span class="p">)</span>
@@ -521,9 +521,14 @@
             <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
                 <span class="n">props</span><span class="p">[</span><span class="s2">&quot;NumModes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
                 <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseLineModeAlignment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DoDeembed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
-                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DeembedDist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;0mm&quot;</span>
+            <span class="k">if</span> <span class="n">deembed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DoDeembed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
+                    <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DeembedDist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DoDeembed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
+                    <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DeembedDist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">deembed</span><span class="p">)</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;RenormalizeAllTerminals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">renorm</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ShowReporterFilter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseAnalyticAlignment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
@@ -588,8 +593,7 @@
 
         <span class="k">if</span> <span class="n">deemb_distance</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DoDeembed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DeembedDist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">deemb_distance</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span>
-
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DeembedDist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">deemb_distance</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DoDeembed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;RenormalizeAllTerminals&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">renorm</span>
@@ -1774,7 +1778,13 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_lumped_driven</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">impedance</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="p">,</span> <span class="n">deemb</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span><span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">deemb</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
+                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span></div>
 
 <div class="viewcode-block" id="Hfss.create_spiral_lumped_port"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.create_spiral_lumped_port.html#pyaedt.Hfss.create_spiral_lumped_port">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -2215,7 +2225,13 @@
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span><span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">deembed_dist</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="n">deembed_dist</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
+                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span></div>
 
 <div class="viewcode-block" id="Hfss.create_floquet_port"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.create_floquet_port.html#pyaedt.Hfss.create_floquet_port">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -2640,7 +2656,13 @@
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span><span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">deembed_dist</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="n">deembed_dist</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
+                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Hfss.create_perfecte_from_objects"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.create_perfecte_from_objects.html#pyaedt.Hfss.create_perfecte_from_objects">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -3219,7 +3241,13 @@
             <span class="k">elif</span> <span class="n">portname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span><span class="p">:</span>
                 <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">portname</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">terminal_references</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="n">terminal_references</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">deemb</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="n">deemb</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
+                    <span class="n">faces</span><span class="p">,</span> <span class="n">terminal_references</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Reference Conductors are missed.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span></div>
@@ -3293,11 +3321,15 @@
                     <span class="n">faces</span> <span class="o">=</span> <span class="n">sheet_name</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">faces</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">faces</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong Input object. it has to be a face id or a sheet.&quot;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="n">deemb</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">deembed</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
-                    <span class="n">faces</span><span class="p">,</span> <span class="n">reference_object_list</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span>
+                    <span class="n">faces</span><span class="p">,</span> <span class="n">reference_object_list</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span>
                 <span class="p">)</span>
 
             <span class="k">return</span> <span class="n">port</span>
