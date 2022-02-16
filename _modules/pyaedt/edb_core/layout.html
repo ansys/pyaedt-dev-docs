@@ -269,13 +269,15 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">layoutInstance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span>
             <span class="n">layoutObjectInstances</span> <span class="o">=</span> <span class="n">layoutInstance</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">layoutObjectInstances</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
                 <span class="k">except</span><span class="p">:</span>
-                    <span class="k">pass</span>
+                    <span class="k">continue</span>
             <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polygons_by_layer</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Primitives Updated&quot;</span><span class="p">)</span>
@@ -288,7 +290,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
+<span class="sd">        list of :class:`pyaedt.edb_core.EDB_Data.EDBPrimitives`</span>
 <span class="sd">            List of primitives.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
@@ -314,18 +316,11 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
+<span class="sd">        list of :class:`pyaedt.edb_core.EDB_Data.EDBPrimitives`</span>
 <span class="sd">            List of rectangles.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">&quot;Rectangle&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
-                    <span class="n">prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">return</span> <span class="n">prims</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Rectangle&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">circles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -333,18 +328,11 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
+<span class="sd">        list of :class:`pyaedt.edb_core.EDB_Data.EDBPrimitives`</span>
 <span class="sd">            List of circles.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">&quot;Circle&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
-                    <span class="n">prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">return</span> <span class="n">prims</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Circle&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -352,17 +340,10 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
+<span class="sd">        list of :class:`pyaedt.edb_core.EDB_Data.EDBPrimitives`</span>
 <span class="sd">            List of paths.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">&quot;Path&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
-                    <span class="n">prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">return</span> <span class="n">prims</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Path&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">bondwires</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -370,17 +351,10 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
+<span class="sd">        list of :class:`pyaedt.edb_core.EDB_Data.EDBPrimitives`</span>
 <span class="sd">            List of bondwires.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">&quot;Bondwire&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
-                    <span class="n">prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">return</span> <span class="n">prims</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Bondwire&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">polygons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -391,14 +365,7 @@
 <span class="sd">        list of :class:`pyaedt.edb_core.EDB_Data.EDBPrimitives`</span>
 <span class="sd">            List of polygons.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">prims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">&quot;Polygon&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
-                    <span class="n">prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">return</span> <span class="n">prims</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="EdbLayout.get_polygons_by_layer"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.get_polygons_by_layer.html#pyaedt.edb_core.layout.EdbLayout.get_polygons_by_layer">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_polygons_by_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">net_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -666,7 +633,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">polygon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -712,7 +679,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">polygon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -765,31 +732,25 @@
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when no changes were applied.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">obj_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
-        <span class="n">circle_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">obj</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj_list</span><span class="o">.</span><span class="n">Items</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Circle</span><span class="p">)</span>
-        <span class="p">]</span>
-
-        <span class="n">void_circles</span> <span class="o">=</span> <span class="p">[</span><span class="n">circ</span> <span class="k">for</span> <span class="n">circ</span> <span class="ow">in</span> <span class="n">circle_list</span> <span class="k">if</span> <span class="n">circ</span><span class="o">.</span><span class="n">IsVoid</span><span class="p">()]</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">void_circles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">void_circle</span> <span class="ow">in</span> <span class="n">void_circles</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-                    <span class="n">res</span><span class="p">,</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">radius</span> <span class="o">=</span> <span class="n">void_circle</span><span class="o">.</span><span class="n">GetParameters</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">res</span><span class="p">,</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">radius</span> <span class="o">=</span> <span class="n">void_circle</span><span class="o">.</span><span class="n">GetParameters</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-                <span class="n">cloned_circle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Circle</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span>
-                    <span class="n">void_circle</span><span class="o">.</span><span class="n">GetLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span>
-                    <span class="n">void_circle</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">center_x</span><span class="p">),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">center_y</span><span class="p">),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">radius</span><span class="p">),</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">res</span><span class="p">:</span>
-                    <span class="n">cloned_circle</span><span class="o">.</span><span class="n">SetIsNegative</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                    <span class="n">void_circle</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">void_circle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">circles</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">void_circle</span><span class="o">.</span><span class="n">is_void</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="n">res</span><span class="p">,</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">radius</span> <span class="o">=</span> <span class="n">void_circle</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetParameters</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">res</span><span class="p">,</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">radius</span> <span class="o">=</span> <span class="n">void_circle</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetParameters</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">cloned_circle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Circle</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span>
+                <span class="n">void_circle</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span>
+                <span class="n">void_circle</span><span class="o">.</span><span class="n">net</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">center_x</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">center_y</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">radius</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">res</span><span class="p">:</span>
+                <span class="n">cloned_circle</span><span class="o">.</span><span class="n">SetIsNegative</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">void_circle</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbLayout.add_void"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.add_void.html#pyaedt.edb_core.layout.EdbLayout.add_void">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -1055,9 +1016,11 @@
             <span class="k">if</span> <span class="n">lay</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">polygons_by_layer</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
                 <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygons_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly_by_nets</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-                        <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">poly</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span>
+                            <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">poly</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span>
+                            <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">poly</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">poly_by_nets</span><span class="p">:</span>
                 <span class="n">list_polygon_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]]</span>
                 <span class="n">all_voids</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">Voids</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">poly_by_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]]</span>
