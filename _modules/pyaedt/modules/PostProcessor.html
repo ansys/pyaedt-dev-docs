@@ -718,15 +718,26 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postprocessor</span><span class="p">,</span> <span class="n">objlist</span><span class="o">=</span><span class="p">[],</span> <span class="n">solutionName</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">quantityName</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">postprocessor</span><span class="p">,</span>
+        <span class="n">objlist</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">surfacelist</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">linelist</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">cutplanelist</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">solutionName</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">quantityName</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">intrinsincList</span><span class="o">=</span><span class="p">{},</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_postprocessor</span> <span class="o">=</span> <span class="n">postprocessor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oField</span> <span class="o">=</span> <span class="n">postprocessor</span><span class="o">.</span><span class="n">ofieldsreporter</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="n">objlist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">volume_indexes</span> <span class="o">=</span> <span class="n">objlist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surfaces_indexes</span> <span class="o">=</span> <span class="n">surfacelist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line_indexes</span> <span class="o">=</span> <span class="n">linelist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutplane_indexes</span> <span class="o">=</span> <span class="n">cutplanelist</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solutionName</span> <span class="o">=</span> <span class="n">solutionName</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">quantityName</span> <span class="o">=</span> <span class="n">quantityName</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">intrinsincList</span> <span class="o">=</span> <span class="n">intrinsincList</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="s2">&quot;Surface&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">listtype</span> <span class="o">=</span> <span class="s2">&quot;FaceList&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Field_Plot&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plotFolder</span> <span class="o">=</span> <span class="s2">&quot;Field_Plot&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Filled</span> <span class="o">=</span> <span class="kc">False</span>
@@ -751,10 +762,39 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">plotGeomInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot geometry information.&quot;&quot;&quot;</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">objtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">listtype</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">faceIndexes</span><span class="p">:</span>
-            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
-            <span class="n">info</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume_indexes</span><span class="p">:</span>
+            <span class="nb">id</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfaces_indexes</span><span class="p">:</span>
+            <span class="nb">id</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutplane_indexes</span><span class="p">:</span>
+            <span class="nb">id</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_indexes</span><span class="p">:</span>
+            <span class="nb">id</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">[</span><span class="nb">id</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume_indexes</span><span class="p">:</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Volume&quot;</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ObjList&quot;</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volume_indexes</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">volume_indexes</span><span class="p">:</span>
+                <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfaces_indexes</span><span class="p">:</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Surface&quot;</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;FacesList&quot;</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">surfaces_indexes</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfaces_indexes</span><span class="p">:</span>
+                <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutplane_indexes</span><span class="p">:</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Surface&quot;</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CutPlane&quot;</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cutplane_indexes</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cutplane_indexes</span><span class="p">:</span>
+                <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_indexes</span><span class="p">:</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Line&quot;</span><span class="p">)</span>
+            <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">line_indexes</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_indexes</span><span class="p">:</span>
+                <span class="n">info</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">info</span>
 
     <span class="nd">@property</span>
@@ -790,7 +830,7 @@
 <span class="sd">        list</span>
 <span class="sd">            List of plot settings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">objtype</span> <span class="o">==</span> <span class="s2">&quot;Surface&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfaces_indexes</span><span class="p">:</span>
             <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="s2">&quot;NAME:PlotOnSurfaceSettings&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;Filled:=&quot;</span><span class="p">,</span>
@@ -1850,16 +1890,17 @@
     <span class="k">def</span> <span class="nf">_get_volume_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_objs</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">]:</span>
             <span class="n">obj_list</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">4</span><span class="p">:]:</span>
-                <span class="n">obj_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">SetActiveEditor</span><span class="p">(</span><span class="s2">&quot;3D Modeler&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetObjectNameByID</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span>
+            <span class="n">editor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">SetActiveEditor</span><span class="p">(</span><span class="s2">&quot;3D Modeler&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">list_objs</span><span class="p">:</span>
+                <span class="n">obj_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">editor</span><span class="o">.</span><span class="n">GetObjectNameByID</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">obj_list</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">obj_list</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+            <span class="k">return</span> <span class="n">list_objs</span>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_get_surface_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_objs</span><span class="p">):</span>
-        <span class="n">faces</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">4</span><span class="p">:]]</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list_objs</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">]:</span>
             <span class="n">planes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cs_plane_ids</span><span class="p">()</span>
             <span class="n">objs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1908,23 +1949,28 @@
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">],</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">))</span> <span class="ow">and</span> <span class="s2">&quot;PlotDefinition&quot;</span> <span class="ow">in</span> <span class="n">setup</span><span class="p">:</span>
                         <span class="n">plot_name</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotName&quot;</span><span class="p">]</span>
                         <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-                        <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="p">[]</span>
                         <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">solutionName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_base_name</span><span class="p">(</span><span class="n">setup</span><span class="p">)</span>
                         <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">quantityName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">GetFieldPlotQuantityName</span><span class="p">(</span>
                             <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotName&quot;</span><span class="p">]</span>
                         <span class="p">)</span>
                         <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">intrinsincList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_intrinsic</span><span class="p">(</span><span class="n">setup</span><span class="p">)</span>
-                        <span class="n">list_objs</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;FieldPlotGeometry&quot;</span><span class="p">]</span>
-                        <span class="k">if</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">64</span><span class="p">:</span>
-                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="s2">&quot;Volume&quot;</span>
-                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">listtype</span> <span class="o">=</span> <span class="s2">&quot;ObjList&quot;</span>
-                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_volume_objects</span><span class="p">(</span><span class="n">list_objs</span><span class="p">)</span>
-
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="s2">&quot;Surface&quot;</span>
-                            <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">listtype</span><span class="p">,</span> <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">faceIndexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_surface_objects</span><span class="p">(</span>
-                                <span class="n">list_objs</span>
-                            <span class="p">)</span>
+                        <span class="n">list_objs</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;FieldPlotGeometry&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+                        <span class="k">while</span> <span class="n">list_objs</span><span class="p">:</span>
+                            <span class="nb">id</span> <span class="o">=</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">num_objects</span> <span class="o">=</span> <span class="n">list_objs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="nb">id</span> <span class="o">==</span> <span class="mi">64</span><span class="p">:</span>
+                                <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">volume_indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_volume_objects</span><span class="p">(</span>
+                                    <span class="n">list_objs</span><span class="p">[</span><span class="mi">3</span> <span class="p">:</span> <span class="n">num_objects</span> <span class="o">+</span> <span class="mi">3</span><span class="p">]</span>
+                                <span class="p">)</span>
+                            <span class="k">elif</span> <span class="nb">id</span> <span class="o">==</span> <span class="mi">128</span><span class="p">:</span>
+                                <span class="n">out</span><span class="p">,</span> <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_surface_objects</span><span class="p">(</span><span class="n">list_objs</span><span class="p">[</span><span class="mi">3</span> <span class="p">:</span> <span class="n">num_objects</span> <span class="o">+</span> <span class="mi">3</span><span class="p">])</span>
+                                <span class="k">if</span> <span class="n">out</span> <span class="o">==</span> <span class="s2">&quot;CutPlane&quot;</span><span class="p">:</span>
+                                    <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">cutplane_indexes</span> <span class="o">=</span> <span class="n">faces</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">surfaces_indexes</span> <span class="o">=</span> <span class="n">faces</span>
+                            <span class="k">elif</span> <span class="nb">id</span> <span class="o">==</span> <span class="mi">256</span><span class="p">:</span>
+                                <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">line_indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_volume_objects</span><span class="p">(</span><span class="n">list_objs</span><span class="p">[</span><span class="mi">3</span> <span class="p">:</span> <span class="n">num_objects</span> <span class="o">+</span> <span class="mi">3</span><span class="p">])</span>
+                            <span class="n">list_objs</span> <span class="o">=</span> <span class="n">list_objs</span><span class="p">[</span><span class="n">num_objects</span> <span class="o">+</span> <span class="mi">3</span> <span class="p">:]</span>
                         <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotName&quot;</span><span class="p">]</span>
                         <span class="n">plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span><span class="o">.</span><span class="n">plotFolder</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotFolder&quot;</span><span class="p">]</span>
                         <span class="n">surf_setts</span> <span class="o">=</span> <span class="n">setups_data</span><span class="p">[</span><span class="n">setup</span><span class="p">][</span><span class="s2">&quot;PlotOnSurfaceSettings&quot;</span><span class="p">]</span>
@@ -2471,7 +2517,7 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="nd">@aedt_exception_handler</span>
-    <span class="k">def</span> <span class="nf">_create_fieldplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="p">,</span> <span class="n">objtype</span><span class="p">,</span> <span class="n">listtype</span><span class="p">,</span> <span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_fieldplot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="p">,</span> <span class="n">listtype</span><span class="p">,</span> <span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
             <span class="n">objlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">objlist</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
@@ -2487,12 +2533,37 @@
         <span class="n">char_set</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_name</span><span class="p">:</span>
             <span class="n">plot_name</span> <span class="o">=</span> <span class="n">quantityName</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">char_set</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-        <span class="n">plot</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">listtype</span> <span class="o">==</span> <span class="s2">&quot;CutPlane&quot;</span><span class="p">:</span>
+            <span class="n">plot</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">cutplanelist</span><span class="o">=</span><span class="n">objlist</span><span class="p">,</span>
+                <span class="n">solutionName</span><span class="o">=</span><span class="n">setup_name</span><span class="p">,</span>
+                <span class="n">quantityName</span><span class="o">=</span><span class="n">quantityName</span><span class="p">,</span>
+                <span class="n">intrinsincList</span><span class="o">=</span><span class="n">intrinsincList</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">listtype</span> <span class="o">==</span> <span class="s2">&quot;FacesList&quot;</span><span class="p">:</span>
+            <span class="n">plot</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">surfacelist</span><span class="o">=</span><span class="n">objlist</span><span class="p">,</span>
+                <span class="n">solutionName</span><span class="o">=</span><span class="n">setup_name</span><span class="p">,</span>
+                <span class="n">quantityName</span><span class="o">=</span><span class="n">quantityName</span><span class="p">,</span>
+                <span class="n">intrinsincList</span><span class="o">=</span><span class="n">intrinsincList</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">listtype</span> <span class="o">==</span> <span class="s2">&quot;ObjList&quot;</span><span class="p">:</span>
+            <span class="n">plot</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="o">=</span><span class="n">objlist</span><span class="p">,</span> <span class="n">solutionName</span><span class="o">=</span><span class="n">setup_name</span><span class="p">,</span> <span class="n">quantityName</span><span class="o">=</span><span class="n">quantityName</span><span class="p">,</span> <span class="n">intrinsincList</span><span class="o">=</span><span class="n">intrinsincList</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">listtype</span> <span class="o">==</span> <span class="s2">&quot;Line&quot;</span><span class="p">:</span>
+            <span class="n">plot</span> <span class="o">=</span> <span class="n">FieldPlot</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="n">linelist</span><span class="o">=</span><span class="n">objlist</span><span class="p">,</span>
+                <span class="n">solutionName</span><span class="o">=</span><span class="n">setup_name</span><span class="p">,</span>
+                <span class="n">quantityName</span><span class="o">=</span><span class="n">quantityName</span><span class="p">,</span>
+                <span class="n">intrinsincList</span><span class="o">=</span><span class="n">intrinsincList</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="n">plot</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">plot_name</span>
         <span class="n">plot</span><span class="o">.</span><span class="n">plotFolder</span> <span class="o">=</span> <span class="n">plot_name</span>
 
-        <span class="n">plot</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="n">objtype</span>
-        <span class="n">plot</span><span class="o">.</span><span class="n">listtype</span> <span class="o">=</span> <span class="n">listtype</span>
         <span class="n">plt</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
         <span class="k">if</span> <span class="s2">&quot;Maxwell&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="o">==</span> <span class="s2">&quot;Transient&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">SetPlotsViewSolutionContext</span><span class="p">([</span><span class="n">plot_name</span><span class="p">],</span> <span class="n">setup_name</span><span class="p">,</span> <span class="s2">&quot;Time:&quot;</span> <span class="o">+</span> <span class="n">intrinsincList</span><span class="p">[</span><span class="s2">&quot;Time&quot;</span><span class="p">])</span>
@@ -2501,6 +2572,40 @@
             <span class="k">return</span> <span class="n">plot</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="PostProcessor.create_fieldplot_line"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.create_fieldplot_line.html#pyaedt.modules.PostProcessor.PostProcessor.create_fieldplot_line">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_fieldplot_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="o">=</span><span class="p">{},</span> <span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a field plot of line.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objlist : list</span>
+<span class="sd">            List of polyline to plot.</span>
+<span class="sd">        quantityName : str</span>
+<span class="sd">            Name of the quantity to plot.</span>
+<span class="sd">        setup_name : str, optional</span>
+<span class="sd">            Name of the setup in the format ``&quot;setupName : sweepName&quot;``. The default</span>
+<span class="sd">            is ``None``.</span>
+<span class="sd">        intrinsincDict : dict, optional</span>
+<span class="sd">            Dictionary containing all intrinsic variables. The default</span>
+<span class="sd">            is ``{}``.</span>
+<span class="sd">        plot_name : str, optional</span>
+<span class="sd">            Name of the fieldplot to create.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        type</span>
+<span class="sd">            Plot object.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.CreateFieldPlot</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plot </span><span class="si">{}</span><span class="s2"> exists. returning the object.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;Line&quot;</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PostProcessor.create_fieldplot_surface"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.create_fieldplot_surface.html#pyaedt.modules.PostProcessor.PostProcessor.create_fieldplot_surface">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_fieldplot_surface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="o">=</span><span class="p">{},</span> <span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2534,9 +2639,7 @@
         <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plot </span><span class="si">{}</span><span class="s2"> exists. returning the object.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span>
-            <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;Surface&quot;</span><span class="p">,</span> <span class="s2">&quot;FacesList&quot;</span><span class="p">,</span> <span class="n">plot_name</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;FacesList&quot;</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PostProcessor.create_fieldplot_cutplane"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.create_fieldplot_cutplane.html#pyaedt.modules.PostProcessor.PostProcessor.create_fieldplot_cutplane">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_fieldplot_cutplane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="o">=</span><span class="p">{},</span> <span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2571,9 +2674,7 @@
         <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plot </span><span class="si">{}</span><span class="s2"> exists. returning the object.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span>
-            <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;Surface&quot;</span><span class="p">,</span> <span class="s2">&quot;CutPlane&quot;</span><span class="p">,</span> <span class="n">plot_name</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;CutPlane&quot;</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PostProcessor.create_fieldplot_volume"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.create_fieldplot_volume.html#pyaedt.modules.PostProcessor.PostProcessor.create_fieldplot_volume">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">create_fieldplot_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="o">=</span><span class="p">{},</span> <span class="n">plot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2608,7 +2709,7 @@
         <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">and</span> <span class="n">plot_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plot </span><span class="si">{}</span><span class="s2"> exists. returning the object.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_plots</span><span class="p">[</span><span class="n">plot_name</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;Volume&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjList&quot;</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_fieldplot</span><span class="p">(</span><span class="n">objlist</span><span class="p">,</span> <span class="n">quantityName</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">intrinsincDict</span><span class="p">,</span> <span class="s2">&quot;ObjList&quot;</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PostProcessor.export_field_jpg"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.export_field_jpg.html#pyaedt.modules.PostProcessor.PostProcessor.export_field_jpg">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">export_field_jpg</span><span class="p">(</span>

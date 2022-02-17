@@ -409,8 +409,7 @@
 <span class="sd">            object.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">vertex_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">get_object_vertices</span><span class="p">(</span><span class="n">partID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">get_vertex_position</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">end_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -430,8 +429,7 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.GetVertexPosition</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">end_vertex_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">get_object_vertices</span><span class="p">(</span><span class="n">partID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">get_vertex_position</span><span class="p">(</span><span class="n">end_vertex_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -750,24 +748,42 @@
 <span class="sd">        &gt;&gt;&gt; P.remove_vertex([&quot;0mm&quot;, &quot;1mm&quot;, &quot;2mm&quot;], abstol=1e-6)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">found_vertex</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="c1"># Search for position in the vertex data</span>
-        <span class="n">pos_xyz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">value_in_object_units</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">vertex_pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertex_positions</span><span class="p">):</span>
-            <span class="c1"># compare the specified point with the vertex data using an absolute tolerance</span>
-            <span class="c1"># (default of math.isclose is 1e-9 which should be ok in almost all cases)</span>
-            <span class="n">found_vertex</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">vertex_pos</span><span class="p">,</span> <span class="n">pos_xyz</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">abstol</span>
-            <span class="k">if</span> <span class="n">found_vertex</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">ind</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertex_positions</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">seg_id</span> <span class="o">=</span> <span class="n">ind</span> <span class="o">-</span> <span class="mi">1</span>
-                    <span class="n">at_start</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">seg_id</span> <span class="o">=</span> <span class="n">ind</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_is_object_oriented_enabled</span><span class="p">():</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_m_name</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;CreatePolyline:1&quot;</span><span class="p">)</span>
+            <span class="n">segments</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()</span>
+            <span class="n">seg_id</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">seg</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+                <span class="n">point</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span><span class="o">.</span><span class="n">GetPropValue</span><span class="p">(</span><span class="s2">&quot;Point1&quot;</span><span class="p">)</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">value_in_object_units</span><span class="p">([</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">5</span><span class="p">]])</span>
+                <span class="n">pos_xyz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">value_in_object_units</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+                <span class="n">found_vertex</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">pos_xyz</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">abstol</span>
+                <span class="k">if</span> <span class="n">found_vertex</span><span class="p">:</span>
                     <span class="n">at_start</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="k">break</span>
+                    <span class="k">break</span>
+                <span class="n">point</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span><span class="o">.</span><span class="n">GetPropValue</span><span class="p">(</span><span class="s2">&quot;Point2&quot;</span><span class="p">)</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">value_in_object_units</span><span class="p">([</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">5</span><span class="p">]])</span>
+                <span class="n">found_vertex</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">pos_xyz</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">abstol</span>
+                <span class="k">if</span> <span class="n">found_vertex</span><span class="p">:</span>
+                    <span class="n">at_start</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
+                <span class="n">seg_id</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">pos_xyz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">value_in_object_units</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">vertex_pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertex_positions</span><span class="p">):</span>
+                <span class="c1"># compare the specified point with the vertex data using an absolute tolerance</span>
+                <span class="c1"># (default of math.isclose is 1e-9 which should be ok in almost all cases)</span>
+                <span class="n">found_vertex</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="n">vertex_pos</span><span class="p">,</span> <span class="n">pos_xyz</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">abstol</span>
+                <span class="k">if</span> <span class="n">found_vertex</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">ind</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertex_positions</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">seg_id</span> <span class="o">=</span> <span class="n">ind</span> <span class="o">-</span> <span class="mi">1</span>
+                        <span class="n">at_start</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">seg_id</span> <span class="o">=</span> <span class="n">ind</span>
+                        <span class="n">at_start</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">break</span>
 
         <span class="k">assert</span> <span class="n">found_vertex</span><span class="p">,</span> <span class="s2">&quot;Specified vertex </span><span class="si">{}</span><span class="s2"> not found in polyline </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_name</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">DeletePolylinePoint</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">DeletePolylinePoint</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="s2">&quot;NAME:Delete Point&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span>
@@ -1746,6 +1762,14 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateUserDefinedPart</span>
 
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; my_udp = self.aedtapp.modeler.create_udp(udp_dll_name=&quot;RMxprt/ClawPoleCore&quot;,</span>
+<span class="sd">        ...                                          udp_parameters_list=my_udpPairs,</span>
+<span class="sd">        ...                                          upd_library=&quot;syslib&quot;,</span>
+<span class="sd">        ...                                          udptye=&quot;Solid&quot;)</span>
+<span class="sd">        &lt;class &#39;pyaedt.modeler.Object3d.Object3d&#39;&gt;</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;.dll&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">udp_dll_name</span><span class="p">:</span>
             <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span>
@@ -1775,6 +1799,59 @@
         <span class="n">vArg2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_object_attributes</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">obj_name</span><span class="p">)</span>
         <span class="n">obj_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">CreateUserDefinedPart</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">update_udp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">,</span> <span class="n">udp_parameters_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update an existing geometrical object that was originally created using a user-defined primitive (UDP).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        object_name : str</span>
+<span class="sd">            Name of the object to update.</span>
+<span class="sd">        operation_name : str</span>
+<span class="sd">            Name of the operation used to create the object.</span>
+<span class="sd">        udp_parameters_list : list</span>
+<span class="sd">            List of the UDP parameters to update and their value.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.CreateUserDefinedPart</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; self.aedtapp.modeler.update_udp(object_name=&quot;ClawPoleCore&quot;,</span>
+<span class="sd">        ...                                 operation_name=&quot;CreateUserDefinedPart&quot;,</span>
+<span class="sd">        ...                                 udp_parameters_list=[[&quot;Length&quot;,&quot;110mm&quot;], [&quot;DiaGap&quot;,&quot;125mm&quot;]])</span>
+<span class="sd">        True</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">]</span>
+
+        <span class="n">prop_servers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">]</span>
+        <span class="n">prop_servers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">:</span><span class="si">{1}</span><span class="s2">:1&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">object_name</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">))</span>
+
+        <span class="n">cmd_tab</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Geometry3DCmdTab&quot;</span><span class="p">]</span>
+        <span class="n">cmd_tab</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prop_servers</span><span class="p">)</span>
+
+        <span class="n">changed_props</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">udp_parameters_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pair</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">changed_props</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;NAME:</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">changed_props</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;NAME:&quot;</span><span class="p">,</span> <span class="n">pair</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">pair</span><span class="o">.</span><span class="n">Value</span><span class="p">])</span>
+
+        <span class="n">cmd_tab</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">changed_props</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cmd_tab</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
