@@ -179,16 +179,8 @@
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">log_handler</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">log_handler</span><span class="p">,</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.MessageManager</span> <span class="kn">import</span> <span class="n">AEDTMessageManager</span>
-
-<span class="n">ENABLE_LOGGER</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="c1"># if LOGGER_FILE is defined, it will be taken as output log file</span>
-<span class="n">LOGGER_FILE</span> <span class="o">=</span> <span class="kc">None</span>
-
-<span class="n">FORMATTER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
-    <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2">:</span><span class="si">%(destination)s</span><span class="s2">:</span><span class="si">%(extra)s%(levelname)-8s</span><span class="s2">:</span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%Y/%m/</span><span class="si">%d</span><span class="s2"> %H.%M.%S&quot;</span>
-<span class="p">)</span>
 
 
 <div class="viewcode-block" id="AppFilter"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.aedt_logger.AppFilter.html#pyaedt.aedt_logger.AppFilter">[docs]</a><span class="k">class</span> <span class="nc">AppFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
@@ -247,13 +239,16 @@
         <span class="n">main</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">logger_file_path</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">logger_file_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span> <span class="o">=</span> <span class="n">AEDTMessageManager</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_global</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;Global&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_std_out_handler</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">logger_formatter</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">logger_datefmt</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">ENABLE_LOGGER</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">enable_logger</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_global</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">NullHandler</span><span class="p">())</span>
             <span class="k">return</span>
 
@@ -268,16 +263,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_global</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_global</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">AppFilter</span><span class="p">())</span>
 
-        <span class="k">if</span> <span class="n">LOGGER_FILE</span> <span class="ow">or</span> <span class="n">filename</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">LOGGER_FILE</span> <span class="ow">or</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FORMATTER</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_global</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">to_stdout</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std_out_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_std_out_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_std_out_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FORMATTER</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_std_out_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_global</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_std_out_handler</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -350,7 +346,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_messenger</span><span class="o">.</span><span class="n">_log_on_file</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FORMATTER</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_global</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_file_handler</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AedtLogger.get_messages"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.aedt_logger.AedtLogger.get_messages.html#pyaedt.aedt_logger.AedtLogger.get_messages">[docs]</a>    <span class="k">def</span> <span class="nf">get_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

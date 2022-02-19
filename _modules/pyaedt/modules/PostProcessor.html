@@ -2205,8 +2205,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        str</span>
+<span class="sd">            Field file path when succeeded.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -2222,23 +2222,21 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">solution</span><span class="p">:</span>
             <span class="n">solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">existing_analysis_sweeps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
-            <span class="n">appendix</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;.fld&quot;</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">appendix</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;//&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">.fld&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">.fld&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CalcStack</span><span class="p">(</span><span class="s2">&quot;clear&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">isvector</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">EnterQty</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CopyNamedExprToStack</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isvector</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CalcOp</span><span class="p">(</span><span class="s2">&quot;Smooth&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">EnterScalar</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CalcOp</span><span class="p">(</span><span class="s2">&quot;AtPhase&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CalcOp</span><span class="p">(</span><span class="s2">&quot;Mag&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">EnterQty</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">)</span>
-        <span class="n">obj_list</span> <span class="o">=</span> <span class="s2">&quot;AllObjects&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">EnterVol</span><span class="p">(</span><span class="n">obj_list</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CalcOp</span><span class="p">(</span><span class="s2">&quot;Mean&quot;</span><span class="p">)</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span>
         <span class="n">ang_units</span> <span class="o">=</span> <span class="s2">&quot;deg&quot;</span>
         <span class="k">if</span> <span class="n">gridtype</span> <span class="o">==</span> <span class="s2">&quot;Cartesian&quot;</span><span class="p">:</span>
@@ -2246,7 +2244,7 @@
             <span class="n">grid_start_wu</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">units</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">grid_start</span><span class="p">]</span>
             <span class="n">grid_stop_wu</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">units</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">grid_stop</span><span class="p">]</span>
             <span class="n">grid_step_wu</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">units</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">grid_step</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">gridtype</span> <span class="o">==</span> <span class="s2">&quot;Cylinidrical&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">gridtype</span> <span class="o">==</span> <span class="s2">&quot;Cylindrical&quot;</span><span class="p">:</span>
             <span class="n">grid_center</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">units</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">grid_center</span><span class="p">]</span>
             <span class="n">grid_start_wu</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">grid_start</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">units</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">grid_start</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">ang_units</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">grid_start</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="n">units</span><span class="p">]</span>
             <span class="n">grid_stop_wu</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">grid_stop</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">units</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">grid_stop</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">ang_units</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">grid_stop</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="n">units</span><span class="p">]</span>
@@ -2286,7 +2284,9 @@
             <span class="n">grid_center</span><span class="p">,</span>
             <span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">filename</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span></div>
 
 <div class="viewcode-block" id="PostProcessor.export_field_file"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.export_field_file.html#pyaedt.modules.PostProcessor.PostProcessor.export_field_file">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">export_field_file</span><span class="p">(</span>
@@ -2362,8 +2362,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;//&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CalcStack</span><span class="p">(</span><span class="s2">&quot;clear&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">EnterQty</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">)</span>
-
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">EnterQty</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ofieldsreporter</span><span class="o">.</span><span class="n">CopyNamedExprToStack</span><span class="p">(</span><span class="n">quantity_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">variation_dict</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sample_points_file</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">sample_points_lists</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">obj_type</span> <span class="o">==</span> <span class="s2">&quot;Vol&quot;</span><span class="p">:</span>
@@ -2422,7 +2424,9 @@
                 <span class="n">export_with_sample_points</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">filename</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span></div>
 
 <div class="viewcode-block" id="PostProcessor.export_field_plot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.export_field_plot.html#pyaedt.modules.PostProcessor.PostProcessor.export_field_plot">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">export_field_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plotname</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;aedtplt&quot;</span><span class="p">):</span>
