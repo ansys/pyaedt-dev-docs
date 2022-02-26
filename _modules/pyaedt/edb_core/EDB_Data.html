@@ -179,6 +179,7 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
@@ -731,11 +732,11 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
+<span class="sd">        float</span>
 <span class="sd">            Thickness value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetThicknessValue</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetThicknessValue</span><span class="p">()</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span>
@@ -960,6 +961,7 @@
 <span class="sd">            Layer</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">layer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">elev</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">layer</span></div>
 
@@ -1116,7 +1118,7 @@
 <span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBLayer`]</span>
 <span class="sd">            Dictionary of signal layers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layers</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layers</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
         <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">edblayer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">edblayer</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span>
@@ -1220,7 +1222,7 @@
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_update_edb_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_layers</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">layers</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">layers</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
@@ -1265,13 +1267,21 @@
         <span class="n">thisLC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">()</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">thisLC</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">)))</span>
         <span class="n">layers</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
-        <span class="n">newLayers</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">]()</span>
+        <span class="c1"># newLayers = List[self._edb.Cell.Layer]()</span>
         <span class="n">el</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">lcNew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">layers</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">start_layer</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">layerType</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="n">layerName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">))</span>
-                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+                <span class="c1"># newLayers.Add(newLayer)</span>
+                <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
+                        <span class="c1"># newLayers.Add(lyr.Clone())</span>
+                        <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
+                        <span class="k">continue</span>
                 <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">(</span>
                     <span class="n">layerName</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">),</span>
@@ -1279,30 +1289,31 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
                     <span class="s2">&quot;&quot;</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="p">)</span>
                 <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">update_layer_vals</span><span class="p">(</span>
                     <span class="n">layerName</span><span class="p">,</span> <span class="n">newLayer</span><span class="p">,</span> <span class="n">etchMap</span><span class="p">,</span> <span class="n">material</span><span class="p">,</span> <span class="n">fillMaterial</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">)</span>
                 <span class="p">)</span>
-                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                <span class="n">newLayer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+
+                <span class="c1"># newLayers.Add(newLayer)</span>
+                <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
                 <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
-                    <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
                     <span class="k">continue</span>
                 <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-                <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                <span class="n">newLayer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
                 <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
-                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+                <span class="c1"># newLayers.Add(newLayer)</span>
+                <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
-                    <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
+                    <span class="c1"># newLayers.Add(lyr.Clone())</span>
+                    <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
                     <span class="k">continue</span>
                 <span class="k">if</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="n">start_layer</span><span class="p">:</span>
-                    <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-                    <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
-                    <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+                    <span class="n">original_layer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
 
                     <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">(</span>
                         <span class="n">layerName</span><span class="p">,</span>
@@ -1322,15 +1333,21 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">),</span>
                     <span class="p">)</span>
                     <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                    <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+
                     <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+                    <span class="n">original_layer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+                    <span class="c1"># newLayers.Add(original_layer)</span>
+                    <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">original_layer</span><span class="p">)</span>
+                    <span class="n">el</span> <span class="o">+=</span> <span class="n">original_layer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-                    <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                    <span class="n">newLayer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
                     <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
-                <span class="n">newLayers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
-        <span class="n">lcNew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
-        <span class="n">newLayers</span><span class="o">.</span><span class="n">Reverse</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">newLayers</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">lcNew</span><span class="p">):</span>
+                    <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
+        <span class="c1"># lcNew = self._edb.Cell.LayerCollection()</span>
+        <span class="c1"># newLayers.Reverse()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">lcNew</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to set new layers when updating the stackup information.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_edb_objects</span><span class="p">()</span>
@@ -2296,6 +2313,25 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span> <span class="o">=</span> <span class="n">cmp</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_property</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Component Property Object.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">solder_ball_height</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Solder ball height if available..&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;GetSolderBallProperty&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_property</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">component_property</span><span class="o">.</span><span class="n">GetSolderBallProperty</span><span class="p">()</span><span class="o">.</span><span class="n">GetHeight</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">solder_ball_placement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Solder ball placement if available..&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;GetSolderBallProperty&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_property</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_property</span><span class="o">.</span><span class="n">GetSolderBallProperty</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacement</span><span class="p">())</span>
+        <span class="k">return</span> <span class="mi">2</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">refdes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reference Designator Name.</span>
 
@@ -2501,7 +2537,7 @@
 <span class="sd">        str</span>
 <span class="sd">           Name of the placement layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">lower_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2512,7 +2548,7 @@
 <span class="sd">        float</span>
 <span class="sd">            Lower elevation of the placement layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">upper_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2524,7 +2560,7 @@
 <span class="sd">            Upper elevation of the placement layer.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">top_bottom_association</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2541,7 +2577,7 @@
 <span class="sd">            * 4 - Number of top/bottom associations.</span>
 <span class="sd">            * -1 - Undefined</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pinlist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetTopBottomAssociation</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetTopBottomAssociation</span><span class="p">())</span></div>
 
 
 <span class="k">class</span> <span class="nc">EdbBuilder</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
