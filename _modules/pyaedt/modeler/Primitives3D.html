@@ -175,8 +175,9 @@
               <div>
                 
   <h1>Source code for pyaedt.modeler.Primitives3D</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">tan</span>
+<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">tan</span><span class="p">,</span> <span class="n">asin</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">radians</span><span class="p">,</span> <span class="n">degrees</span><span class="p">,</span> <span class="n">ceil</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">string</span>
 
@@ -1735,7 +1736,984 @@
         <span class="n">environment</span><span class="o">.</span><span class="n">roll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">roll</span><span class="p">,</span> <span class="s2">&quot;deg&quot;</span><span class="p">)</span>
         <span class="n">environment</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">multiparts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">environment</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">environment</span></div></div>
+        <span class="k">return</span> <span class="n">environment</span></div>
+
+<div class="viewcode-block" id="Primitives3D.create_choke"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_choke.html#pyaedt.modeler.Primitives3D.Primitives3D.create_choke">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_choke</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a chock from json setting file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        json_file : str</span>
+<span class="sd">            Full path of the json file return for the function check_choke_values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List of</span>
+<span class="sd">            bool</span>
+<span class="sd">                ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">            :class:`pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">                3D object core.</span>
+<span class="sd">            list of</span>
+<span class="sd">                :class:`pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">                    3D object winding.</span>
+<span class="sd">                list</span>
+<span class="sd">                    list of point coordinates of the winding.</span>
+<span class="sd">            for each winding.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Json file has to be like the following example.</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss</span>
+<span class="sd">        &gt;&gt;&gt; hfss = Hfss()</span>
+<span class="sd">        &gt;&gt;&gt; dictionary_values = hfss.modeler.check_choke_values(&quot;C:/Example/Of/Path/myJsonFile.json&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; mychoke = hfss.modeler.create_choke(&quot;C:/Example/Of/Path/myJsonFile_Corrected.json&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">json_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;CHOKE INFO&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+
+        <span class="n">security_factor</span> <span class="o">=</span> <span class="mf">1.1</span>
+        <span class="n">sr</span> <span class="o">=</span> <span class="n">security_factor</span>
+        <span class="n">segment_number</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Wire Section&quot;</span><span class="p">][</span><span class="s2">&quot;Hexagon&quot;</span><span class="p">]:</span>
+            <span class="n">segment_number</span> <span class="o">=</span> <span class="mi">6</span>
+            <span class="n">section</span> <span class="o">=</span> <span class="s2">&quot;Circle&quot;</span>
+        <span class="k">elif</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Wire Section&quot;</span><span class="p">][</span><span class="s2">&quot;Octagon&quot;</span><span class="p">]:</span>
+            <span class="n">segment_number</span> <span class="o">=</span> <span class="mi">8</span>
+            <span class="n">section</span> <span class="o">=</span> <span class="s2">&quot;Circle&quot;</span>
+        <span class="k">elif</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Wire Section&quot;</span><span class="p">][</span><span class="s2">&quot;Circle&quot;</span><span class="p">]:</span>
+            <span class="n">section</span> <span class="o">=</span> <span class="s2">&quot;Circle&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">section</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">sep_layer</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer Type&quot;</span><span class="p">][</span><span class="s2">&quot;Separate&quot;</span><span class="p">]</span>
+
+        <span class="n">name_core</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
+        <span class="n">in_rad_core</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Inner Radius&quot;</span><span class="p">]</span>
+        <span class="n">out_rad_core</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Outer Radius&quot;</span><span class="p">]</span>
+        <span class="n">height_core</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Height&quot;</span><span class="p">]</span>
+        <span class="n">chamfer</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Chamfer&quot;</span><span class="p">]</span>
+
+        <span class="n">name_wind</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
+        <span class="n">in_rad_wind</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Inner Radius&quot;</span><span class="p">]</span>
+        <span class="n">out_rad_wind</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Outer Radius&quot;</span><span class="p">]</span>
+        <span class="n">height_wind</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Height&quot;</span><span class="p">]</span>
+        <span class="n">w_dia</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Wire Diameter&quot;</span><span class="p">]</span>
+        <span class="n">turns</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span>
+        <span class="n">turns2</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span>
+        <span class="n">turns3</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span>
+        <span class="n">teta</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span>
+        <span class="n">teta2</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span>
+        <span class="n">teta3</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span>
+
+        <span class="n">chamf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding_follow_chamfer</span><span class="p">(</span><span class="n">chamfer</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">w_dia</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">returned_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_core</span><span class="p">(</span><span class="n">name_core</span><span class="p">,</span> <span class="s2">&quot;(255 0 0)&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">in_rad_core</span><span class="p">,</span> <span class="n">out_rad_core</span><span class="p">,</span> <span class="n">height_core</span><span class="p">,</span> <span class="n">chamfer</span><span class="p">),</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Double&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer Type&quot;</span><span class="p">][</span><span class="s2">&quot;Linked&quot;</span><span class="p">]:</span>
+                <span class="n">list_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_double_linked_winding</span><span class="p">(</span>
+                    <span class="n">name_wind</span><span class="p">,</span>
+                    <span class="s2">&quot;(255 0 0)&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">in_rad_wind</span><span class="p">,</span>
+                    <span class="n">out_rad_wind</span><span class="p">,</span>
+                    <span class="n">height_wind</span><span class="p">,</span>
+                    <span class="n">w_dia</span><span class="p">,</span>
+                    <span class="n">teta</span><span class="p">,</span>
+                    <span class="n">teta2</span><span class="p">,</span>
+                    <span class="n">turns</span><span class="p">,</span>
+                    <span class="n">turns2</span><span class="p">,</span>
+                    <span class="n">chamfer</span><span class="p">,</span>
+                    <span class="n">chamf</span><span class="p">,</span>
+                    <span class="n">sr</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_double_linked_winding&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">list_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_double_winding</span><span class="p">(</span>
+                    <span class="n">name_wind</span><span class="p">,</span>
+                    <span class="s2">&quot;(255 0 0)&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">in_rad_wind</span><span class="p">,</span>
+                    <span class="n">out_rad_wind</span><span class="p">,</span>
+                    <span class="n">height_wind</span><span class="p">,</span>
+                    <span class="n">w_dia</span><span class="p">,</span>
+                    <span class="n">teta</span><span class="p">,</span>
+                    <span class="n">teta2</span><span class="p">,</span>
+                    <span class="n">turns</span><span class="p">,</span>
+                    <span class="n">turns2</span><span class="p">,</span>
+                    <span class="n">chamfer</span><span class="p">,</span>
+                    <span class="n">chamf</span><span class="p">,</span>
+                    <span class="n">sr</span><span class="p">,</span>
+                    <span class="n">sep_layer</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_double_winding&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Triple&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer Type&quot;</span><span class="p">][</span><span class="s2">&quot;Linked&quot;</span><span class="p">]:</span>
+                <span class="n">list_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_triple_linked_winding</span><span class="p">(</span>
+                    <span class="n">name_wind</span><span class="p">,</span>
+                    <span class="s2">&quot;(255 0 0)&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">in_rad_wind</span><span class="p">,</span>
+                    <span class="n">out_rad_wind</span><span class="p">,</span>
+                    <span class="n">height_wind</span><span class="p">,</span>
+                    <span class="n">w_dia</span><span class="p">,</span>
+                    <span class="n">teta</span><span class="p">,</span>
+                    <span class="n">teta2</span><span class="p">,</span>
+                    <span class="n">teta3</span><span class="p">,</span>
+                    <span class="n">turns</span><span class="p">,</span>
+                    <span class="n">turns2</span><span class="p">,</span>
+                    <span class="n">turns3</span><span class="p">,</span>
+                    <span class="n">chamfer</span><span class="p">,</span>
+                    <span class="n">chamf</span><span class="p">,</span>
+                    <span class="n">sr</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_triple_linked_winding&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">list_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_triple_winding</span><span class="p">(</span>
+                    <span class="n">name_wind</span><span class="p">,</span>
+                    <span class="s2">&quot;(255 0 0)&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">in_rad_wind</span><span class="p">,</span>
+                    <span class="n">out_rad_wind</span><span class="p">,</span>
+                    <span class="n">height_wind</span><span class="p">,</span>
+                    <span class="n">w_dia</span><span class="p">,</span>
+                    <span class="n">teta</span><span class="p">,</span>
+                    <span class="n">teta2</span><span class="p">,</span>
+                    <span class="n">teta3</span><span class="p">,</span>
+                    <span class="n">turns</span><span class="p">,</span>
+                    <span class="n">turns2</span><span class="p">,</span>
+                    <span class="n">turns3</span><span class="p">,</span>
+                    <span class="n">chamfer</span><span class="p">,</span>
+                    <span class="n">chamf</span><span class="p">,</span>
+                    <span class="n">sr</span><span class="p">,</span>
+                    <span class="n">sep_layer</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_triple_winding&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">list_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding</span><span class="p">(</span>
+                <span class="n">name_wind</span><span class="p">,</span> <span class="s2">&quot;(255 0 0)&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">in_rad_wind</span><span class="p">,</span> <span class="n">out_rad_wind</span><span class="p">,</span> <span class="n">height_wind</span><span class="p">,</span> <span class="n">w_dia</span><span class="p">,</span> <span class="n">teta</span><span class="p">,</span> <span class="n">turns</span><span class="p">,</span> <span class="n">chamf</span><span class="p">,</span> <span class="n">sep_layer</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_winding&quot;</span><span class="p">)</span>
+        <span class="n">list_duplicated_object</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">list_object</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_object</span><span class="p">)):</span>
+                <span class="n">success</span> <span class="o">=</span> <span class="n">list_object</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_crosssection_properties</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="n">section</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w_dia</span><span class="p">,</span> <span class="n">num_seg</span><span class="o">=</span><span class="n">segment_number</span>
+                <span class="p">)</span>
+            <span class="n">returned_list</span> <span class="o">=</span> <span class="n">returned_list</span> <span class="o">+</span> <span class="n">list_object</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="n">list_object</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_crosssection_properties</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">section</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w_dia</span><span class="p">,</span> <span class="n">num_seg</span><span class="o">=</span><span class="n">segment_number</span><span class="p">)</span>
+            <span class="n">returned_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">list_object</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Number of Windings&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Number of Windings&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]:</span>
+                <span class="n">number_duplication</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">number_duplication</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mode&quot;</span><span class="p">][</span><span class="s2">&quot;Common&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">number_duplication</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">list_object</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_object</span><span class="p">)):</span>
+                        <span class="n">duplication</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">list_object</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name_wind</span><span class="p">)</span>
+                        <span class="n">duplication</span><span class="o">.</span><span class="n">mirror</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                        <span class="n">duplication_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">duplication</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                        <span class="n">success</span> <span class="o">=</span> <span class="n">duplication</span><span class="o">.</span><span class="n">set_crosssection_properties</span><span class="p">(</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="n">section</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w_dia</span><span class="p">,</span> <span class="n">num_seg</span><span class="o">=</span><span class="n">segment_number</span>
+                        <span class="p">)</span>
+                        <span class="n">list_duplicated_object</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">duplication</span><span class="p">,</span> <span class="n">duplication_points</span><span class="p">])</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">duplication</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">list_object</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name_wind</span><span class="p">)</span>
+                    <span class="n">duplication</span><span class="o">.</span><span class="n">mirror</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                    <span class="n">duplication_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">duplication</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">success</span> <span class="o">=</span> <span class="n">duplication</span><span class="o">.</span><span class="n">set_crosssection_properties</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">section</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w_dia</span><span class="p">,</span> <span class="n">num_seg</span><span class="o">=</span><span class="n">segment_number</span><span class="p">)</span>
+                    <span class="n">list_duplicated_object</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">duplication</span><span class="p">,</span> <span class="n">duplication_points</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">list_object</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_duplication</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_object</span><span class="p">)):</span>
+                            <span class="n">duplication</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">list_object</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name_wind</span><span class="p">)</span>
+                            <span class="n">duplication</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">360</span> <span class="o">/</span> <span class="n">number_duplication</span><span class="p">)</span>
+                            <span class="n">duplication_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">duplication</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                            <span class="n">success</span> <span class="o">=</span> <span class="n">duplication</span><span class="o">.</span><span class="n">set_crosssection_properties</span><span class="p">(</span>
+                                <span class="nb">type</span><span class="o">=</span><span class="n">section</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w_dia</span><span class="p">,</span> <span class="n">num_seg</span><span class="o">=</span><span class="n">segment_number</span>
+                            <span class="p">)</span>
+                            <span class="n">list_duplicated_object</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">duplication</span><span class="p">,</span> <span class="n">duplication_points</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_duplication</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">duplication</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">list_object</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name_wind</span><span class="p">)</span>
+                        <span class="n">duplication</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">360</span> <span class="o">/</span> <span class="n">number_duplication</span><span class="p">)</span>
+                        <span class="n">duplication_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">duplication</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                        <span class="n">success</span> <span class="o">=</span> <span class="n">duplication</span><span class="o">.</span><span class="n">set_crosssection_properties</span><span class="p">(</span>
+                            <span class="nb">type</span><span class="o">=</span><span class="n">section</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">w_dia</span><span class="p">,</span> <span class="n">num_seg</span><span class="o">=</span><span class="n">segment_number</span>
+                        <span class="p">)</span>
+                        <span class="n">list_duplicated_object</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">duplication</span><span class="p">,</span> <span class="n">duplication_points</span><span class="p">])</span>
+            <span class="n">returned_list</span> <span class="o">=</span> <span class="n">returned_list</span> <span class="o">+</span> <span class="n">list_duplicated_object</span>
+
+        <span class="n">returned_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">success</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">returned_list</span></div>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_make_winding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">in_rad</span><span class="p">,</span> <span class="n">out_rad</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">dia</span><span class="p">,</span> <span class="n">teta</span><span class="p">,</span> <span class="n">turns</span><span class="p">,</span> <span class="n">chamf</span><span class="p">,</span> <span class="n">sep_layer</span><span class="p">):</span>
+
+        <span class="n">teta_r</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">teta</span><span class="p">)</span>
+        <span class="n">points_list1</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">in_rad</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="o">-</span><span class="n">in_rad</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">chamf</span><span class="p">],</span>
+            <span class="p">[(</span><span class="n">in_rad</span> <span class="o">+</span> <span class="n">chamf</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="o">-</span><span class="p">(</span><span class="n">in_rad</span> <span class="o">+</span> <span class="n">chamf</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">out_rad</span> <span class="o">-</span> <span class="n">chamf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">out_rad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">chamf</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">out_rad</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">chamf</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">out_rad</span> <span class="o">-</span> <span class="n">chamf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="p">[(</span><span class="n">in_rad</span> <span class="o">+</span> <span class="n">chamf</span><span class="p">)</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="p">(</span><span class="n">in_rad</span> <span class="o">+</span> <span class="n">chamf</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="o">-</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">in_rad</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="n">in_rad</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="o">-</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">chamf</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">in_rad</span> <span class="o">*</span> <span class="n">cos</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="n">in_rad</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">teta_r</span><span class="p">),</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">chamf</span><span class="p">],</span>
+        <span class="p">]</span>
+        <span class="n">polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">points_list1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Polyline1&quot;</span><span class="p">)</span>
+        <span class="n">union_polyline1</span> <span class="o">=</span> <span class="p">[</span><span class="n">polyline</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">turns</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">union_polyline2</span> <span class="o">=</span> <span class="n">polyline</span><span class="o">.</span><span class="n">duplicate_around_axis</span><span class="p">(</span>
+                <span class="n">cs_axis</span><span class="o">=</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">teta</span><span class="p">,</span> <span class="n">nclones</span><span class="o">=</span><span class="n">turns</span><span class="p">,</span> <span class="n">create_new_objects</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">union_polyline2</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">union_polyline</span> <span class="o">=</span> <span class="n">union_polyline1</span> <span class="o">+</span> <span class="n">union_polyline2</span>
+        <span class="n">list_positions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">union_polyline</span><span class="p">)):</span>
+            <span class="n">list_positions</span> <span class="o">=</span> <span class="n">list_positions</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">union_polyline</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">union_polyline</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sep_layer</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="n">list_positions</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">list_positions</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">list_positions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">list_positions</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">height</span><span class="p">])</span>
+            <span class="n">list_positions</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">list_positions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">list_positions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">height</span><span class="p">])</span>
+            <span class="n">true_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">list_positions</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">true_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="mi">180</span> <span class="o">-</span> <span class="p">(</span><span class="n">turns</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">teta</span><span class="p">)</span>
+            <span class="n">list_positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">true_polyline</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">true_polyline</span><span class="p">,</span> <span class="n">list_positions</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">list_positions</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_make_double_linked_winding</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">,</span>
+        <span class="n">mat</span><span class="p">,</span>
+        <span class="n">in_rad</span><span class="p">,</span>
+        <span class="n">out_rad</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">w_dia</span><span class="p">,</span>
+        <span class="n">teta</span><span class="p">,</span>
+        <span class="n">teta_in_wind</span><span class="p">,</span>
+        <span class="n">turns</span><span class="p">,</span>
+        <span class="n">turns_in_wind</span><span class="p">,</span>
+        <span class="n">chamfer</span><span class="p">,</span>
+        <span class="n">chamf_in_wind</span><span class="p">,</span>
+        <span class="n">sr</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">list_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_double_winding</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">color</span><span class="p">,</span>
+            <span class="n">mat</span><span class="p">,</span>
+            <span class="n">in_rad</span><span class="p">,</span>
+            <span class="n">out_rad</span><span class="p">,</span>
+            <span class="n">height</span><span class="p">,</span>
+            <span class="n">w_dia</span><span class="p">,</span>
+            <span class="n">teta</span><span class="p">,</span>
+            <span class="n">teta_in_wind</span><span class="p">,</span>
+            <span class="n">turns</span><span class="p">,</span>
+            <span class="n">turns_in_wind</span><span class="p">,</span>
+            <span class="n">chamfer</span><span class="p">,</span>
+            <span class="n">chamf_in_wind</span><span class="p">,</span>
+            <span class="n">sr</span><span class="p">,</span>
+            <span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">points_out_wind</span> <span class="o">=</span> <span class="n">list_object</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">points_in_wind</span> <span class="o">=</span> <span class="n">list_object</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">points_out_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">points_out_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">points_out_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">points_out_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">points_out_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_out_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">height</span><span class="p">]</span>
+        <span class="n">points_in_wind</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">points_in_wind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_in_wind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">height</span><span class="p">])</span>
+        <span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">points_out_wind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">points_in_wind</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">points_out_wind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+
+        <span class="n">outer_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">points_out_wind</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Winding&quot;</span><span class="p">)</span>
+        <span class="n">outer_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="mi">180</span> <span class="o">-</span> <span class="p">(</span><span class="n">turns</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">teta</span><span class="p">)</span>
+        <span class="n">inner_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">points_in_wind</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Winding2&quot;</span><span class="p">)</span>
+        <span class="n">inner_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="mi">180</span> <span class="o">-</span> <span class="p">(</span><span class="n">turns_in_wind</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">teta_in_wind</span><span class="p">)</span>
+        <span class="n">outer_polyline</span><span class="o">.</span><span class="n">mirror</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">outer_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="n">turns_in_wind</span> <span class="o">*</span> <span class="n">teta_in_wind</span> <span class="o">-</span> <span class="n">turns</span> <span class="o">*</span> <span class="n">teta</span><span class="p">)</span>
+
+        <span class="n">list_polyline</span> <span class="o">=</span> <span class="p">[</span><span class="n">inner_polyline</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">outer_polyline</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">list_positions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_polyline</span><span class="p">)):</span>
+            <span class="n">list_positions</span> <span class="o">=</span> <span class="n">list_positions</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">list_polyline</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">list_polyline</span><span class="p">)</span>
+        <span class="n">true_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">list_positions</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Final_Winding&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">true_polyline</span><span class="p">,</span> <span class="n">list_positions</span><span class="p">]</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_make_triple_linked_winding</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">,</span>
+        <span class="n">mat</span><span class="p">,</span>
+        <span class="n">in_rad</span><span class="p">,</span>
+        <span class="n">out_rad</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">w_dia</span><span class="p">,</span>
+        <span class="n">teta</span><span class="p">,</span>
+        <span class="n">teta_mid_wind</span><span class="p">,</span>
+        <span class="n">teta_in_wind</span><span class="p">,</span>
+        <span class="n">turns</span><span class="p">,</span>
+        <span class="n">turns_mid_wind</span><span class="p">,</span>
+        <span class="n">turns_in_wind</span><span class="p">,</span>
+        <span class="n">chamfer</span><span class="p">,</span>
+        <span class="n">chamf_in_wind</span><span class="p">,</span>
+        <span class="n">sr</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">list_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_triple_winding</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">,</span>
+            <span class="n">color</span><span class="p">,</span>
+            <span class="n">mat</span><span class="p">,</span>
+            <span class="n">in_rad</span><span class="p">,</span>
+            <span class="n">out_rad</span><span class="p">,</span>
+            <span class="n">height</span><span class="p">,</span>
+            <span class="n">w_dia</span><span class="p">,</span>
+            <span class="n">teta</span><span class="p">,</span>
+            <span class="n">teta_mid_wind</span><span class="p">,</span>
+            <span class="n">teta_in_wind</span><span class="p">,</span>
+            <span class="n">turns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">turns_mid_wind</span><span class="p">,</span>
+            <span class="n">turns_in_wind</span><span class="p">,</span>
+            <span class="n">chamfer</span><span class="p">,</span>
+            <span class="n">chamf_in_wind</span><span class="p">,</span>
+            <span class="n">sr</span><span class="p">,</span>
+            <span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">points_out_wind</span> <span class="o">=</span> <span class="n">list_object</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">points_mid_wind</span> <span class="o">=</span> <span class="n">list_object</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">points_in_wind</span> <span class="o">=</span> <span class="n">list_object</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">points_out_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">points_out_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">points_out_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">points_out_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">points_out_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_out_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">height</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">points_mid_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">points_mid_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">points_mid_wind</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="n">points_mid_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">points_mid_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_mid_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">points_out_wind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">points_mid_wind</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">points_mid_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_mid_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">points_out_wind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+        <span class="n">points_in_wind</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">points_in_wind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_in_wind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="n">height</span><span class="p">])</span>
+        <span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">points_mid_wind</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">points_in_wind</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">points_in_wind</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">points_mid_wind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]])</span>
+
+        <span class="n">outer_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">points_out_wind</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Winding&quot;</span><span class="p">)</span>
+        <span class="n">outer_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="mi">180</span> <span class="o">-</span> <span class="p">(</span><span class="n">turns</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">teta</span><span class="p">)</span>
+        <span class="n">mid_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">points_mid_wind</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Winding2&quot;</span><span class="p">)</span>
+        <span class="n">mid_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="mi">180</span> <span class="o">-</span> <span class="p">(</span><span class="n">turns_mid_wind</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">teta_mid_wind</span><span class="p">)</span>
+        <span class="n">inner_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">points_in_wind</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Winding3&quot;</span><span class="p">)</span>
+
+        <span class="n">inner_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="mi">180</span> <span class="o">-</span> <span class="p">(</span><span class="n">turns_in_wind</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">teta_in_wind</span><span class="p">)</span>
+        <span class="n">mid_polyline</span><span class="o">.</span><span class="n">mirror</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">outer_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="n">turns</span> <span class="o">*</span> <span class="n">teta</span> <span class="o">-</span> <span class="n">turns_mid_wind</span> <span class="o">*</span> <span class="n">teta_mid_wind</span><span class="p">)</span>
+        <span class="n">mid_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="n">turns_in_wind</span> <span class="o">*</span> <span class="n">teta_in_wind</span> <span class="o">-</span> <span class="n">turns_mid_wind</span> <span class="o">*</span> <span class="n">teta_mid_wind</span><span class="p">)</span>
+        <span class="n">outer_polyline</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="n">turns_in_wind</span> <span class="o">*</span> <span class="n">teta_in_wind</span> <span class="o">-</span> <span class="n">turns_mid_wind</span> <span class="o">*</span> <span class="n">teta_mid_wind</span><span class="p">)</span>
+
+        <span class="n">list_polyline</span> <span class="o">=</span> <span class="p">[</span><span class="n">inner_polyline</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">mid_polyline</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">outer_polyline</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">list_positions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">list_polyline</span><span class="p">)):</span>
+            <span class="n">list_positions</span> <span class="o">=</span> <span class="n">list_positions</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vertices_of_line</span><span class="p">(</span><span class="n">list_polyline</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">list_polyline</span><span class="p">)</span>
+        <span class="n">true_polyline</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_polyline</span><span class="p">(</span><span class="n">position_list</span><span class="o">=</span><span class="n">list_positions</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Final_Winding&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">true_polyline</span><span class="p">,</span> <span class="n">list_positions</span><span class="p">]</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_make_double_winding</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">,</span>
+        <span class="n">mat</span><span class="p">,</span>
+        <span class="n">in_rad</span><span class="p">,</span>
+        <span class="n">out_rad</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">w_dia</span><span class="p">,</span>
+        <span class="n">teta</span><span class="p">,</span>
+        <span class="n">teta_in_wind</span><span class="p">,</span>
+        <span class="n">turns</span><span class="p">,</span>
+        <span class="n">turns_in_wind</span><span class="p">,</span>
+        <span class="n">chamfer</span><span class="p">,</span>
+        <span class="n">chamf_in_wind</span><span class="p">,</span>
+        <span class="n">sr</span><span class="p">,</span>
+        <span class="n">sep_layer</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="n">chamf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding_follow_chamfer</span><span class="p">(</span><span class="n">chamfer</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">w_dia</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">in_rad_in_wind</span> <span class="o">=</span> <span class="n">in_rad</span> <span class="o">+</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">out_rad_in_wind</span> <span class="o">=</span> <span class="n">out_rad</span> <span class="o">-</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">height_in_wind</span> <span class="o">=</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">list_object</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">in_rad</span><span class="p">,</span> <span class="n">out_rad</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">w_dia</span><span class="p">,</span> <span class="n">teta</span><span class="p">,</span> <span class="n">turns</span><span class="p">,</span> <span class="n">chamf</span><span class="p">,</span> <span class="n">sep_layer</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">color</span><span class="p">,</span>
+                <span class="n">mat</span><span class="p">,</span>
+                <span class="n">in_rad_in_wind</span><span class="p">,</span>
+                <span class="n">out_rad_in_wind</span><span class="p">,</span>
+                <span class="n">height_in_wind</span><span class="p">,</span>
+                <span class="n">w_dia</span><span class="p">,</span>
+                <span class="n">teta_in_wind</span><span class="p">,</span>
+                <span class="n">turns_in_wind</span><span class="p">,</span>
+                <span class="n">chamf_in_wind</span><span class="p">,</span>
+                <span class="n">sep_layer</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">list_object</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_make_triple_winding</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">,</span>
+        <span class="n">mat</span><span class="p">,</span>
+        <span class="n">in_rad</span><span class="p">,</span>
+        <span class="n">out_rad</span><span class="p">,</span>
+        <span class="n">height</span><span class="p">,</span>
+        <span class="n">w_dia</span><span class="p">,</span>
+        <span class="n">teta</span><span class="p">,</span>
+        <span class="n">teta_mid_wind</span><span class="p">,</span>
+        <span class="n">teta_in_wind</span><span class="p">,</span>
+        <span class="n">turns</span><span class="p">,</span>
+        <span class="n">turns_mid_wind</span><span class="p">,</span>
+        <span class="n">turns_in_wind</span><span class="p">,</span>
+        <span class="n">chamfer</span><span class="p">,</span>
+        <span class="n">chamf_in_wind</span><span class="p">,</span>
+        <span class="n">sr</span><span class="p">,</span>
+        <span class="n">sep_layer</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="n">chamf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding_follow_chamfer</span><span class="p">(</span><span class="n">chamfer</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">w_dia</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">chamf_mid_wind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding_follow_chamfer</span><span class="p">(</span><span class="n">chamfer</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">w_dia</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">in_rad_in_wind</span> <span class="o">=</span> <span class="n">in_rad</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">in_rad_mid_wind</span> <span class="o">=</span> <span class="n">in_rad</span> <span class="o">+</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">out_rad_in_wind</span> <span class="o">=</span> <span class="n">out_rad</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">out_rad_mid_wind</span> <span class="o">=</span> <span class="n">out_rad</span> <span class="o">-</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">height_in_wind</span> <span class="o">=</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">height_mid_wind</span> <span class="o">=</span> <span class="n">height</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">w_dia</span>
+        <span class="n">list_object</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">in_rad</span><span class="p">,</span> <span class="n">out_rad</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">w_dia</span><span class="p">,</span> <span class="n">teta</span><span class="p">,</span> <span class="n">turns</span><span class="p">,</span> <span class="n">chamf</span><span class="p">,</span> <span class="n">sep_layer</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">color</span><span class="p">,</span>
+                <span class="n">mat</span><span class="p">,</span>
+                <span class="n">in_rad_mid_wind</span><span class="p">,</span>
+                <span class="n">out_rad_mid_wind</span><span class="p">,</span>
+                <span class="n">height_mid_wind</span><span class="p">,</span>
+                <span class="n">w_dia</span><span class="p">,</span>
+                <span class="n">teta_mid_wind</span><span class="p">,</span>
+                <span class="n">turns_mid_wind</span><span class="p">,</span>
+                <span class="n">chamf_mid_wind</span><span class="p">,</span>
+                <span class="n">sep_layer</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_make_winding</span><span class="p">(</span>
+                <span class="n">name</span><span class="p">,</span>
+                <span class="n">color</span><span class="p">,</span>
+                <span class="n">mat</span><span class="p">,</span>
+                <span class="n">in_rad_in_wind</span><span class="p">,</span>
+                <span class="n">out_rad_in_wind</span><span class="p">,</span>
+                <span class="n">height_in_wind</span><span class="p">,</span>
+                <span class="n">w_dia</span><span class="p">,</span>
+                <span class="n">teta_in_wind</span><span class="p">,</span>
+                <span class="n">turns_in_wind</span><span class="p">,</span>
+                <span class="n">chamf_in_wind</span><span class="p">,</span>
+                <span class="n">sep_layer</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">list_object</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_make_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">mat</span><span class="p">,</span> <span class="n">in_rad</span><span class="p">,</span> <span class="n">out_rad</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">chamfer</span><span class="p">):</span>
+        <span class="n">tool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_cylinder</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="n">in_rad</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Tool&quot;</span><span class="p">)</span>
+        <span class="n">core</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_cylinder</span><span class="p">(</span><span class="s2">&quot;Z&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="n">out_rad</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">core</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">core</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">tool</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">core</span><span class="o">.</span><span class="n">edges</span><span class="p">:</span>
+            <span class="n">n</span><span class="o">.</span><span class="n">chamfer</span><span class="p">(</span><span class="n">chamfer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">core</span>
+
+<div class="viewcode-block" id="Primitives3D.check_choke_values"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.check_choke_values.html#pyaedt.modeler.Primitives3D.Primitives3D.check_choke_values">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">check_choke_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_file</span><span class="p">,</span> <span class="n">create_another_file</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Verify the values in the json file and create another one with corrected values next to the first one.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        json_file : str</span>
+<span class="sd">            Full path to json file;</span>
+<span class="sd">            Specific json file containing all the parameters to design your on choke.</span>
+<span class="sd">        create_another_file : bool</span>
+<span class="sd">            Create another file next to the first one in adding _Corrected to the file name if it is True</span>
+<span class="sd">            else truncate the existing file</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List of</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        dictionary : class : &#39;dict&#39;</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Dictionary of the Json file has to be like the following example :</span>
+<span class="sd">            dictionary = {</span>
+<span class="sd">                &quot;Number of Windings&quot;: {&quot;1&quot;: True, &quot;2&quot;: False, &quot;3&quot;: False, &quot;4&quot;: False},</span>
+<span class="sd">                &quot;Layer&quot;: {&quot;Simple&quot;: True, &quot;Double&quot;: False, &quot;Triple&quot;: False},</span>
+<span class="sd">                &quot;Layer Type&quot;: {&quot;Separate&quot;: True, &quot;Linked&quot;: False},</span>
+<span class="sd">                &quot;Similar Layer&quot;: {&quot;Similar&quot;: True, &quot;Different&quot;: False},</span>
+<span class="sd">                &quot;Mode&quot;: {&quot;Differential&quot;: True, &quot;Common&quot;: False},</span>
+<span class="sd">                &quot;Wire Section&quot;: {&quot;None&quot;: False, &quot;Hexagon&quot;: False, &quot;Octagon&quot;: True, &quot;Circle&quot;: False},</span>
+<span class="sd">                &quot;Core&quot;: {&quot;Name&quot;: &quot;Core&quot;, &quot;Inner Radius&quot;: 11, &quot;Outer Radius&quot;: 17, &quot;Height&quot;: 7, &quot;Chamfer&quot;: 0.8},</span>
+<span class="sd">                &quot;Outer Winding&quot;: {&quot;Name&quot;: &quot;Winding&quot;, &quot;Inner Radius&quot;: 12, &quot;Outer Radius&quot;: 16, &quot;Height&quot;: 8,</span>
+<span class="sd">                                  &quot;Wire Diameter&quot;: 1, &quot;Turns&quot;: 10, &quot;Coil Pit(deg)&quot;: 9, &quot;Occupation(%)&quot;: 0},</span>
+<span class="sd">                &quot;Mid Winding&quot;: {&quot;Turns&quot;: 8, &quot;Coil Pit(deg)&quot;: 0.1, &quot;Occupation(%)&quot;: 0},</span>
+<span class="sd">                &quot;Inner Winding&quot;: {&quot;Turns&quot;: 12, &quot;Coil Pit(deg)&quot;: 0.1, &quot;Occupation(%)&quot;: 0}</span>
+<span class="sd">            }</span>
+
+<span class="sd">        &gt;&gt;&gt; import json</span>
+<span class="sd">        &gt;&gt;&gt; with open(&quot;C:/Example/Of/Path/myJsonFile.json&quot;, &quot;w&quot;) as outfile:</span>
+<span class="sd">        &gt;&gt;&gt;     json.dump(dictionary, outfile)</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss</span>
+<span class="sd">        &gt;&gt;&gt; hfss = Hfss()</span>
+<span class="sd">        &gt;&gt;&gt; dictionary_values = hfss.modeler.check_choke_values(&quot;C:/Example/Of/Path/myJsonFile.json&quot;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dictionary_model</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Number of Windings&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="s2">&quot;Layer&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Simple&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Double&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Triple&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="s2">&quot;Layer Type&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Separate&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Linked&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="s2">&quot;Similar Layer&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Similar&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Different&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="s2">&quot;Mode&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Differential&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Common&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="s2">&quot;Wire Section&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;None&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Hexagon&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Octagon&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;Circle&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="s2">&quot;Core&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="s2">&quot;Core&quot;</span><span class="p">,</span> <span class="s2">&quot;Inner Radius&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="s2">&quot;Outer Radius&quot;</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span> <span class="s2">&quot;Height&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s2">&quot;Chamfer&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">},</span>
+            <span class="s2">&quot;Outer Winding&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="s2">&quot;Winding&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Inner Radius&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+                <span class="s2">&quot;Outer Radius&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+                <span class="s2">&quot;Height&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="s2">&quot;Wire Diameter&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;Turns&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+                <span class="s2">&quot;Occupation(%)&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;Mid Winding&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Turns&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;Occupation(%)&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="s2">&quot;Inner Winding&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Turns&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="s2">&quot;Occupation(%)&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">security_factor</span> <span class="o">=</span> <span class="mf">1.1</span>
+        <span class="n">sr</span> <span class="o">=</span> <span class="n">security_factor</span>
+        <span class="n">read_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">read_file</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dictionary_model</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Missing or incorrect key </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+                <span class="k">return</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="n">values</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Missing or incorrect key </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+                        <span class="k">return</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="n">values</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">f_key</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">count_true</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">f_key</span> <span class="o">==</span> <span class="s2">&quot;Number of Windings&quot;</span>
+                <span class="ow">or</span> <span class="n">f_key</span> <span class="o">==</span> <span class="s2">&quot;Layer&quot;</span>
+                <span class="ow">or</span> <span class="n">f_key</span> <span class="o">==</span> <span class="s2">&quot;Layer Type&quot;</span>
+                <span class="ow">or</span> <span class="n">f_key</span> <span class="o">==</span> <span class="s2">&quot;Similar Layer&quot;</span>
+                <span class="ow">or</span> <span class="n">f_key</span> <span class="o">==</span> <span class="s2">&quot;Mode&quot;</span>
+                <span class="ow">or</span> <span class="n">f_key</span> <span class="o">==</span> <span class="s2">&quot;Wire Section&quot;</span>
+            <span class="p">):</span>
+                <span class="k">for</span> <span class="n">s_key</span> <span class="ow">in</span> <span class="n">values</span><span class="p">[</span><span class="n">f_key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">f_key</span><span class="p">][</span><span class="n">s_key</span><span class="p">])</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">count_true</span><span class="p">:</span>
+                            <span class="n">values</span><span class="p">[</span><span class="n">f_key</span><span class="p">][</span><span class="n">s_key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="n">f_key</span><span class="p">][</span><span class="n">s_key</span><span class="p">]:</span>
+                            <span class="n">count_true</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                            <span class="s2">&quot;A character entered is invalid. The values of the dictionary </span><span class="si">%s</span><span class="s2"> must be boolean&quot;</span> <span class="o">%</span> <span class="n">f_key</span>
+                        <span class="p">)</span>
+                        <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">break</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">core_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">core_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">core_name</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Core Name must be a non-null string. A default name Core has been set.&quot;</span><span class="p">)</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Core&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">winding_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">winding_name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">winding_name</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Outer Winding Name must be a non-null string. A default name Winding has been set.&quot;</span><span class="p">)</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Winding&quot;</span>
+
+        <span class="n">in_rad_core</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Inner Radius&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Inner Radius(Core)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">out_rad_core</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Outer Radius&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Outer Radius(Core)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">height_core</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Height&quot;</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span> <span class="n">are_inequations_checkable</span><span class="p">,</span> <span class="s2">&quot;Height(Core)&quot;</span><span class="p">,</span> <span class="s2">&quot;a strictly positive float&quot;</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">core_chamfer</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;Core&quot;</span><span class="p">][</span><span class="s2">&quot;Chamfer&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">core_chamfer</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;The character entered is invalid. Chamfer must be a positive float.&quot;</span> <span class="s2">&quot; It must be changed&quot;</span>
+                <span class="p">)</span>
+                <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;The character entered is invalid. Chamfer must be a positive float.&quot;</span> <span class="s2">&quot; It must be changed&quot;</span>
+            <span class="p">)</span>
+            <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">in_rad_wind</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Inner Radius&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Inner Radius(Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">out_rad_wind</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Outer Radius&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Outer Radius(Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">height_wind</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Height&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Height(Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">turns</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">],</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Turns(Outer Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive integer&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">wind_pit</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Coil Pit(Outer Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">dia_wire</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Wire Diameter&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Wire Diameter&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">turns2</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">],</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Turns(Mid Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive integer&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">wind_pit2</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Coil Pit(Mid Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">turns3</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">],</span>
+            <span class="nb">int</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Turns(Inner Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive integer&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">wind_pit3</span><span class="p">,</span> <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_value_type</span><span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">],</span>
+            <span class="nb">float</span><span class="p">,</span>
+            <span class="n">are_inequations_checkable</span><span class="p">,</span>
+            <span class="s2">&quot;Coil Pit(Inner Winding)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;a strictly positive float&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">are_inequations_checkable</span><span class="p">:</span>
+            <span class="n">teta</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">wind_pit</span><span class="p">)</span>
+            <span class="n">teta2</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">wind_pit2</span><span class="p">)</span>
+            <span class="n">teta3</span> <span class="o">=</span> <span class="n">radians</span><span class="p">(</span><span class="n">wind_pit3</span><span class="p">)</span>
+            <span class="n">nb_wind</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Number of Windings&quot;</span><span class="p">][</span><span class="s2">&quot;2&quot;</span><span class="p">]:</span>
+                <span class="n">nb_wind</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Number of Windings&quot;</span><span class="p">][</span><span class="s2">&quot;3&quot;</span><span class="p">]:</span>
+                <span class="n">nb_wind</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Number of Windings&quot;</span><span class="p">][</span><span class="s2">&quot;4&quot;</span><span class="p">]:</span>
+                <span class="n">nb_wind</span> <span class="o">=</span> <span class="mi">4</span>
+
+            <span class="n">nb_lay</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Double&quot;</span><span class="p">]:</span>
+                <span class="n">nb_lay</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Triple&quot;</span><span class="p">]:</span>
+                <span class="n">nb_lay</span> <span class="o">=</span> <span class="mi">4</span>
+
+            <span class="k">if</span> <span class="n">in_rad_wind</span> <span class="o">&gt;</span> <span class="n">in_rad_core</span> <span class="o">-</span> <span class="p">(</span><span class="n">nb_lay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">in_rad_wind</span> <span class="o">=</span> <span class="n">in_rad_core</span> <span class="o">-</span> <span class="p">(</span><span class="n">nb_lay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Inner Radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">in_rad_wind</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Inner Radius of the winding is too high. The maximum value has been set instead.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">out_rad_wind</span> <span class="o">&lt;</span> <span class="n">out_rad_core</span> <span class="o">+</span> <span class="p">(</span><span class="n">nb_lay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">out_rad_wind</span> <span class="o">=</span> <span class="n">out_rad_core</span> <span class="o">+</span> <span class="p">(</span><span class="n">nb_lay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Outer Radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out_rad_wind</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Outer Radius of the winding is too low. The minimum value has been set instead.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">height_wind</span> <span class="o">&lt;</span> <span class="n">height_core</span> <span class="o">+</span> <span class="p">(</span><span class="n">nb_lay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">:</span>
+                <span class="n">height_wind</span> <span class="o">=</span> <span class="n">height_core</span> <span class="o">+</span> <span class="p">(</span><span class="n">nb_lay</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Height&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">height_wind</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Height of the winding is too low. The minimum value has been set instead.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">in_rad_wind</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns</span><span class="p">:</span>
+                <span class="n">turns</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">in_rad_wind</span><span class="p">))</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">turns</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;Number of turns of the winding is too high. The maximum value has been set instead.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">teta</span> <span class="o">&gt;</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns</span><span class="p">:</span>
+                <span class="n">teta</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">degrees_default_rounded</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Winding Pit is too high. The maximum value has been set instead.&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">teta</span> <span class="o">&lt;</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">in_rad_wind</span><span class="p">):</span>
+                <span class="n">teta</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">degrees_over_rounded</span><span class="p">(</span><span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">in_rad_wind</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Winding Pit is too low. The minimum value has been set instead.&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">teta</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">teta</span><span class="p">)</span>
+
+            <span class="n">occ</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns</span> <span class="o">*</span> <span class="n">teta</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">occ</span> <span class="o">==</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="n">teta</span> <span class="o">=</span> <span class="n">teta</span> <span class="o">-</span> <span class="mf">0.0003</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta</span>
+                <span class="k">if</span> <span class="n">teta</span> <span class="o">&lt;</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">in_rad_wind</span><span class="p">)</span> <span class="ow">and</span> <span class="n">turns</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">turns</span> <span class="o">=</span> <span class="n">turns</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">occ</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns</span> <span class="o">*</span> <span class="n">teta</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Outer Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Occupation(%)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">occ</span>
+
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Similar Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Different&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Double&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Triple&quot;</span><span class="p">]:</span>
+
+                    <span class="k">if</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns2</span><span class="p">:</span>
+                        <span class="n">turns2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">)))</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">turns2</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Number of turns of the winding of the second layer is too high. &quot;</span>
+                            <span class="s2">&quot;The maximum value has been set instead.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">turns2</span> <span class="o">&lt;</span> <span class="n">turns</span><span class="p">:</span>
+                        <span class="n">turns2</span> <span class="o">=</span> <span class="n">turns</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">turns2</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Number of turns of the winding of the second layer should be &quot;</span>
+                            <span class="s2">&quot;at least equal to those of the first layer.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">teta2</span> <span class="o">&gt;</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns2</span><span class="p">:</span>
+                        <span class="n">teta2</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">degrees_default_rounded</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta2</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Winding Pit of the second layer is too high. The maximum value has been set instead.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">elif</span> <span class="n">teta2</span> <span class="o">&lt;</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">)):</span>
+                        <span class="n">teta2</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">degrees_over_rounded</span><span class="p">(</span>
+                            <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">)),</span> <span class="mi">3</span>
+                        <span class="p">)</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta2</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Winding Pit of the second layer is too low. The minimum value has been set instead.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">teta2</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">teta2</span><span class="p">)</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta2</span>
+
+                    <span class="n">occ2</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns2</span> <span class="o">*</span> <span class="n">teta2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">occ2</span> <span class="o">&lt;</span> <span class="n">occ</span><span class="p">:</span>
+                        <span class="n">teta2</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">turns</span> <span class="o">*</span> <span class="n">teta</span> <span class="o">/</span> <span class="n">turns2</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta2</span>
+                        <span class="n">occ2</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns2</span> <span class="o">*</span> <span class="n">teta2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Occupation of the second layer should be at least equal to that of the first layer.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">occ2</span> <span class="o">==</span> <span class="mi">100</span><span class="p">:</span>
+                        <span class="n">teta2</span> <span class="o">=</span> <span class="n">teta2</span> <span class="o">-</span> <span class="mf">0.0002</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta2</span>
+                    <span class="n">occ2</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns2</span> <span class="o">*</span> <span class="n">teta2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+                    <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Occupation(%)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">occ2</span>
+                    <span class="c1"># TODO if occ2 == 100: method can be improve</span>
+
+                <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Layer&quot;</span><span class="p">][</span><span class="s2">&quot;Triple&quot;</span><span class="p">]:</span>
+
+                    <span class="k">if</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns3</span><span class="p">:</span>
+                        <span class="n">turns3</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">)))</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">turns3</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Number of turns of the winding of the third layer is too high. &quot;</span>
+                            <span class="s2">&quot;The maximum value has been set instead.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">turns3</span> <span class="o">&lt;</span> <span class="n">turns2</span><span class="p">:</span>
+                        <span class="n">turns3</span> <span class="o">=</span> <span class="n">turns2</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">turns3</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Number of turns of the winding of the third layer should be &quot;</span>
+                            <span class="s2">&quot;at least equal to those of the second layer.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">teta3</span> <span class="o">&gt;</span> <span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns3</span><span class="p">:</span>
+                        <span class="n">teta3</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">degrees_default_rounded</span><span class="p">(</span><span class="n">pi</span> <span class="o">/</span> <span class="n">nb_wind</span> <span class="o">/</span> <span class="n">turns3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta3</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Winding Pit of the third layer is too high. The maximum value has been set instead.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">elif</span> <span class="n">teta3</span> <span class="o">&lt;</span> <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">)):</span>
+                        <span class="n">teta3</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">degrees_over_rounded</span><span class="p">(</span>
+                            <span class="n">asin</span><span class="p">((</span><span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">in_rad_wind</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">dia_wire</span><span class="p">)),</span> <span class="mi">3</span>
+                        <span class="p">)</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta3</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Winding Pit of the third layer is too low. The minimum value has been set instead.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">teta3</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">teta3</span><span class="p">)</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta3</span>
+
+                    <span class="n">occ3</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns3</span> <span class="o">*</span> <span class="n">teta3</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">occ3</span> <span class="o">&lt;</span> <span class="n">occ2</span><span class="p">:</span>
+                        <span class="n">teta3</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">turns2</span> <span class="o">*</span> <span class="n">teta2</span> <span class="o">/</span> <span class="n">turns3</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta3</span>
+                        <span class="n">occ3</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns3</span> <span class="o">*</span> <span class="n">teta3</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">occ3</span> <span class="o">==</span> <span class="mi">100</span><span class="p">:</span>
+                        <span class="n">teta3</span> <span class="o">=</span> <span class="n">teta3</span> <span class="o">-</span> <span class="mf">0.0001</span>
+                        <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta3</span>
+                    <span class="n">occ3</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">turns3</span> <span class="o">*</span> <span class="n">teta3</span> <span class="o">/</span> <span class="p">(</span><span class="mi">180</span> <span class="o">/</span> <span class="n">nb_wind</span><span class="p">)</span>
+                    <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Occupation(%)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">occ3</span>
+                    <span class="c1"># TODO if occ3 == 100: method can be improve</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Coil Pit(deg)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">teta</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">turns</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Turns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">turns</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Mid Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Occupation(%)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">occ</span>
+                <span class="n">values</span><span class="p">[</span><span class="s2">&quot;Inner Winding&quot;</span><span class="p">][</span><span class="s2">&quot;Occupation(%)&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">occ</span>
+
+            <span class="k">if</span> <span class="n">create_another_file</span><span class="p">:</span>
+                <span class="n">spl_path</span> <span class="o">=</span> <span class="n">json_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">spl_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_Corrected.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">are_inequations_checkable</span><span class="p">,</span> <span class="n">values</span><span class="p">]</span></div>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_make_winding_follow_chamfer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chamfer</span><span class="p">,</span> <span class="n">security_factor</span><span class="p">,</span> <span class="n">wire_diameter</span><span class="p">,</span> <span class="n">layer_number</span><span class="p">):</span>
+        <span class="n">sr</span> <span class="o">=</span> <span class="n">security_factor</span>
+        <span class="n">w_rad_inc</span> <span class="o">=</span> <span class="n">layer_number</span> <span class="o">*</span> <span class="n">sr</span> <span class="o">*</span> <span class="n">wire_diameter</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">w_rad_inc</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">w_rad_inc</span> <span class="o">+</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">chamfer</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">distance</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">_check_value_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">taken_value</span><span class="p">,</span> <span class="n">value_type</span><span class="p">,</span> <span class="n">are_inequations_checkable</span><span class="p">,</span> <span class="n">part_message1</span><span class="p">,</span> <span class="n">part_message2</span><span class="p">):</span>
+        <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="n">are_inequations_checkable</span>
+        <span class="k">if</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">receiving_variable</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">taken_value</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">receiving_variable</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;The character entered is invalid. &quot;</span>
+                        <span class="o">+</span> <span class="n">part_message1</span>
+                        <span class="o">+</span> <span class="s2">&quot;  must be &quot;</span>
+                        <span class="o">+</span> <span class="n">part_message2</span>
+                        <span class="o">+</span> <span class="s2">&quot;.  It must be changed&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">receiving_variable</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;The character entered is invalid. &quot;</span>
+                    <span class="o">+</span> <span class="n">part_message1</span>
+                    <span class="o">+</span> <span class="s2">&quot;  must be &quot;</span>
+                    <span class="o">+</span> <span class="n">part_message2</span>
+                    <span class="o">+</span> <span class="s2">&quot;.  It must be changed&quot;</span>
+                <span class="p">)</span>
+                <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">value_type</span> <span class="o">==</span> <span class="nb">float</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">receiving_variable</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">taken_value</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">receiving_variable</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;The character entered is invalid. &quot;</span>
+                        <span class="o">+</span> <span class="n">part_message1</span>
+                        <span class="o">+</span> <span class="s2">&quot;  must be &quot;</span>
+                        <span class="o">+</span> <span class="n">part_message2</span>
+                        <span class="o">+</span> <span class="s2">&quot;.  It must be changed&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">receiving_variable</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;The character entered is invalid. &quot;</span>
+                    <span class="o">+</span> <span class="n">part_message1</span>
+                    <span class="o">+</span> <span class="s2">&quot;  must be &quot;</span>
+                    <span class="o">+</span> <span class="n">part_message2</span>
+                    <span class="o">+</span> <span class="s2">&quot;.  It must be changed&quot;</span>
+                <span class="p">)</span>
+                <span class="n">are_inequations_checkable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">receiving_variable</span><span class="p">,</span> <span class="n">are_inequations_checkable</span></div>
 </pre></div>
 
               </div>
