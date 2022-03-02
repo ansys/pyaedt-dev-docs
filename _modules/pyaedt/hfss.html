@@ -189,6 +189,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.actors</span> <span class="kn">import</span> <span class="n">Radar</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">INFINITE_SPHERE_TYPE</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_dict2arg</span>
 
 
 <div class="viewcode-block" id="Hfss"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.html#pyaedt.Hfss">[docs]</a><span class="k">class</span> <span class="nc">Hfss</span><span class="p">(</span><span class="n">FieldAnalysis3D</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
@@ -383,7 +384,7 @@
 
 <div class="viewcode-block" id="Hfss.set_auto_open"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.set_auto_open.html#pyaedt.Hfss.set_auto_open">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">set_auto_open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">boundary_type</span><span class="o">=</span><span class="s2">&quot;Radiation&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set HFSS auto open type.</span>
+        <span class="sd">&quot;&quot;&quot;Set the HFSS auto open type.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -516,7 +517,7 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed To rename Terminals&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed To rename terminals.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
                 <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;WavePort&quot;</span>
             <span class="k">else</span><span class="p">:</span>
@@ -869,8 +870,8 @@
 <span class="sd">            Type of the sweep. Options are ``&quot;Fast&quot;``, ``&quot;Interpolating&quot;``,</span>
 <span class="sd">            and ``&quot;Discrete&quot;``. The default is ``&quot;Discrete&quot;``.</span>
 <span class="sd">        interpolation_tol : float, optional</span>
-<span class="sd">            Error tolerance threshold for the interpolation</span>
-<span class="sd">            process. The default is ``0.5``.</span>
+<span class="sd">            Error tolerance threshold for the interpolation process. The default</span>
+<span class="sd">            is ``0.5``.</span>
 <span class="sd">        interpolation_max_solutions : int, optional</span>
 <span class="sd">            Maximum number of solutions evaluated for the interpolation process.</span>
 <span class="sd">            The default is ``250``.</span>
@@ -901,7 +902,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">sweep_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Discrete&quot;</span><span class="p">,</span> <span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="s2">&quot;Fast&quot;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Invalid in `sweep_type`. It has to be either &#39;Discrete&#39;, &#39;Interpolating&#39;, or &#39;Fast&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Invalid `sweep_type`. It must be &#39;Discrete&#39;, &#39;Interpolating&#39;, or &#39;Fast&#39;.&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">sweepname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">sweepname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Sweep&quot;</span><span class="p">)</span>
@@ -933,7 +934,7 @@
                 <span class="n">sweepdata</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveFields&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_fields</span>
                 <span class="n">sweepdata</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveRadFields&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">save_rad_fields</span>
                 <span class="n">sweepdata</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Linear count sweep </span><span class="si">{}</span><span class="s2"> has been correctly created&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sweepname</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Linear count sweep </span><span class="si">{}</span><span class="s2"> has been correctly created.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sweepname</span><span class="p">))</span>
                 <span class="k">return</span> <span class="n">sweepdata</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
@@ -967,12 +968,12 @@
 <span class="sd">        sweepname : str, optional</span>
 <span class="sd">            Name of the sweep. The default is ``None``.</span>
 <span class="sd">        save_fields : bool, optional</span>
-<span class="sd">            Whether to save the fields. The default is ``True``.</span>
+<span class="sd">            Whether to save fields. The default is ``True``.</span>
 <span class="sd">        save_rad_fields : bool, optional</span>
-<span class="sd">            Whether to save the radiating fields. The default is ``False``.</span>
+<span class="sd">            Whether to save radiating fields. The default is ``False``.</span>
 <span class="sd">        sweep_type : str, optional</span>
-<span class="sd">            Type of the sweep. Options are ``&quot;Discrete&quot;``,``&quot;Interpolating&quot;`` and``&quot;Fast&quot;`` sweep.</span>
-<span class="sd">            The default is ``&quot;Discrete&quot;``.</span>
+<span class="sd">            Type of the sweep. Options are ``&quot;Discrete&quot;``,``&quot;Interpolating&quot;`` and</span>
+<span class="sd">            ``&quot;Fast&quot;``. The default is ``&quot;Discrete&quot;``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1063,10 +1064,10 @@
 <span class="sd">            Whether to save the fields of the single point. The default is ``True``.</span>
 <span class="sd">            If a list is specified, the length must be the same as the list of frequencies.</span>
 <span class="sd">        save_fields : bool, optional</span>
-<span class="sd">            Whether to save the fields for all points and subranges defined in the sweep.</span>
+<span class="sd">            Whether to save fields for all points and subranges defined in the sweep.</span>
 <span class="sd">            The default is ``False``.</span>
 <span class="sd">        save_rad_fields : bool, optional</span>
-<span class="sd">            Whether to save only the radiating fields. The default is ``False``.</span>
+<span class="sd">            Whether to save only radiating fields. The default is ``False``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1169,11 +1170,11 @@
 <span class="sd">        fieldtype : str, optional</span>
 <span class="sd">            The default is ``&quot;nearfield&quot;``.</span>
 <span class="sd">        use_composite_ports : bool, optional</span>
-<span class="sd">            Whether to use composite ports. The default is ``True``.</span>
+<span class="sd">            Whether to use composite ports. The default is ``False``.</span>
 <span class="sd">        use_global_current : bool, optional</span>
-<span class="sd">            Whether to use global current. The default is ``True``.</span>
+<span class="sd">            Whether to use the global current. The default is ``True``.</span>
 <span class="sd">        current_conformance, str optional</span>
-<span class="sd">            The default is ``&quot;Disable&#39;``.</span>
+<span class="sd">            The default is ``&quot;Disable&quot;``.</span>
 <span class="sd">        thin_sources : bool, optional</span>
 <span class="sd">             The default is ``True``.</span>
 <span class="sd">        power_fraction : str, optional</span>
@@ -1198,7 +1199,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This Native components only applies to SBR+ Solution&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Native components only apply to the SBR+ solution.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="n">compName</span> <span class="o">=</span> <span class="n">source_object</span><span class="o">.</span><span class="n">design_name</span>
         <span class="n">uniquename</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">compName</span><span class="p">)</span>
@@ -1265,9 +1266,9 @@
         <span class="n">native</span> <span class="o">=</span> <span class="n">NativeComponentObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">,</span> <span class="n">native_props</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">native</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">native_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">native</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Native Component </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> has been correctly created&quot;</span><span class="p">,</span> <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Native component </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> has been correctly created.&quot;</span><span class="p">,</span> <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">native</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error in Native Component creation for </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error in native component creation for </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">antenna_type</span><span class="p">,</span> <span class="n">antenna_name</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">None</span>
 
@@ -1448,8 +1449,8 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        antenna_type : str, `SbrAntennas.ConicalHorn`</span>
-<span class="sd">            Name of the antenna type. Enumerator SbrAntennas can also be used.</span>
-<span class="sd">            The default is ``&quot;Conical Horn&quot;``.</span>
+<span class="sd">            Name of the antenna type. The enumerator ``SbrAntennas`` can also be used.</span>
+<span class="sd">            The default is ``&quot;SbrAntennas.Conical Horn&quot;``.</span>
 <span class="sd">        target_cs : str, optional</span>
 <span class="sd">            Target coordinate system. The default is ``None``, in which case</span>
 <span class="sd">            the active coodiantes system is used.</span>
@@ -1559,7 +1560,6 @@
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a linked antenna.</span>
 
-
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        ffd_full_path : str</span>
@@ -1599,7 +1599,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This Native component only applies to a SBR+ Solution.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This native component only applies to a SBR+ solution.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">target_cs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">target_cs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetActiveCoordinateSystem</span><span class="p">()</span>
@@ -1637,7 +1637,7 @@
 <span class="sd">        &gt;&gt;&gt; oModule.SetSBRTxRxSettings</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This Boundary only applies to SBR+ Solution&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This boundary only applies to a SBR+ solution.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="nb">id</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
@@ -1812,7 +1812,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># fmt: off</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;Terminal&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;This method can be used only in Terminal Solutions.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;This method can be used only in Terminal solutions.&quot;</span><span class="p">)</span>
         <span class="n">start_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">start_object</span><span class="p">)</span>
         <span class="n">end_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">end_object</span><span class="p">)</span>
         <span class="n">closest_distance</span> <span class="o">=</span> <span class="mf">1e9</span>
@@ -1825,7 +1825,7 @@
                     <span class="n">closest_faces</span> <span class="o">=</span> <span class="p">[</span><span class="n">face1</span><span class="p">,</span> <span class="n">face2</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="n">closest_faces</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;The two object must have parallel adjacent faces.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;The two objects must have parallel adjacent faces.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]):</span>
             <span class="n">plane</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">elif</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">is_collinear</span><span class="p">(</span><span class="n">closest_faces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">normal</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]):</span>
@@ -2356,7 +2356,7 @@
 <span class="sd">        face_couple : list</span>
 <span class="sd">            List of two faces to assign the lattice pair to.</span>
 <span class="sd">        reverse_v : bool, optional</span>
-<span class="sd">            Reverse V vector. The default is `False`.</span>
+<span class="sd">            Whether to reverse the V vector. The default is `False`.</span>
 <span class="sd">        phase_delay : str, optional</span>
 <span class="sd">            Phase delay approach. Options are ``&quot;UseScanAngle&quot;``,</span>
 <span class="sd">            ``&quot;UseScanUV&quot;``, and ``&quot;InputPhaseDelay&quot;``. The default is</span>
@@ -2415,11 +2415,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        object_to_assign : str, Object3d</span>
-<span class="sd">            Object to which assign a lattice.</span>
+<span class="sd">            Object to assign a lattice to.</span>
 <span class="sd">        coordinate_system : str, optional</span>
-<span class="sd">            Coordinate system on which to look for the lattice.</span>
+<span class="sd">            Coordinate system to look for the lattice on.</span>
 <span class="sd">        coordinate_plane : str, optional</span>
-<span class="sd">            Plane on which to look for the lattice. Options are ``&quot;XY&quot;``, ``&quot;XZ&quot;``, and</span>
+<span class="sd">            Plane to look for the lattice on. Options are ``&quot;XY&quot;``, ``&quot;XZ&quot;``, and</span>
 <span class="sd">            ``&quot;YZ&quot;``. The default is ``&quot;XY&quot;``.</span>
 
 <span class="sd">        Returns</span>
@@ -2462,9 +2462,9 @@
 <span class="sd">        primary_name : str</span>
 <span class="sd">            Name of the primary boundary to couple.</span>
 <span class="sd">        u_start : list</span>
-<span class="sd">            List of [x,y,z] values for the starting point of the U vector.</span>
+<span class="sd">            List of ``[x,y,z]`` values for the starting point of the U vector.</span>
 <span class="sd">        u_end : list</span>
-<span class="sd">            List of [x,y,z] values for the ending point of the U vector.</span>
+<span class="sd">            List of ``[x,y,z]`` values for the ending point of the U vector.</span>
 <span class="sd">        reverse_v : bool, optional</span>
 <span class="sd">            Whether to reverse the V vector. The default is ``False``.</span>
 <span class="sd">        phase_delay : str, optional</span>
@@ -2489,7 +2489,7 @@
 <span class="sd">        coord_name : str, optional</span>
 <span class="sd">            Name of the coordinate system for U coordinates.</span>
 <span class="sd">        secondary_name : str, optional</span>
-<span class="sd">            Boundary name. The default is ``None``.</span>
+<span class="sd">            Name of the boundary. The default is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2538,16 +2538,16 @@
 <span class="sd">        face : int, FacePrimitive</span>
 <span class="sd">            Face to assign the lattice pair to.</span>
 <span class="sd">        u_start : list</span>
-<span class="sd">            List of [x,y,z] values for the starting point of the U vector.</span>
+<span class="sd">            List of ``[x,y,z]`` values for the starting point of the U vector.</span>
 <span class="sd">        u_end : list</span>
-<span class="sd">            List of [x,y,z] values for the ending point of the U vector.</span>
+<span class="sd">            List of ``[x,y,z]`` values for the ending point of the U vector.</span>
 <span class="sd">        reverse_v : bool, optional</span>
 <span class="sd">            Whether to reverse the V vector. The default is `False`.</span>
 <span class="sd">        coord_name : str, optional</span>
 <span class="sd">            Name of the coordinate system for the U coordinates. The</span>
 <span class="sd">            default is ``&quot;Global&quot;``.</span>
 <span class="sd">        primary_name : str, optional</span>
-<span class="sd">            Boundary name. The default is ``None``.</span>
+<span class="sd">            Name of the boundary. The default is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2665,7 +2665,7 @@
 <span class="sd">        &gt;&gt;&gt; port = hfss.create_wave_port_microstrip_between_objects(&quot;GND1&quot;, &quot;MS1&quot;,</span>
 <span class="sd">        ...                                                         portname=&quot;MS1&quot;,</span>
 <span class="sd">        ...                                                         axisdir=1)</span>
-<span class="sd">        pyaedt info: Connection Correctly created</span>
+<span class="sd">        pyaedt info: Connection correctly created.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">does_object_exists</span><span class="p">(</span><span class="n">startobj</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">does_object_exists</span><span class="p">(</span><span class="n">endobject</span><span class="p">):</span>
@@ -2871,7 +2871,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        Frequency : str, optional</span>
-<span class="sd">            Frequency with units. The  default is ``&quot;1GHz&quot;``.</span>
+<span class="sd">            Frequency with units. The default is ``&quot;1GHz&quot;``.</span>
 <span class="sd">        Boundary : str, optional</span>
 <span class="sd">            Type of the boundary. The default is ``&quot;Radiation&quot;``.</span>
 <span class="sd">        ApplyInfiniteGP : bool, optional</span>
@@ -2926,7 +2926,7 @@
 <span class="sd">        sourcename : str, optional</span>
 <span class="sd">            Perfect H name. The default is ``None``.</span>
 <span class="sd">        rlctype : str, optional</span>
-<span class="sd">            Type of the RLC. Options are ``&quot;Parallel&quot;`` or ``&quot;Series&quot;``.</span>
+<span class="sd">            Type of the RLC. Options are ``&quot;Parallel&quot;`` and ``&quot;Series&quot;``.</span>
 <span class="sd">            The default is ``&quot;Parallel&quot;``.</span>
 <span class="sd">        Rvalue : optional</span>
 <span class="sd">            Resistance value in ohms. The default is ``None``,</span>
@@ -3209,7 +3209,7 @@
 <span class="sd">        renorm : bool, optional</span>
 <span class="sd">            Whether to renormalize the mode. The default is ``True``.</span>
 <span class="sd">        terminal_references : list, optional</span>
-<span class="sd">            In Driven Terminal Simulation it is the list of conductors for Port Terminal Definitions.</span>
+<span class="sd">            For a driven-terminal simulation, list of conductors for port terminal definitions.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3262,7 +3262,7 @@
                 <span class="n">faces</span> <span class="o">=</span> <span class="n">sheet</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">sheet</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">faces</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">faces</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong Input object. it has to be a face id or a sheet.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">portname</span><span class="p">:</span>
@@ -3278,7 +3278,7 @@
                     <span class="n">faces</span><span class="p">,</span> <span class="n">terminal_references</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Reference Conductors are missed.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Reference conductors are missing.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Hfss.create_lumped_port_to_sheet"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.create_lumped_port_to_sheet.html#pyaedt.Hfss.create_lumped_port_to_sheet">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
@@ -3351,7 +3351,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_faces</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">faces</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong Input object. it has to be a face id or a sheet.&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong input object. It must be a face id or a sheet.&quot;</span><span class="p">)</span>
                     <span class="k">return</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="n">deemb</span><span class="p">:</span>
                     <span class="n">deembed</span> <span class="o">=</span> <span class="mi">0</span>
@@ -3569,7 +3569,7 @@
 <span class="sd">        sourcename : str, optional</span>
 <span class="sd">            Lumped RLC name. The default is ``None``.</span>
 <span class="sd">        rlctype : str, optional</span>
-<span class="sd">            Type of the RLC. Options are ``&quot;Parallel&quot;`` or ``&quot;Series&quot;``. The default is ``&quot;Parallel&quot;``.</span>
+<span class="sd">            Type of the RLC. Options are ``&quot;Parallel&quot;`` and ``&quot;Series&quot;``. The default is ``&quot;Parallel&quot;``.</span>
 <span class="sd">        Rvalue : float, optional</span>
 <span class="sd">            Resistance value in ohms. The default is ``None``, in which</span>
 <span class="sd">            case this parameter is disabled.</span>
@@ -3721,9 +3721,9 @@
 <span class="sd">            Whether to renormalize the mode. The default is ``False``.</span>
 <span class="sd">            This parameter is ignored for a driven terminal.</span>
 <span class="sd">        renorm_impedance :  str, optional</span>
-<span class="sd">            Impedance. The default is ``50``</span>
-<span class="sd">        deembed : bool. optional</span>
-<span class="sd">            Whether to deembed the port. The default is ``False``</span>
+<span class="sd">            Impedance. The default is ``50``.</span>
+<span class="sd">        deembed : bool, optional</span>
+<span class="sd">            Whether to deembed the port. The default is ``False``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3774,9 +3774,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        portandmode : str</span>
-<span class="sd">            Port name and mode, such as ``&quot;Port1:1&quot;``.</span>
+<span class="sd">            Port name and mode. For example, ``&quot;Port1:1&quot;``.</span>
 <span class="sd">        powerin : str</span>
-<span class="sd">            Power in Watts or the project variable to be put as stored energy in the project.</span>
+<span class="sd">            Power in Watts or the project variable to put as stored energy in the project.</span>
 <span class="sd">        phase : str, optional</span>
 <span class="sd">            The default is ``&quot;0deg&quot;``.</span>
 
@@ -4242,19 +4242,18 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        solutionname : str</span>
-<span class="sd">             Name of the solution that has been solved.</span>
+<span class="sd">            Name of the solution that has been solved.</span>
 <span class="sd">        sweepname : str</span>
-<span class="sd">             Name of the sweep that has been solved.</span>
+<span class="sd">            Name of the sweep that has been solved.</span>
 <span class="sd">        filename : str, optional</span>
-<span class="sd">             Full path and name for the output file.</span>
-<span class="sd">             The default is ``None``, in which case the file is exported to the working directory.</span>
-
+<span class="sd">            Full path and name for the output file.</span>
+<span class="sd">            The default is ``None``, in which case the file is exported to the working directory.</span>
 <span class="sd">        variation : list, optional</span>
-<span class="sd">             List of all parameter variations. For example, ``[&quot;$AmbientTemp&quot;, &quot;$PowerIn&quot;]``.</span>
-<span class="sd">             The default is ``[]``.</span>
+<span class="sd">            List of all parameter variations. For example, ``[&quot;$AmbientTemp&quot;, &quot;$PowerIn&quot;]``.</span>
+<span class="sd">            The default is ``[]``.</span>
 <span class="sd">        variations_value : list, optional</span>
-<span class="sd">             List of all parameter variation values. For example, ``[&quot;22cel&quot;, &quot;100&quot;]``.</span>
-<span class="sd">             The default is ``[]``.</span>
+<span class="sd">            List of all parameter variation values. For example, ``[&quot;22cel&quot;, &quot;100&quot;]``.</span>
+<span class="sd">            The default is ``[]``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -4355,9 +4354,9 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        obj_names : str or list or int or :class:`pyaedt.modeler.Object3d.Object3d`</span>
-<span class="sd">             One or more object names or IDs.</span>
+<span class="sd">            One or more object names or IDs.</span>
 <span class="sd">        boundary_name : str, optional</span>
-<span class="sd">             Name of the boundary. The default is ``&quot;&quot;``.</span>
+<span class="sd">            Name of the boundary. The default is ``&quot;&quot;``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -4478,9 +4477,9 @@
 
     <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">_create_sbr_doppler_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">time_var</span><span class="p">,</span> <span class="n">tstart</span><span class="p">,</span> <span class="n">tstop</span><span class="p">,</span> <span class="n">tsweep</span><span class="p">,</span> <span class="n">parametric_name</span><span class="p">):</span>
-        <span class="n">time_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
-        <span class="n">time_sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">tsweep</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
-        <span class="n">time_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">tstop</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
+        <span class="n">time_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">tstart</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
+        <span class="n">time_sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">tsweep</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
+        <span class="n">time_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">tstop</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">)</span>
         <span class="n">sweep_range</span> <span class="o">=</span> <span class="s2">&quot;LIN </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time_start</span><span class="p">,</span> <span class="n">time_stop</span><span class="p">,</span> <span class="n">time_sweep</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">opti_parametric</span><span class="o">.</span><span class="n">add_parametric_setup</span><span class="p">(</span>
             <span class="n">time_var</span><span class="p">,</span> <span class="n">sweep_range</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">parametricname</span><span class="o">=</span><span class="n">parametric_name</span>
@@ -4503,13 +4502,13 @@
         <span class="n">doppler_ad_sampling_rate</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
         <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create an SBR+ Chirp IQ Setup.</span>
+        <span class="sd">&quot;&quot;&quot;Create an SBR+ Chirp I Setup.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        time_var : str, optional</span>
 <span class="sd">            Name of the time variable. The default is ``None``, in which case</span>
-<span class="sd">            a search will be performed for the first time variable available.</span>
+<span class="sd">            a search for the first time variable is performed.</span>
 <span class="sd">        sweep_time_duration : float, optional</span>
 <span class="sd">            Duration for the sweep time. The default is ``0.`` If a value greater</span>
 <span class="sd">            than ``0`` is specified, a parametric sweep is created.</span>
@@ -4549,7 +4548,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method Applies only to SBR+ Solution.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method applies only to the SBR+ solution.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
             <span class="n">setup_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;ChirpI&quot;</span><span class="p">)</span>
@@ -4563,8 +4562,8 @@
                     <span class="n">time_var</span> <span class="o">=</span> <span class="n">var_name</span>
                     <span class="k">break</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">time_var</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No Time Variable Found. Setup or explicitly assign to the method.&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No Time Variable Found&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No time variable is found. Set up or explicitly assign to the method.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No time variable is found.&quot;</span><span class="p">)</span>
         <span class="n">setup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_sbr_doppler_setup</span><span class="p">(</span>
             <span class="s2">&quot;ChirpI&quot;</span><span class="p">,</span>
             <span class="n">time_var</span><span class="o">=</span><span class="n">time_var</span><span class="p">,</span>
@@ -4610,8 +4609,8 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        time_var : str, optional</span>
-<span class="sd">            Name of the time variable. The default is ``None``, in which</span>
-<span class="sd">            case a search is performed for the first time variable available.</span>
+<span class="sd">            Name of the time variable. The default is ``None``, in which case</span>
+<span class="sd">            a search for the first time variable is performed.</span>
 <span class="sd">        sweep_time_duration : float, optional</span>
 <span class="sd">            Duration of the sweep time. The default is ``0``. If a value greater</span>
 <span class="sd">            than ``0`` is specified, a parametric sweep is created.</span>
@@ -4650,7 +4649,7 @@
 <span class="sd">        &gt;&gt;&gt; oModule.InsertSetup</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method Applies only to SBR+ Solution.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method applies only to the SBR+ solution.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
             <span class="n">setup_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;ChirpIQ&quot;</span><span class="p">)</span>
@@ -4708,10 +4707,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        time_var : str, optional</span>
 <span class="sd">            Name of the time variable. The default is ``None``, in which case</span>
-<span class="sd">            the first time variable available is used.</span>
+<span class="sd">            a search for the first time variable is performed.</span>
 <span class="sd">        sweep_time_duration : float, optional</span>
-<span class="sd">            Sweep time duration. If greater than 0, a parametric sweep is</span>
-<span class="sd">            created. The default is ``0``.</span>
+<span class="sd">            Duration of the sweep time. The default is ``0``. If a value greater</span>
+<span class="sd">            than ``0`` is specified, a parametric sweep is created.</span>
 <span class="sd">        center_freq : float, optional</span>
 <span class="sd">            Center frequency in GHz. The default is ``76.5``.</span>
 <span class="sd">        resolution : float, optional</span>
@@ -4730,7 +4729,7 @@
 <span class="sd">        ray_density_per_wavelenght : float, optional</span>
 <span class="sd">            Doppler ray density per wavelength. The default is ``0.2``.</span>
 <span class="sd">        max_bounces : int, optional</span>
-<span class="sd">            Maximum number of bBounces. The default is ``5``.</span>
+<span class="sd">            Maximum number of bounces. The default is ``5``.</span>
 <span class="sd">        setup_name : str, optional</span>
 <span class="sd">            Name of the setup. The default is ``None``.</span>
 
@@ -4832,7 +4831,7 @@
 <span class="sd">        speed : float, optional</span>
 <span class="sd">            Radar movement speed relative to the global coordinate system if greater than ``0``.</span>
 <span class="sd">        use_relative_cs : bool, optional</span>
-<span class="sd">            Whether the relative coordinate system must be used. The default is ``False``.</span>
+<span class="sd">            Whether to use the relative coordinate system. The default is ``False``.</span>
 <span class="sd">        relative_cs_name : str</span>
 <span class="sd">            Name of the relative coordinate system to link the radar to.</span>
 <span class="sd">            The default is ``None``, in which case the global coordinate system is used.</span>
@@ -4840,7 +4839,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modeler.actors.Radar`</span>
-<span class="sd">            Radar Class object.</span>
+<span class="sd">            Radar  class object.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -4850,7 +4849,7 @@
 <span class="sd">        &gt;&gt;&gt; oModule.SetSBRTxRxSettings</span>
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateGroup</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">_initialize_multipart</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_initialize_multipart</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method Applies only to SBR+ Solution.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -4887,7 +4886,7 @@
         <span class="sd">&quot;&quot;&quot;Create an infinite sphere.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">           This method is Not supported by all HFSS EigenMode and CharacteristicMode solution types.</span>
+<span class="sd">           This method is not supported by all HFSS ``EigenMode`` and ``CharacteristicMode`` solution types.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -4909,12 +4908,12 @@
 <span class="sd">        units : str</span>
 <span class="sd">            Angle units. The default is ``&quot;deg&quot;``.</span>
 <span class="sd">        custom_radiation_faces : str, optional</span>
-<span class="sd">            Radiation face list to use for far field computation. The default is ``None``.</span>
+<span class="sd">            List of radiation faces to use for far field computation. The default is ``None``.</span>
 <span class="sd">        custom_coordinate_system : str, optional</span>
 <span class="sd">            Local coordinate system to used for far field computation. The default is</span>
 <span class="sd">            ``None``.</span>
 <span class="sd">        use_slant_polarization : bool, optional</span>
-<span class="sd">            Whether to use slant polarization. The default is `False`.</span>
+<span class="sd">            Whether to use slant polarization. The default is ``False``.</span>
 <span class="sd">        polarization_angle : float, str, optional</span>
 <span class="sd">            Slant angle value. The default is ``45``.</span>
 <span class="sd">        name : str, optional</span>
@@ -4975,7 +4974,7 @@
 <span class="sd">        thin_sources : bool, optional</span>
 <span class="sd">            Whether to enable thin sources. The default is ``False``.</span>
 <span class="sd">        power_fraction : float or str, optional</span>
-<span class="sd">            Power fraction to use if ``thin_sources`` is ``True``. The default is ``0.95``.</span>
+<span class="sd">            Power fraction to use if ``thin_sources=True``. The default is ``0.95``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -5005,7 +5004,88 @@
             <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">power_fraction</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">EditGlobalCurrentSourcesOption</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SBR+ current source options correctly applied.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Hfss.set_differential_pair"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.set_differential_pair.html#pyaedt.Hfss.set_differential_pair">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_differential_pair</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">positive_terminal</span><span class="p">,</span>
+        <span class="n">negative_terminal</span><span class="p">,</span>
+        <span class="n">common_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">diff_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">common_ref_z</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">diff_ref_z</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">matched</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a differential pair definition.</span>
+
+<span class="sd">        Differential pairs can be defined only in Terminal and Transient solution types.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positive_terminal : str</span>
+<span class="sd">            Name of the terminal to use as the positive terminal.</span>
+<span class="sd">        negative_terminal : str</span>
+<span class="sd">            Name of the terminal to use as the negative terminal.</span>
+<span class="sd">        common_name : str, optional</span>
+<span class="sd">            Name for the common mode. Default is ``None`` in which case a unique name is chosen.</span>
+<span class="sd">        diff_name : str, optional</span>
+<span class="sd">            Name for the differential mode. Default is ``None`` in which case a unique name is chosen.</span>
+<span class="sd">        common_ref_z : float, optional</span>
+<span class="sd">            Reference impedance for the common mode. Units are Ohm. Default is ``25``.</span>
+<span class="sd">        diff_ref_z : float, optional</span>
+<span class="sd">            Reference impedance for the differential mode. Units are Ohm. Default is ``100``.</span>
+<span class="sd">        active : bool, optional</span>
+<span class="sd">            Set the differential pair as active. Default is ``True``.</span>
+<span class="sd">        matched : bool, optional</span>
+<span class="sd">            Set the differential pair as active. Default is ``False``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; oModule.EditDiffPairs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Transient Network&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">]:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Differential pairs can be defined only in Terminal and Transient solution types.&quot;</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;PosBoundary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">positive_terminal</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;NegBoundary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">negative_terminal</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">common_name</span><span class="p">:</span>
+            <span class="n">common_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Comm&quot;</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CommonName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_name</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CommonRefZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">common_ref_z</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;ohm&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">diff_name</span><span class="p">:</span>
+            <span class="n">diff_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Diff&quot;</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DiffName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_name</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;DiffRefZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">diff_ref_z</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;ohm&quot;</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;IsActive&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">active</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseMatched&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">matched</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Pair&quot;</span><span class="p">)]</span>
+        <span class="n">_dict2arg</span><span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span>
+
+        <span class="n">arg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:EditDiffPairs&quot;</span><span class="p">,</span> <span class="n">arg</span><span class="p">]</span>
+
+        <span class="n">existing_pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetDiffPairs</span><span class="p">()</span>
+        <span class="n">num_old_pairs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">existing_pairs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">existing_pairs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">existing_pairs</span><span class="p">):</span>
+                <span class="n">tmp_p</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="n">tmp_p</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;NAME:Pair_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_p</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">EditDiffPairs</span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetDiffPairs</span><span class="p">())</span> <span class="o">==</span> <span class="n">num_old_pairs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div></div>
 </pre></div>
 
               </div>

@@ -183,10 +183,11 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">io</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.application.AnalysisNexxim</span> <span class="kn">import</span> <span class="n">FieldAnalysisCircuit</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">from_rkm_to_aedt</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic</span> <span class="kn">import</span> <span class="n">ibis_reader</span>
 
 
@@ -215,10 +216,10 @@
 <span class="sd">        Version of AEDT to use. The default is ``None``, in which case</span>
 <span class="sd">        the active version or latest installed version is  used.</span>
 <span class="sd">        This parameter is ignored when Script is launched within AEDT.</span>
-<span class="sd">    NG : bool, optional</span>
-<span class="sd">        Whether to run AEDT in the non-graphical mode. The default</span>
-<span class="sd">        is``False``, in which case AEDT is launched in the graphical mode.</span>
-<span class="sd">        This parameter is ignored when Script is launched within AEDT.</span>
+<span class="sd">    non_graphical : bool, optional</span>
+<span class="sd">        Whether to run AEDT in non-graphical mode. The default</span>
+<span class="sd">        is ``False``, in which case AEDT is launched in graphical mode.</span>
+<span class="sd">        This parameter is ignored when a script is launched within AEDT.</span>
 <span class="sd">    new_desktop_session : bool, optional</span>
 <span class="sd">        Whether to launch an instance of AEDT in a new thread, even if</span>
 <span class="sd">        another instance of the ``specified_version`` is active on the</span>
@@ -325,7 +326,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
-<span class="sd">             ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">xpos</span> <span class="o">=</span> <span class="mi">0</span>
@@ -540,17 +541,17 @@
 
 <div class="viewcode-block" id="Circuit.read_ibis"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Circuit.read_ibis.html#pyaedt.Circuit.read_ibis">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">read_ibis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create an IBIS model based on the data contained in an IBS file.</span>
+        <span class="sd">&quot;&quot;&quot;Create an IBIS model based on the data contained in an IBIS file.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        path : str</span>
-<span class="sd">            Path of the ibis file.</span>
+<span class="sd">            Path of the IBIS file.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        ----------</span>
 <span class="sd">        :class:`pyaedt.generic.ibis_reader.Ibis`</span>
-<span class="sd">            Ibis object exposing all data from the ibis file.</span>
+<span class="sd">            IBIS object exposing all data from the IBIS file.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">reader</span> <span class="o">=</span> <span class="n">ibis_reader</span><span class="o">.</span><span class="n">IbisReader</span><span class="p">()</span>
@@ -727,7 +728,7 @@
     <span class="k">def</span> <span class="nf">get_source_pin_names</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">source_design_name</span><span class="p">,</span> <span class="n">source_project_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source_project_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">port_selector</span><span class="o">=</span><span class="mi">3</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;List the pin names.</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve pin names.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -738,9 +739,8 @@
 <span class="sd">        source_project_path : str, optional</span>
 <span class="sd">            Path to the source project if different than the existing path. The default is ``None``.</span>
 <span class="sd">        port_selector : int, optional</span>
-<span class="sd">             Type of the port. Options are ``1``, ``2``, or ``3``, corresponding respectively to ``&quot;Wave Port&quot;``,</span>
-<span class="sd">             ``&quot;Terminal&quot;``, or ``&quot;Circuit Port&quot;``.</span>
-<span class="sd">             The default is ``3``, which is a circuit port.</span>
+<span class="sd">            Type of the port. Options are ``1``, ``2``, and ``3``, corresponding respectively to ``&quot;Wave Port&quot;``,</span>
+<span class="sd">            ``&quot;Terminal&quot;``, or ``&quot;Circuit Port&quot;``. The default is ``3``, which is a circuit port.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -754,11 +754,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">source_project_name</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">!=</span> <span class="n">source_project_name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">source_project_path</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
-                <span class="s2">&quot;If source project is different than the current one, &quot;</span> <span class="s2">&quot;``source_project_path`` must be also provided.&quot;</span>
+                <span class="s2">&quot;If source project is different than the current one, &quot;</span> <span class="s2">&quot;``source_project_path`` must also be provided.&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">source_project_path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">source_project_name</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
-                <span class="s2">&quot;When ``source_project_path`` is specified, &quot;</span> <span class="s2">&quot;``source_project_name`` must be also provided.&quot;</span>
+                <span class="s2">&quot;When ``source_project_path`` is specified, &quot;</span> <span class="s2">&quot;``source_project_name`` must also be provided.&quot;</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">source_project_name</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">==</span> <span class="n">source_project_name</span><span class="p">:</span>
             <span class="n">oSrcProject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">GetActiveProject</span><span class="p">()</span>
@@ -923,18 +923,18 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        solutionname : str</span>
-<span class="sd">             Name of the solution that has been solved.</span>
+<span class="sd">            Name of the solution that has been solved.</span>
 <span class="sd">        sweepname : str</span>
-<span class="sd">             Name of the sweep that has been solved.</span>
+<span class="sd">            Name of the sweep that has been solved.</span>
 <span class="sd">        filename : str, optional</span>
-<span class="sd">             Full path and name for the Touchstone file.</span>
-<span class="sd">             The default is ``None`` which export file in working_directory.</span>
+<span class="sd">            Full path and name for the Touchstone file. The default is ``None``,</span>
+<span class="sd">            which exports the file to the working directory.</span>
 <span class="sd">        variation : list, optional</span>
-<span class="sd">             List of all parameter variations. For example, ``[&quot;$AmbientTemp&quot;, &quot;$PowerIn&quot;]``.</span>
-<span class="sd">             The default is ``[]``.</span>
+<span class="sd">            List of all parameter variations. For example, ``[&quot;$AmbientTemp&quot;, &quot;$PowerIn&quot;]``.</span>
+<span class="sd">            The default is ``[]``.</span>
 <span class="sd">        variations_value : list, optional</span>
-<span class="sd">             List of all parameter variation values. For example, ``[&quot;22cel&quot;, &quot;100&quot;]``.</span>
-<span class="sd">             The default is ``[]``.</span>
+<span class="sd">            List of all parameter variation values. For example, ``[&quot;22cel&quot;, &quot;100&quot;]``.</span>
+<span class="sd">            The default is ``[]``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1029,7 +1029,7 @@
 <span class="sd">            Whether it is an imported solution file. The default is ``False``.</span>
 <span class="sd">        filename : str, optional</span>
 <span class="sd">            Full path and name for exporting the HSpice file.</span>
-<span class="sd">            The default is ``None`` which export file in working_directory.</span>
+<span class="sd">            The default is ``None``, in which case the file is exported to the working directory.</span>
 <span class="sd">        passivity : bool, optional</span>
 <span class="sd">            Whether to compute the passivity. The default is ``False``.</span>
 <span class="sd">        causality : bool, optional</span>
@@ -1149,7 +1149,7 @@
 <span class="sd">        variation_dict : dict, optional</span>
 <span class="sd">            Dictionary of variation names. The default value is ``None``.</span>
 <span class="sd">        subdesign_id : int, optional</span>
-<span class="sd">            Specify a SubDesign ID to export a touchstone of this Subdesign. The default value is ``None``.</span>
+<span class="sd">            Specify a subdesign ID to export a Touchstone file of this subdesign. The default value is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1179,7 +1179,8 @@
 
 <div class="viewcode-block" id="Circuit.get_touchstone_data"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Circuit.get_touchstone_data.html#pyaedt.Circuit.get_touchstone_data">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
     <span class="k">def</span> <span class="nf">get_touchstone_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curvenames</span><span class="p">,</span> <span class="n">solution_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variation_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return Touchstone Data plot.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a Touchstone data plot.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1219,8 +1220,8 @@
 <span class="sd">            Name of the instance.</span>
 <span class="sd">        thevenin_calculation : bool, optional</span>
 <span class="sd">            Whether to perform the Thevenin equivalent calculation. The default is ``False``.</span>
-<span class="sd">        setup_name : str</span>
-<span class="sd">            Name of the solution setup to push.</span>
+<span class="sd">        setup_name : str, optional</span>
+<span class="sd">            Name of the solution setup to push. The default is ``&quot;LinearFrequency&quot;``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1246,22 +1247,22 @@
 <span class="sd">        ports : list</span>
 <span class="sd">            List of circuit ports to assign to the sinusoidal excitation.</span>
 <span class="sd">        settings : list</span>
-<span class="sd">            List of parameter values to use in voltage sinusoidal excitation creation.</span>
-<span class="sd">            All settings must be provided as strings.</span>
-<span class="sd">            An empty string (``&quot;&quot;``) sets the parameter to its default.</span>
+<span class="sd">            List of parameter values to use to create the voltage sinusoidal excitation.</span>
+<span class="sd">            All settings must be provided as strings. An empty string (``&quot;&quot;``) sets the</span>
+<span class="sd">            parameter to its default.</span>
 
 <span class="sd">            Values are given in this order:</span>
 
-<span class="sd">            * 0: AC magnitude for small-signal analysis. For example ``&quot;33V&quot;``. Default = &quot;nan V&quot;.</span>
-<span class="sd">            * 1: AC phase for small-signal analysis. For example ``&quot;44deg&quot;``. Default = &quot;0deg&quot;.</span>
-<span class="sd">            * 2: DC voltage. For example ``&quot;1V&quot;``. Default = &quot;0V&quot;</span>
-<span class="sd">            * 3: Voltage offset from zero. For example ``&quot;1V&quot;``. Default = &quot;0V&quot;.</span>
-<span class="sd">            * 4: Voltage amplitude. For example ``&quot;3V&quot;``. Default = &quot;0V&quot;.</span>
-<span class="sd">            * 5: Frequency. For example ``&quot;15GHz&quot;``. Default = &quot;1GHz&quot;.</span>
-<span class="sd">            * 6: Delay to start of sine wave. For example ``&quot;16s&quot;``. Default = &quot;0s&quot;.</span>
-<span class="sd">            * 7: Damping factor (1/seconds). For example ``&quot;2&quot;``. Default = &quot;0&quot;.</span>
-<span class="sd">            * 8: Phase delay. For example ``&quot;18deg&quot;``. Default = &quot;0deg&quot;.</span>
-<span class="sd">            * 9: Frequency to use for harmonic balance analysis. For example ``&quot;20Hz&quot;``. Default = &quot;0Hz&quot;.</span>
+<span class="sd">            * 0: AC magnitude for small-signal analysis. For example, ``&quot;33V&quot;``. The default is ``&quot;nan V&quot;``.</span>
+<span class="sd">            * 1: AC phase for small-signal analysis. For example, ``&quot;44deg&quot;``. The default is ``&quot;0deg&quot;``.</span>
+<span class="sd">            * 2: DC voltage. For example, ``&quot;1V&quot;``. The default is ``&quot;0V&quot;``.</span>
+<span class="sd">            * 3: Voltage offset from zero. For example, ``&quot;1V&quot;``. The default is ``&quot;0V&quot;``.</span>
+<span class="sd">            * 4: Voltage amplitude. For example, ``&quot;3V&quot;``. The default is ``&quot;0V&quot;``.</span>
+<span class="sd">            * 5: Frequency. For example, ``&quot;15GHz&quot;``. The default is ``&quot;1GHz&quot;``.</span>
+<span class="sd">            * 6: Delay to start of sine wave. For example, ``&quot;16s&quot;``. The default is ``&quot;0s&quot;``.</span>
+<span class="sd">            * 7: Damping factor (1/seconds). For example, ``&quot;2&quot;``. The default is ``&quot;0&quot;``.</span>
+<span class="sd">            * 8: Phase delay. For example, ``&quot;18deg&quot;``. The default is ``&quot;0deg&quot;``.</span>
+<span class="sd">            * 9: Frequency to use for harmonic balance analysis. For example, ``&quot;20Hz&quot;``. The default is ``&quot;0Hz&quot;``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1371,23 +1372,25 @@
 <span class="sd">        ports : list</span>
 <span class="sd">            List of circuit ports to assign to the sinusoidal excitation.</span>
 <span class="sd">        settings : list</span>
-<span class="sd">            List of parameter values to use in voltage sinusoidal excitation creation.</span>
-<span class="sd">            All settings must be provided as strings.</span>
-<span class="sd">            An empty string (``&quot;&quot;``) sets the parameter to its default.</span>
+<span class="sd">            List of parameter values to use to create the voltage sinusoidal excitation.</span>
+<span class="sd">            All settings must be provided as strings. An empty string (``&quot;&quot;``) sets the</span>
+<span class="sd">            parameter to its default.</span>
 
 <span class="sd">            Values are given in this order:</span>
 
-<span class="sd">            * 0: AC magnitude for small-signal analysis. For example ``&quot;33A&quot;``. Default = &quot;nan A&quot;.</span>
-<span class="sd">            * 1: AC phase for small-signal analysis. For example ``&quot;44deg&quot;``. Default = &quot;0deg&quot;.</span>
-<span class="sd">            * 2: DC voltage. For example ``&quot;1A&quot;``. Default = &quot;0A&quot;</span>
-<span class="sd">            * 3: Current offset from zero. For example ``&quot;1A&quot;``. Default = &quot;0A&quot;.</span>
-<span class="sd">            * 4: Current amplitude. For example ``&quot;3A&quot;``. Default = &quot;0A&quot;.</span>
-<span class="sd">            * 5: Frequency. For example ``&quot;15GHz&quot;``. Default = &quot;1GHz&quot;.</span>
-<span class="sd">            * 6: Delay to start of sine wave. For example ``&quot;16s&quot;``. Default = &quot;0s&quot;.</span>
-<span class="sd">            * 7: Damping factor (1/seconds). For example ``&quot;2&quot;``. Default = &quot;0&quot;.</span>
-<span class="sd">            * 8: Phase delay. For example ``&quot;18deg&quot;``. Default = &quot;0deg&quot;.</span>
-<span class="sd">            * 9: Multiplier for simulating multiple parallel current sources. For example ``&quot;4&quot;``. Default = &quot;1&quot;.</span>
-<span class="sd">            * 10: Frequency to use for harmonic balance analysis. For example ``&quot;20Hz&quot;``. Default = &quot;0Hz&quot;.</span>
+<span class="sd">            * 0: AC magnitude for small-signal analysis. For example, ``&quot;33A&quot;``. The default is ``&quot;nan A&quot;``.</span>
+<span class="sd">            * 1: AC phase for small-signal analysis. For example, ``&quot;44deg&quot;``. The default is ``&quot;0deg&quot;``.</span>
+<span class="sd">            * 2: DC voltage. For example, ``&quot;1A&quot;``. The default is ``&quot;0A&quot;``.</span>
+<span class="sd">            * 3: Current offset from zero. For example, ``&quot;1A&quot;``. The default is ``&quot;0A&quot;``.</span>
+<span class="sd">            * 4: Current amplitude. For example, ``&quot;3A&quot;``. The default is ``&quot;0A&quot;``.</span>
+<span class="sd">            * 5: Frequency. For example, ``&quot;15GHz&quot;``. The default is ``&quot;1GHz&quot;``.</span>
+<span class="sd">            * 6: Delay to start of sine wave. For example, ``&quot;16s&quot;``. The default is ``&quot;0s&quot;``.</span>
+<span class="sd">            * 7: Damping factor (1/seconds). For example, ``&quot;2&quot;``. The default is ``&quot;0&quot;``.</span>
+<span class="sd">            * 8: Phase delay. For example, ``&quot;18deg&quot;``. The default is ``&quot;0deg&quot;``.</span>
+<span class="sd">            * 9: Multiplier for simulating multiple parallel current sources. For example, ``&quot;4&quot;``.</span>
+<span class="sd">              The default is ``&quot;1&quot;``.</span>
+<span class="sd">            * 10: Frequency to use for harmonic balance analysis. For example, ``&quot;20Hz&quot;``.</span>
+<span class="sd">              The default is ``&quot;0Hz&quot;.``</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1498,22 +1501,22 @@
 <span class="sd">        ports : list</span>
 <span class="sd">            List of circuit ports to assign to the sinusoidal excitation.</span>
 <span class="sd">        settings : list</span>
-<span class="sd">            List of parameter values to use in power sinusoidal excitation creation.</span>
-<span class="sd">            All settings must be provided as strings.</span>
-<span class="sd">            An empty string (``&quot;&quot;``) sets the parameter to its default.</span>
+<span class="sd">            List of parameter values to use to create the power sinusoidal excitation.</span>
+<span class="sd">            All settings must be provided as strings. An empty string (``&quot;&quot;``) sets the</span>
+<span class="sd">            parameter to its default.</span>
 
 <span class="sd">            Values are given in this order:</span>
 
-<span class="sd">            * 0: AC magnitude for small-signal analysis. For example ``&quot;33V&quot;``. Default = &quot;nan V&quot;.</span>
-<span class="sd">            * 1: AC phase for small-signal analysis. For example ``&quot;44deg&quot;``. Default = &quot;0deg&quot;.</span>
-<span class="sd">            * 2: DC voltage. For example ``&quot;1V&quot;``. Default = &quot;0V&quot;</span>
-<span class="sd">            * 3: Power offset from zero watts. For example ``&quot;1W&quot;``. Default = &quot;0W&quot;.</span>
-<span class="sd">            * 4: Available power of the source above VO. For example ``&quot;3W&quot;``. Default = &quot;0W&quot;.</span>
-<span class="sd">            * 5: Frequency. For example ``&quot;15GHz&quot;``. Default = &quot;1GHz&quot;.</span>
-<span class="sd">            * 6: Delay to start of sine wave. For example ``&quot;16s&quot;``. Default = &quot;0s&quot;.</span>
-<span class="sd">            * 7: Damping factor (1/seconds). For example ``&quot;2&quot;``. Default = &quot;0&quot;.</span>
-<span class="sd">            * 8: Phase delay. For example ``&quot;18deg&quot;``. Default = &quot;0deg&quot;.</span>
-<span class="sd">            * 9: Frequency to use for harmonic balance analysis. For example ``&quot;20Hz&quot;``. Default = &quot;0Hz&quot;.</span>
+<span class="sd">            * 0: AC magnitude for small-signal analysis. For example, ``&quot;33V&quot;``. The default is ``&quot;nan V&quot;``.</span>
+<span class="sd">            * 1: AC phase for small-signal analysis. For example, ``&quot;44deg&quot;``. The default is ``&quot;0deg&quot;``.</span>
+<span class="sd">            * 2: DC voltage. For example, ``&quot;1V&quot;``. The default is ``&quot;0V&quot;``.</span>
+<span class="sd">            * 3: Power offset from zero watts. For example, ``&quot;1W&quot;``. The default is ``&quot;0W&quot;``.</span>
+<span class="sd">            * 4: Available power of the source above VO. For example, ``&quot;3W&quot;``. The default is ``&quot;0W&quot;``.</span>
+<span class="sd">            * 5: Frequency. For example, ``&quot;15GHz&quot;``. The default is ``&quot;1GHz&quot;``.</span>
+<span class="sd">            * 6: Delay to start of sine wave. For example, ``&quot;16s&quot;``. The default is ``&quot;0s&quot;``.</span>
+<span class="sd">            * 7: Damping factor (1/seconds). For example, ``&quot;2&quot;``. The default is ``&quot;0&quot;``.</span>
+<span class="sd">            * 8: Phase delay. For example, ``&quot;18deg&quot;``. The default is ``&quot;0deg&quot;``.</span>
+<span class="sd">            * 9: Frequency to use for harmonic balance analysis. For example, ``&quot;20Hz&quot;``. The default is ``&quot;0Hz&quot;``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1613,7 +1616,179 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">UpdateSources</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Power Source updated correctly.&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Circuit.set_differential_pair"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Circuit.set_differential_pair.html#pyaedt.Circuit.set_differential_pair">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">set_differential_pair</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">positive_terminal</span><span class="p">,</span>
+        <span class="n">negative_terminal</span><span class="p">,</span>
+        <span class="n">common_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">diff_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">common_ref_z</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="n">diff_ref_z</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a differential pair definition.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        positive_terminal : str</span>
+<span class="sd">            Name of the terminal to use as the positive terminal.</span>
+<span class="sd">        negative_terminal : str</span>
+<span class="sd">            Name of the terminal to use as the negative terminal.</span>
+<span class="sd">        common_name : str, optional</span>
+<span class="sd">            Name for the common mode. Default is ``None`` in which case a unique name is chosen.</span>
+<span class="sd">        diff_name : str, optional</span>
+<span class="sd">            Name for the differential mode. Default is ``None`` in which case a unique name is chosen.</span>
+<span class="sd">        common_ref_z : float, optional</span>
+<span class="sd">            Reference impedance for the common mode. Units are Ohm. Default is ``25``.</span>
+<span class="sd">        diff_ref_z : float, optional</span>
+<span class="sd">            Reference impedance for the differential mode. Units are Ohm. Default is ``100``.</span>
+<span class="sd">        active : bool, optional</span>
+<span class="sd">            Set the differential pair as active. Default is ``True``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; oDesign.SetDiffPairs</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">diff_name</span><span class="p">:</span>
+            <span class="n">diff_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Diff&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">common_name</span><span class="p">:</span>
+            <span class="n">common_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Comm&quot;</span><span class="p">)</span>
+
+        <span class="n">arg1</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;Pos:=&quot;</span><span class="p">,</span>
+            <span class="n">positive_terminal</span><span class="p">,</span>
+            <span class="s2">&quot;Neg:=&quot;</span><span class="p">,</span>
+            <span class="n">negative_terminal</span><span class="p">,</span>
+            <span class="s2">&quot;On:=&quot;</span><span class="p">,</span>
+            <span class="n">active</span><span class="p">,</span>
+            <span class="s2">&quot;matched:=&quot;</span><span class="p">,</span>
+            <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;Dif:=&quot;</span><span class="p">,</span>
+            <span class="n">diff_name</span><span class="p">,</span>
+            <span class="s2">&quot;DfZ:=&quot;</span><span class="p">,</span>
+            <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">diff_ref_z</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="s2">&quot;Com:=&quot;</span><span class="p">,</span>
+            <span class="n">common_name</span><span class="p">,</span>
+            <span class="s2">&quot;CmZ:=&quot;</span><span class="p">,</span>
+            <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">common_ref_z</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="p">]</span>
+
+        <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:DiffPairs&quot;</span><span class="p">]</span>
+        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Pair:=&quot;</span><span class="p">)</span>
+        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg1</span><span class="p">)</span>
+
+        <span class="n">tmpfile1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;tmp&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SaveDiffPairsToFile</span><span class="p">(</span><span class="n">tmpfile1</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpfile1</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+        <span class="n">num_diffs_before</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="n">old_arg</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">data_arg</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;Pos:=&quot;</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Neg:=&quot;</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s2">&quot;On:=&quot;</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;matched:=&quot;</span><span class="p">,</span>
+                <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;Dif:=&quot;</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                <span class="s2">&quot;DfZ:=&quot;</span><span class="p">,</span>
+                <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">]),</span> <span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;Com:=&quot;</span><span class="p">,</span>
+                <span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
+                <span class="s2">&quot;CmZ:=&quot;</span><span class="p">,</span>
+                <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">7</span><span class="p">]),</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="p">]</span>
+            <span class="n">old_arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_arg</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">arg2</span> <span class="ow">in</span> <span class="n">old_arg</span><span class="p">:</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Pair:=&quot;</span><span class="p">)</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmpfile1</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;ERROR: Cannot remove temp files.&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetDiffPairs</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Circuit.load_diff_pairs_from_file"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Circuit.load_diff_pairs_from_file.html#pyaedt.Circuit.load_diff_pairs_from_file">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">load_diff_pairs_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load differtential pairs definition from file.</span>
+
+<span class="sd">        File format can be obtained using ``save_diff_pairs_to_file`` method.</span>
+<span class="sd">        New definitions are added only if compatible with the existing definition already defined in the project.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Full qualified name of the file containing the differential pairs definition.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; oDesign.LoadDiffPairsFromFile</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: unable to find the specified file.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;temp&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">filedata</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">new_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">filedata</span><span class="p">:</span>
+                    <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">LoadDiffPairsFromFile</span><span class="p">(</span><span class="n">new_file</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">new_file</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Circuit.save_diff_pairs_to_file"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Circuit.save_diff_pairs_to_file.html#pyaedt.Circuit.save_diff_pairs_to_file">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">save_diff_pairs_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save differtential pairs definition to file.</span>
+
+<span class="sd">        If ``filename`` already exists, it will be overwritten.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Full qualified name of the file containing the differential pairs definition.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; oDesign.SaveDiffPairsToFile</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SaveDiffPairsToFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div></div>
 </pre></div>
 
               </div>
