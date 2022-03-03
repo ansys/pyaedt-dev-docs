@@ -1314,7 +1314,9 @@
                     <span class="k">continue</span>
                 <span class="k">if</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="n">start_layer</span><span class="p">:</span>
                     <span class="n">original_layer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-
+                    <span class="n">original_layer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+                    <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">original_layer</span><span class="p">)</span>
+                    <span class="n">el</span> <span class="o">+=</span> <span class="n">original_layer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
                     <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">(</span>
                         <span class="n">layerName</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">),</span>
@@ -1332,14 +1334,11 @@
                         <span class="n">thickness</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_int_to_layer_types</span><span class="p">(</span><span class="n">layerType</span><span class="p">),</span>
                     <span class="p">)</span>
-                    <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">set_elevation</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="n">el</span><span class="p">)</span>
+                    <span class="n">newLayer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
                     <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">newLayer</span><span class="p">)</span>
-
                     <span class="n">el</span> <span class="o">+=</span> <span class="n">newLayer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
-                    <span class="n">original_layer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
                     <span class="c1"># newLayers.Add(original_layer)</span>
-                    <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">original_layer</span><span class="p">)</span>
-                    <span class="n">el</span> <span class="o">+=</span> <span class="n">original_layer</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span>
+
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">newLayer</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
                     <span class="n">newLayer</span><span class="o">.</span><span class="n">SetLowerElevation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
@@ -2294,6 +2293,149 @@
 <span class="sd">            * -1 Undefined.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetTopBottomAssociation</span><span class="p">())</span>
+
+    <span class="nd">@aedt_exception_handler</span>
+    <span class="k">def</span> <span class="nf">create_reactangle_in_pad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a rectangle inscribed inside a padstack instance pad. The rectangle is fully inscribed in the</span>
+<span class="sd">        pad and has the maximum area. It is necessary to specify the layer on which the rectangle will be created.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layer_name : str</span>
+<span class="sd">            Name of the layer on which to create the polygon.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool, :class:`pyaedt.edb_core.EDB_Data.EDBPrimitives`</span>
+<span class="sd">            Polygon when successful, ``False`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;, edbversion=&quot;2021.2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; edb_layout = edbapp.core_primitives</span>
+<span class="sd">        &gt;&gt;&gt; list_of_padstack_instances = list(edbapp.core_padstack.padstack_instances.values())</span>
+<span class="sd">        &gt;&gt;&gt; padstack_inst = list_of_padstack_instances[0]</span>
+<span class="sd">        &gt;&gt;&gt; padstack_inst.create_reactangle_in_pad(&quot;TOP&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">padstack_center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span>
+        <span class="n">padstack_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstack_definition</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">padstack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">padstack_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">padstack_pad</span> <span class="o">=</span> <span class="n">padstack</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">pad_shape</span> <span class="o">=</span> <span class="n">padstack_pad</span><span class="o">.</span><span class="n">geometry_type</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">padstack_pad</span><span class="o">.</span><span class="n">parameters_values</span>
+        <span class="n">polygon_data</span> <span class="o">=</span> <span class="n">padstack_pad</span><span class="o">.</span><span class="n">polygon_data</span>
+
+        <span class="n">rect</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">pcx</span> <span class="o">=</span> <span class="n">padstack_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pcy</span> <span class="o">=</span> <span class="n">padstack_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">pad_shape</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Circle</span>
+            <span class="n">diameter</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">diameter</span> <span class="o">*</span> <span class="mf">0.5</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">r</span><span class="p">,</span> <span class="n">pcy</span><span class="p">]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">r</span><span class="p">]</span>
+            <span class="n">p3</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">r</span><span class="p">,</span> <span class="n">pcy</span><span class="p">]</span>
+            <span class="n">p4</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">r</span><span class="p">]</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">,</span> <span class="n">p4</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">pad_shape</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># Square</span>
+            <span class="n">square_size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s2</span> <span class="o">=</span> <span class="n">square_size</span> <span class="o">*</span> <span class="mf">0.5</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">s2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">s2</span><span class="p">]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">s2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">s2</span><span class="p">]</span>
+            <span class="n">p3</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">s2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">s2</span><span class="p">]</span>
+            <span class="n">p4</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">s2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">s2</span><span class="p">]</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">,</span> <span class="n">p4</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">pad_shape</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># Rectangle</span>
+            <span class="n">x_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">y_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">sx2</span> <span class="o">=</span> <span class="n">x_size</span> <span class="o">*</span> <span class="mf">0.5</span>
+            <span class="n">sy2</span> <span class="o">=</span> <span class="n">y_size</span> <span class="o">*</span> <span class="mf">0.5</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">sx2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">sy2</span><span class="p">]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">sx2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">sy2</span><span class="p">]</span>
+            <span class="n">p3</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">sx2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">sy2</span><span class="p">]</span>
+            <span class="n">p4</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">sx2</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">sy2</span><span class="p">]</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">,</span> <span class="n">p4</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">pad_shape</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="c1"># Oval</span>
+            <span class="n">x_size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">corner_radius</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">corner_radius</span> <span class="o">&gt;=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span><span class="p">):</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">corner_radius</span>
+            <span class="n">sx</span> <span class="o">=</span> <span class="n">x_size</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">r</span>
+            <span class="n">sy</span> <span class="o">=</span> <span class="n">y_size</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">r</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">sx</span> <span class="o">-</span> <span class="n">k</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">p3</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">sx</span> <span class="o">-</span> <span class="n">k</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">sy</span> <span class="o">-</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">p4</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">sy</span> <span class="o">-</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">,</span> <span class="n">p4</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">pad_shape</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="c1"># Bullet</span>
+            <span class="n">x_size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">y_size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">corner_radius</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">corner_radius</span> <span class="o">&gt;=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span><span class="p">):</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x_size</span><span class="p">,</span> <span class="n">y_size</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">corner_radius</span>
+            <span class="n">sx</span> <span class="o">=</span> <span class="n">x_size</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">r</span>
+            <span class="n">sy</span> <span class="o">=</span> <span class="n">y_size</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">r</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">x_size</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">sy</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">p3</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">x_size</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">sy</span> <span class="o">-</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">p4</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">sx</span> <span class="o">+</span> <span class="n">k</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">sy</span> <span class="o">-</span> <span class="n">k</span><span class="p">]</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">,</span> <span class="n">p4</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">pad_shape</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="c1"># N-Sided Polygon</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">num_sides</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">ext_radius</span> <span class="o">=</span> <span class="n">size</span> <span class="o">*</span> <span class="mf">0.5</span>
+            <span class="n">apothem</span> <span class="o">=</span> <span class="n">ext_radius</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="n">num_sides</span><span class="p">)</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">+</span> <span class="n">apothem</span><span class="p">,</span> <span class="n">pcy</span><span class="p">]</span>
+            <span class="n">p2</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">+</span> <span class="n">apothem</span><span class="p">]</span>
+            <span class="n">p3</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span> <span class="o">-</span> <span class="n">apothem</span><span class="p">,</span> <span class="n">pcy</span><span class="p">]</span>
+            <span class="n">p4</span> <span class="o">=</span> <span class="p">[</span><span class="n">pcx</span><span class="p">,</span> <span class="n">pcy</span> <span class="o">-</span> <span class="n">apothem</span><span class="p">]</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">p3</span><span class="p">,</span> <span class="n">p4</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">pad_shape</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">polygon_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Polygon</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">polygon_data</span><span class="o">.</span><span class="n">Count</span><span class="p">:</span>
+                <span class="n">point</span> <span class="o">=</span> <span class="n">polygon_data</span><span class="o">.</span><span class="n">GetPoint</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">point</span><span class="o">.</span><span class="n">IsArc</span><span class="p">():</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">point</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">point</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()])</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">xpoly</span><span class="p">,</span> <span class="n">ypoly</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">points</span><span class="p">)</span>
+            <span class="n">polygon</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">xpoly</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">ypoly</span><span class="p">)]</span>
+            <span class="n">rectangles</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">find_largest_rectangle_inside_polygon</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
+            <span class="n">rect</span> <span class="o">=</span> <span class="n">rectangles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="n">rect</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">rect</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">pcx</span>
+                <span class="n">rect</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">rect</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">pcy</span>
+
+        <span class="k">if</span> <span class="n">rect</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span><span class="s2">&quot;polygon&quot;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">rect</span><span class="p">)</span>
+        <span class="n">created_polygon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">create_polygon</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">padstack_pad</span><span class="o">.</span><span class="n">layer_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">created_polygon</span>
 
 
 <div class="viewcode-block" id="EDBComponent"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBComponent.html#pyaedt.edb_core.EDB_Data.EDBComponent">[docs]</a><span class="k">class</span> <span class="nc">EDBComponent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
