@@ -179,8 +179,16 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">aedt_exception_handler</span><span class="p">,</span> <span class="n">is_ironpython</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Padstack</span><span class="p">,</span> <span class="n">Components3DLayout</span><span class="p">,</span> <span class="n">Geometries3DLayout</span><span class="p">,</span> <span class="n">Pins3DLayout</span><span class="p">,</span> <span class="n">Nets3DLayout</span><span class="p">,</span> <span class="n">_uname</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span><span class="p">,</span> <span class="n">is_ironpython</span><span class="p">,</span> <span class="n">_retry_ntimes</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Padstack</span><span class="p">,</span>
+    <span class="n">Components3DLayout</span><span class="p">,</span>
+    <span class="n">Geometries3DLayout</span><span class="p">,</span>
+    <span class="n">Pins3DLayout</span><span class="p">,</span>
+    <span class="n">Nets3DLayout</span><span class="p">,</span>
+    <span class="n">_uname</span><span class="p">,</span>
+    <span class="n">ComponentsSubCircuit3DLayout</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Primitives</span> <span class="kn">import</span> <span class="n">default_materials</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
@@ -216,7 +224,7 @@
 <span class="sd">    &gt;&gt;&gt; prim = aedtapp.modeler</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@aedt_exception_handler</span>
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve a part.</span>
 
@@ -242,6 +250,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_opadstackmanager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetDefinitionManager</span><span class="p">()</span><span class="o">.</span><span class="n">GetManager</span><span class="p">(</span><span class="s2">&quot;Padstack&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_components3d</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span> <span class="o">=</span> <span class="p">{}</span>
@@ -333,6 +342,23 @@
                         <span class="k">continue</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Geometries3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">elid</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">components_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Components.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of components from EDB. If EDB is not present, ``None`` is returned.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components3d</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">):</span>
+                <span class="n">cmp_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetComponentInfo</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">cmp_info</span> <span class="ow">and</span> <span class="s2">&quot;ComponentName&quot;</span> <span class="ow">in</span> <span class="n">cmp_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_components3d</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">Components3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components3d</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -429,7 +455,7 @@
         <span class="sd">&quot;&quot;&quot;Padstack.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Padstack</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Primitives3DLayout.new_padstack"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.new_padstack.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.new_padstack">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.new_padstack"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.new_padstack.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.new_padstack">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">new_padstack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Padstack&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a `Padstack` object that can be used to create a padstack.</span>
 
@@ -450,7 +476,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Padstack</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opadstackmanager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.init_padstacks"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.init_padstacks.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.init_padstacks">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.init_padstacks"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.init_padstacks.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.init_padstacks">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">init_padstacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Read all padstacks from HFSS 3D Layout.</span>
 
@@ -528,7 +554,7 @@
 
         <span class="k">return</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.change_net_visibility"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.change_net_visibility.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.change_net_visibility">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.change_net_visibility"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.change_net_visibility.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.change_net_visibility">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">change_net_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">netlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Change the visibility of one or more nets.</span>
 
@@ -564,7 +590,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">SetNetVisible</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.create_via"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_via.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_via">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.create_via"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_via.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_via">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_via</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">padstack</span><span class="o">=</span><span class="s2">&quot;PlanarEMVia&quot;</span><span class="p">,</span>
@@ -648,7 +674,7 @@
         <span class="c1">#     self.objects[name].set_net_name(netname)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.create_circle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.create_circle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_circle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a circle on a layer.</span>
 
@@ -702,7 +728,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">set_net_name</span><span class="p">(</span><span class="n">netname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.create_rectangle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.create_rectangle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_rectangle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a rectangle on a layer.</span>
 
@@ -761,7 +787,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">set_net_name</span><span class="p">(</span><span class="n">netname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.create_line"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.create_line"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">center_line_list</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">start_style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end_style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a line based on a list of points.</span>
 
@@ -837,7 +863,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">set_net_name</span><span class="p">(</span><span class="n">netname</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.arg_with_dim"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim">[docs]</a>    <span class="nd">@aedt_exception_handler</span>
+<div class="viewcode-block" id="Primitives3DLayout.arg_with_dim"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Value</span><span class="p">,</span> <span class="n">sUnits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Format arguments with dimensions.</span>
 
@@ -860,7 +886,111 @@
                 <span class="n">sUnits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span>
             <span class="n">val</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">sUnits</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">val</span></div></div>
+        <span class="k">return</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="Primitives3DLayout.place_3d_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.place_3d_component.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.place_3d_component">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">place_3d_component</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">component_path</span><span class="p">,</span> <span class="n">number_of_terminals</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">placement_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">component_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="mi">0</span>
+    <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;Place a Hfss 3d Component in Hfss3dLayout.</span>
+
+<span class="sd">        :param component_path:</span>
+<span class="sd">        :param number_of_terminals:</span>
+<span class="sd">        :param placement_layer:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">component_name</span><span class="p">:</span>
+            <span class="n">component_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">component_path</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">component_name</span><span class="p">]</span>
+        <span class="n">infos</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span>
+            <span class="mi">27</span><span class="p">,</span>
+            <span class="s2">&quot;NumTerminals:=&quot;</span><span class="p">,</span>
+            <span class="n">number_of_terminals</span><span class="p">,</span>
+            <span class="s2">&quot;DataSource:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ModifiedOn:=&quot;</span><span class="p">,</span>
+            <span class="mi">1646294080</span><span class="p">,</span>
+            <span class="s2">&quot;Manufacturer:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Symbol:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;v1_&quot;</span> <span class="o">+</span> <span class="n">component_name</span><span class="p">,</span>
+            <span class="s2">&quot;ModelNames:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Footprint:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Description:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;InfoTopic:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;InfoHelpFile:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;IconFile:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;BlueDot.bmp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Library:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;OriginalLocation:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Project&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;IEEE:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Author:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;OriginalAuthor:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;CreationDate:=&quot;</span><span class="p">,</span>
+            <span class="mi">1646294079</span><span class="p">,</span>
+            <span class="s2">&quot;ExampleFile:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;HiddenComponent:=&quot;</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;CircuitEnv:=&quot;</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;GroupID:=&quot;</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Info:=&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">infos</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CircuitEnv:=&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Refbase:=&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;U&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NumParts:=&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ModSinceLib:=&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CompExtID:=&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;3DCompSourceFileName:=&quot;</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">component_path</span><span class="p">)</span>
+
+        <span class="n">_retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">o_component_manager</span><span class="o">.</span><span class="n">Add</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">stack_layers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">all_layers</span><span class="p">]</span>
+        <span class="n">drawing</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">drawing_layers</span><span class="p">]</span>
+        <span class="n">arg_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pos_x</span><span class="p">)</span>
+        <span class="n">arg_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">pos_y</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:Contents&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;definition_name:=&quot;</span><span class="p">,</span>
+            <span class="n">component_name</span><span class="p">,</span>
+            <span class="s2">&quot;placement:=&quot;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s2">&quot;x:=&quot;</span><span class="p">,</span> <span class="n">arg_x</span><span class="p">,</span> <span class="s2">&quot;y:=&quot;</span><span class="p">,</span> <span class="n">arg_y</span><span class="p">],</span>
+            <span class="s2">&quot;layer:=&quot;</span><span class="p">,</span>
+            <span class="n">placement_layer</span><span class="p">,</span>
+            <span class="s2">&quot;isCircuit:=&quot;</span><span class="p">,</span>
+            <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;compInstName:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;rect_width:=&quot;</span><span class="p">,</span>
+            <span class="mf">0.01</span><span class="p">,</span>
+            <span class="s2">&quot;StackupLayers:=&quot;</span><span class="p">,</span>
+            <span class="n">stack_layers</span><span class="p">,</span>
+            <span class="s2">&quot;DrawLayers:=&quot;</span><span class="p">,</span>
+            <span class="n">drawing</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">comp_name</span> <span class="o">=</span> <span class="n">_retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateComponent</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">ComponentsSubCircuit3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">components_3d</span><span class="p">[</span><span class="n">comp_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">comp</span>
+        <span class="k">return</span> <span class="n">comp</span>  <span class="c1">#</span></div></div>
 </pre></div>
 
               </div>
