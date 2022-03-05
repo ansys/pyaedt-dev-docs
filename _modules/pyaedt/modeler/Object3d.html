@@ -176,7 +176,6 @@
                 
   <h1>Source code for pyaedt.modeler.Object3d</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
-
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module contains these classes: `Components3DLayout`,`CircuitComponent&#39;,</span>
 <span class="sd">`EdgePrimitive`, `EdgeTypePrimitive`, `FacePrimitive`, `Geometries3DLayout`,</span>
@@ -187,20 +186,22 @@
 <span class="sd">objects (points, lines, sheeets, and solids) within the AEDT 3D Modeler.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
-<span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span><span class="p">,</span> <span class="n">_retry_ntimes</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">decompose_variable_value</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">AEDT_UNITS</span><span class="p">,</span> <span class="n">MILS2METER</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">AEDT_UNITS</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">MILS2METER</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
 <span class="n">clamp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">,</span> <span class="n">minn</span><span class="p">,</span> <span class="n">maxn</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">maxn</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">minn</span><span class="p">)</span>
 
@@ -947,6 +948,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_wireframe</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_part_coordinate_system</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_m_groupName</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_bounding_box_unmodel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1412,6 +1414,61 @@
                 <span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;Geometry3DAttributeTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_name</span><span class="p">,</span> <span class="s2">&quot;Group&quot;</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_groupName</span>
+
+    <span class="nd">@group_name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">group_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign Object to a specific group. it creates a new group if the group doesn&#39;t exist.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the group to assign. Group will be created if it does not exist.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the group.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.GetPropertyValue</span>
+<span class="sd">        &gt;&gt;&gt; oEditor.ChangeProperty</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetObjectsInGroup</span><span class="p">(</span><span class="n">name</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">CreateGroup</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:GroupParameter&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;ParentGroupID:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Model&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Parts:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_m_name</span><span class="p">,</span>
+                    <span class="s2">&quot;SubmodelInstances:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Groups:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">groupName</span> <span class="o">=</span> <span class="n">_retry_ntimes</span><span class="p">(</span>
+                <span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;Geometry3DAttributeTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_m_name</span><span class="p">,</span> <span class="s2">&quot;Group&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
+                    <span class="p">[</span>
+                        <span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">,</span>
+                        <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">groupName</span><span class="p">],</span>
+                        <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">]],</span>
+                    <span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_m_groupName</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vgroup</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Group&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_change_property</span><span class="p">(</span><span class="n">vgroup</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_m_groupName</span> <span class="o">=</span> <span class="n">name</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">material_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3205,9 +3262,10 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primitives</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primitives</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">edb_object</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">Objec3DLayout</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primitives</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span> <span class="o">=</span> <span class="n">edb_object</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3223,6 +3281,8 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetPropertyValue</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="o">.</span><span class="n">center</span>
         <span class="n">location</span> <span class="o">=</span> <span class="n">_retry_ntimes</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;BaseElementTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Location&quot;</span>
         <span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
@@ -3248,6 +3308,8 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetPropertyValue</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="o">.</span><span class="n">placement_layer</span>
         <span class="k">return</span> <span class="n">_retry_ntimes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;BaseElementTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;PlacementLayer&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -3264,6 +3326,8 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetPropertyValue</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="o">.</span><span class="n">partname</span>
         <span class="k">return</span> <span class="n">_retry_ntimes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;BaseElementTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Part&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -3280,7 +3344,16 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetPropertyValue</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_object</span><span class="o">.</span><span class="n">type</span>
         <span class="k">return</span> <span class="n">_retry_ntimes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;BaseElementTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Part Type&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_part_type_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Other&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Resistor&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;IC&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;IO&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">part_type</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">part_type</span><span class="p">]</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">angle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3296,7 +3369,29 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetPropertyValue</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">_retry_ntimes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;BaseElementTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Angle&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">_retry_ntimes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_Editor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">,</span> <span class="s2">&quot;BaseElementTab&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Angle&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Components3DLayout.enabled"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Object3d.Components3DLayout.enabled.html#pyaedt.modeler.Primitives.Components3DLayout.enabled">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable or Disable the RLC Component.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        status : bool, optional</span>
+<span class="sd">            Set the RLC Component to Enable or Disable state.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            `True` if succeeded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_part_type_id</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:Model Info&quot;</span><span class="p">,</span>
+            <span class="p">[</span><span class="s2">&quot;NAME:Model&quot;</span><span class="p">,</span> <span class="s2">&quot;RLCProp:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;CompPropEnabled:=&quot;</span><span class="p">,</span> <span class="n">status</span><span class="p">],</span> <span class="s2">&quot;CompType:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_part_type_id</span><span class="p">],</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="Nets3DLayout"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Object3d.Nets3DLayout.html#pyaedt.modeler.Primitives.Nets3DLayout">[docs]</a><span class="k">class</span> <span class="nc">Nets3DLayout</span><span class="p">(</span><span class="n">Objec3DLayout</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
