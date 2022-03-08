@@ -454,6 +454,17 @@
                 <span class="k">return</span> <span class="n">val</span><span class="o">.</span><span class="n">solder_ball_height</span>
         <span class="k">return</span> <span class="mi">0</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_remove_solder_pec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">solder_ball_height</span> <span class="ow">and</span> <span class="n">val</span><span class="o">.</span><span class="n">placement_layer</span> <span class="o">==</span> <span class="n">layer_name</span><span class="p">:</span>
+                <span class="n">comp_prop</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">component_property</span>
+                <span class="n">port_property</span> <span class="o">=</span> <span class="n">comp_prop</span><span class="o">.</span><span class="n">GetPortProperty</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+                <span class="n">port_property</span><span class="o">.</span><span class="n">SetReferenceSizeAuto</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">port_property</span><span class="o">.</span><span class="n">SetReferenceSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
+                <span class="n">comp_prop</span><span class="o">.</span><span class="n">SetPortProperty</span><span class="p">(</span><span class="n">port_property</span><span class="p">)</span>
+                <span class="n">val</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">SetComponentProperty</span><span class="p">(</span><span class="n">comp_prop</span><span class="p">)</span>
+
 <div class="viewcode-block" id="EdbStackup.adjust_solder_dielectrics"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.EdbStackup.adjust_solder_dielectrics.html#pyaedt.edb_core.stackup.EdbStackup.adjust_solder_dielectrics">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">adjust_solder_dielectrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Adjust the stack-up by adding or modifying dielectric layers that contains Solder Balls.</span>
@@ -657,9 +668,14 @@
 
         <span class="k">if</span> <span class="n">solder_height</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">flipped_stackup</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">place_on_top</span> <span class="ow">or</span> <span class="p">(</span><span class="n">place_on_top</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">flipped_stackup</span><span class="p">):</span>
-                <span class="n">solder_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_solder_height</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">lay</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">solder_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_solder_height</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_remove_solder_pec</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">solder_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_solder_height</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">lay</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="n">solder_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_solder_height</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_remove_solder_pec</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
 
         <span class="n">rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">flipped_stackup</span><span class="p">:</span>
@@ -686,35 +702,64 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cell_inst2</span><span class="o">.</span><span class="n">SetPlacementLayer</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">stackup_target</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">SignalLayerSet</span><span class="p">))[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">cell_inst2</span><span class="o">.</span><span class="n">SetIs3DPlacement</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">input_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">SignalLayerSet</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">res</span><span class="p">,</span> <span class="n">topl</span><span class="p">,</span> <span class="n">topz</span><span class="p">,</span> <span class="n">bottoml</span><span class="p">,</span> <span class="n">bottomz</span> <span class="o">=</span> <span class="n">stackup_target</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span><span class="n">input_layers</span><span class="p">)</span>
-            <span class="n">res_s</span><span class="p">,</span> <span class="n">topl_s</span><span class="p">,</span> <span class="n">topz_s</span><span class="p">,</span> <span class="n">bottoml_s</span><span class="p">,</span> <span class="n">bottomz_s</span> <span class="o">=</span> <span class="n">stackup_source</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span><span class="n">input_layers</span><span class="p">)</span>
+        <span class="n">stack_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">StackupLayerSet</span>
+        <span class="n">sig_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">SignalLayerSet</span>
+
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">stackup_target</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span><span class="n">stack_set</span><span class="p">)</span>
+            <span class="n">target_top_thick</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">target_bottom_thick</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">res_s</span> <span class="o">=</span> <span class="n">stackup_source</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span><span class="n">stack_set</span><span class="p">)</span>
+            <span class="n">source_stack_top_thick</span> <span class="o">=</span> <span class="n">res_s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">source_stack_bot_thick</span> <span class="o">=</span> <span class="n">res_s</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">res2</span> <span class="o">=</span> <span class="n">stackup_source</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span><span class="n">sig_set</span><span class="p">)</span>
+            <span class="n">source_sig_top_thick</span> <span class="o">=</span> <span class="n">res2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">source_sig_bot_thick</span> <span class="o">=</span> <span class="n">res2</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">topl</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">topz</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
-            <span class="n">bottoml</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">bottomz</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
-            <span class="n">topl_s</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">topz_s</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
-            <span class="n">bottoml_s</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">bottomz_s</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
-            <span class="n">res</span><span class="p">,</span> <span class="n">topl</span><span class="p">,</span> <span class="n">topz</span><span class="p">,</span> <span class="n">bottoml</span><span class="p">,</span> <span class="n">bottomz</span> <span class="o">=</span> <span class="n">stackup_target</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span>
-                <span class="n">input_layers</span><span class="p">,</span> <span class="n">topl</span><span class="p">,</span> <span class="n">topz</span><span class="p">,</span> <span class="n">bottoml</span><span class="p">,</span> <span class="n">bottomz</span>
-            <span class="p">)</span>
-            <span class="n">res_s</span><span class="p">,</span> <span class="n">topl_s</span><span class="p">,</span> <span class="n">topz_s</span><span class="p">,</span> <span class="n">bottoml_s</span><span class="p">,</span> <span class="n">bottomz_s</span> <span class="o">=</span> <span class="n">stackup_source</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span>
-                <span class="n">input_layers</span><span class="p">,</span> <span class="n">topl_s</span><span class="p">,</span> <span class="n">topz_s</span><span class="p">,</span> <span class="n">bottoml_s</span><span class="p">,</span> <span class="n">bottomz_s</span>
+            <span class="n">target_top</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_top_thick</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">target_bottom</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_bottom_thick</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">source_sig_top</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_sig_top_thick</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">source_sig_bot</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_sig_bot_thick</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">source_stack_top</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_stack_top_thick</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">source_stack_bot</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">source_stack_bot_thick</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">stackup_target</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span>
+                <span class="n">stack_set</span><span class="p">,</span> <span class="n">target_top</span><span class="p">,</span> <span class="n">target_top_thick</span><span class="p">,</span> <span class="n">target_bottom</span><span class="p">,</span> <span class="n">target_bottom_thick</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">place_on_top</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">flipped_stackup</span><span class="p">:</span>
-                <span class="n">h_stackup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">topz</span> <span class="o">+</span> <span class="n">solder_height</span> <span class="o">+</span> <span class="n">topz_s</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">h_stackup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">topz</span> <span class="o">+</span> <span class="n">solder_height</span> <span class="o">-</span> <span class="n">bottomz_s</span><span class="p">)</span>
+            <span class="n">res_s</span> <span class="o">=</span> <span class="n">stackup_source</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span>
+                <span class="n">stack_set</span><span class="p">,</span> <span class="n">source_stack_top</span><span class="p">,</span> <span class="n">source_stack_top_thick</span><span class="p">,</span> <span class="n">source_stack_bot</span><span class="p">,</span> <span class="n">source_stack_bot_thick</span>
+            <span class="p">)</span>
+            <span class="n">res2</span> <span class="o">=</span> <span class="n">stackup_source</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span>
+                <span class="n">sig_set</span><span class="p">,</span> <span class="n">source_sig_top</span><span class="p">,</span> <span class="n">source_sig_top_thick</span><span class="p">,</span> <span class="n">source_sig_bot</span><span class="p">,</span> <span class="n">source_sig_bot_thick</span>
+            <span class="p">)</span>
+            <span class="n">target_top_thick</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">target_bottom_thick</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">source_stack_top_thick</span> <span class="o">=</span> <span class="n">res_s</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">source_stack_bot_thick</span> <span class="o">=</span> <span class="n">res_s</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="n">source_sig_top_thick</span> <span class="o">=</span> <span class="n">res2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">source_sig_bot_thick</span> <span class="o">=</span> <span class="n">res2</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">place_on_top</span> <span class="ow">and</span> <span class="n">flipped_stackup</span><span class="p">:</span>
+            <span class="n">elevation</span> <span class="o">=</span> <span class="n">target_top_thick</span> <span class="o">+</span> <span class="n">source_stack_top_thick</span>
+            <span class="n">diel_elevation</span> <span class="o">=</span> <span class="n">source_stack_top_thick</span> <span class="o">-</span> <span class="n">source_sig_top_thick</span>
+        <span class="k">elif</span> <span class="n">place_on_top</span><span class="p">:</span>
+            <span class="n">elevation</span> <span class="o">=</span> <span class="n">target_top_thick</span> <span class="o">+</span> <span class="n">source_stack_bot_thick</span>
+            <span class="n">diel_elevation</span> <span class="o">=</span> <span class="n">source_sig_bot_thick</span> <span class="o">-</span> <span class="n">source_stack_bot_thick</span>
         <span class="k">elif</span> <span class="n">flipped_stackup</span><span class="p">:</span>
-            <span class="n">h_stackup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">topl</span><span class="o">.</span><span class="n">GetThickness</span><span class="p">()</span> <span class="o">+</span> <span class="n">bottomz</span> <span class="o">-</span> <span class="n">solder_height</span> <span class="o">-</span> <span class="n">bottomz_s</span><span class="p">)</span>
+            <span class="n">elevation</span> <span class="o">=</span> <span class="n">target_bottom_thick</span> <span class="o">-</span> <span class="n">source_stack_bot_thick</span>
+            <span class="n">diel_elevation</span> <span class="o">=</span> <span class="n">source_stack_bot_thick</span> <span class="o">-</span> <span class="n">source_sig_bot_thick</span>
+            <span class="n">solder_height</span> <span class="o">=</span> <span class="o">-</span><span class="n">solder_height</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">h_stackup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">bottomz</span> <span class="o">-</span> <span class="n">solder_height</span> <span class="o">-</span> <span class="n">topz_s</span><span class="p">)</span>
+            <span class="n">elevation</span> <span class="o">=</span> <span class="n">target_bottom_thick</span> <span class="o">-</span> <span class="n">source_sig_top_thick</span>
+            <span class="n">diel_elevation</span> <span class="o">=</span> <span class="n">target_bottom_thick</span> <span class="o">-</span> <span class="n">source_stack_bot_thick</span>
+            <span class="n">solder_height</span> <span class="o">=</span> <span class="o">-</span><span class="n">solder_height</span>
+
+        <span class="n">h_stackup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">elevation</span> <span class="o">+</span> <span class="n">solder_height</span> <span class="o">-</span> <span class="n">diel_elevation</span><span class="p">)</span>
 
         <span class="n">zero_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
         <span class="n">one_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
