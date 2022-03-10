@@ -1053,13 +1053,39 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_helix"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_helix.html#pyaedt.modeler.Primitives3D.Primitives3D.create_helix">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_helix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udphelixdefinition</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create an helix.</span>
+    <span class="k">def</span> <span class="nf">create_helix</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">polyline_name</span><span class="p">,</span>
+        <span class="n">position</span><span class="p">,</span>
+        <span class="n">x_start_dir</span><span class="p">,</span>
+        <span class="n">y_start_dir</span><span class="p">,</span>
+        <span class="n">z_start_dir</span><span class="p">,</span>
+        <span class="n">num_thread</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">right_hand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">radius_increment</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">thread</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an helix from a polyline.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        udphelixdefinition :</span>
-
+<span class="sd">        polyline_name : str</span>
+<span class="sd">            Name of the polyline used as the base for the helix.</span>
+<span class="sd">        position : list</span>
+<span class="sd">            List of ``[x, y, z]`` coordinates for the center point of the circle.</span>
+<span class="sd">        x_start_dir : float</span>
+<span class="sd">            Distance along x axis from the polyline.</span>
+<span class="sd">        y_start_dir : float</span>
+<span class="sd">            Distance along y axis from the polyline.</span>
+<span class="sd">        z_start_dir : float</span>
+<span class="sd">            Distance along z axis from the polyline.</span>
+<span class="sd">        num_thread : int, optional</span>
+<span class="sd">            Number of turns. The default value is ``1``.</span>
+<span class="sd">        right_hand : bool, optional</span>
+<span class="sd">            Whether the helix turning direction is right hand. The default value is ``True``.</span>
+<span class="sd">        radius_increment : float, optional</span>
+<span class="sd">            Radius change per turn. The default value is ``0.0``.</span>
+<span class="sd">        thread : float</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1072,11 +1098,36 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateHelix</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">polyline_name</span> <span class="ow">or</span> <span class="n">polyline_name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The name of the polyline cannot be an empty string.&quot;</span><span class="p">)</span>
+
+        <span class="n">x_center</span><span class="p">,</span> <span class="n">y_center</span><span class="p">,</span> <span class="n">z_center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_with_arg</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+
         <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">]</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Selections:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Selections:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polyline_name</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NewPartsModelFlag:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Model&quot;</span><span class="p">)</span>
 
-        <span class="n">vArg2</span> <span class="o">=</span> <span class="n">udphelixdefinition</span><span class="o">.</span><span class="n">toScript</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
+        <span class="n">vArg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:HelixParameters&quot;</span><span class="p">]</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;XCenter:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_center</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;YCenter:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_center</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ZCenter:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_center</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;XStartDir:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">x_start_dir</span><span class="p">))</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;YStartDir:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">y_start_dir</span><span class="p">))</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ZStartDir:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">z_start_dir</span><span class="p">))</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;NumThread:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;RightHand:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">right_hand</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;RadiusIncrement:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">radius_increment</span><span class="p">))</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Thread:=&quot;</span><span class="p">)</span>
+        <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">thread</span><span class="p">))</span>
 
         <span class="n">new_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">CreateHelix</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span></div>
