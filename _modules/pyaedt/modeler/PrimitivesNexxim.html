@@ -201,10 +201,12 @@
                 
   <h1>Source code for pyaedt.modeler.PrimitivesNexxim</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.LoadAEDTFile</span> <span class="kn">import</span> <span class="n">load_entire_aedt_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">CircuitComponent</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.PrimitivesCircuit</span> <span class="kn">import</span> <span class="n">CircuitComponents</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.PrimitivesCircuit</span> <span class="kn">import</span> <span class="n">ComponentCatalog</span>
@@ -1130,7 +1132,7 @@
         <span class="n">pin_lists</span><span class="p">,</span>
         <span class="n">time_stamp</span><span class="o">=</span><span class="mi">1591858313</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">refbase</span><span class="o">=</span><span class="s2">&quot;U&quot;</span><span class="p">,</span>
+        <span class="n">refbase</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span>
         <span class="n">parameter_list</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">parameter_value</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">gref</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -1234,13 +1236,12 @@
         <span class="n">arg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Parameters&quot;</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parameter_list</span><span class="p">,</span> <span class="n">parameter_value</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;MOD&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">:</span>
                 <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;TextValueProp:=&quot;</span><span class="p">)</span>
                 <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">val</span><span class="p">])</span>
-
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ValueProp:=&quot;</span><span class="p">)</span>
-                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
+                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ValuePropNU:=&quot;</span><span class="p">)</span>
+                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
 
         <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ButtonProp:=&quot;</span><span class="p">)</span>
         <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;CosimDefinition&quot;</span><span class="p">,</span> <span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;Edit&quot;</span><span class="p">,</span> <span class="s2">&quot;Edit&quot;</span><span class="p">,</span> <span class="mi">40501</span><span class="p">,</span> <span class="s2">&quot;ButtonPropClientData:=&quot;</span><span class="p">,</span> <span class="p">[]])</span>
@@ -1253,7 +1254,7 @@
         <span class="k">while</span> <span class="nb">id</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">pin_lists</span><span class="p">):</span>
             <span class="n">spicesintax</span> <span class="o">+=</span> <span class="s2">&quot;%&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
             <span class="nb">id</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">spicesintax</span> <span class="o">+=</span> <span class="n">symbol_name</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+        <span class="c1"># spicesintax += symbol_name + &quot; &quot;</span>
         <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parameter_list</span><span class="p">,</span> <span class="n">parameter_value</span><span class="p">):</span>
             <span class="k">if</span> <span class="s2">&quot;MOD&quot;</span> <span class="ow">in</span> <span class="n">el</span><span class="p">:</span>
                 <span class="n">spicesintax</span> <span class="o">+=</span> <span class="s2">&quot;@</span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
@@ -1429,7 +1430,7 @@
 <span class="sd">        solution_name : str, optional</span>
 <span class="sd">            Name of the solution and sweep. The default is ``&quot;Setup1 : Sweep&quot;``.</span>
 <span class="sd">        extrusion_length : float, str, optional</span>
-<span class="sd">            Extrusion length for 2D Models (q2d or Hfss). Default is `None`.</span>
+<span class="sd">            Extrusion length for 2D Models (q2d or Hfss) in model units. Default is `None`.</span>
 <span class="sd">        enable_cable_modeling : bool, optional</span>
 <span class="sd">            Either if the Hfss Cable modeling has to be enabled for 2D subcircuits.</span>
 <span class="sd">        default_matrix : str, optional</span>
@@ -1456,74 +1457,72 @@
             <span class="n">comp_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
         <span class="n">source_project_path</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">project_file</span>
         <span class="n">source_design_name</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_name</span>
-        <span class="n">matrix</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;HFSS&quot;</span><span class="p">:</span>
-            <span class="n">pin_names</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">get_excitations_name</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Q3D Extractor&quot;</span><span class="p">:</span>
-            <span class="n">excts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetExcitations</span><span class="p">())</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">sources</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">sinks</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">excts</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">excts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Source&quot;</span><span class="p">:</span>
-                    <span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">excts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="k">elif</span> <span class="n">excts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Sink&quot;</span><span class="p">:</span>
-                    <span class="n">sinks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">excts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
-            <span class="n">pin_names</span> <span class="o">=</span> <span class="n">sources</span> <span class="o">+</span> <span class="n">sinks</span>
-            <span class="n">matrix</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Reduce Matrix Choices&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">omatrix</span><span class="o">.</span><span class="n">ListReduceMatrixes</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;2D Extractor&quot;</span><span class="p">:</span>
-            <span class="n">excts</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetExcitations</span><span class="p">())</span>
-            <span class="n">pins</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">excts</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">excts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;ReferenceGround&quot;</span><span class="p">:</span>
-                    <span class="n">pins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">excts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
-            <span class="n">pin_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;_in&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">]</span>
-            <span class="n">pin_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Input_ref&quot;</span><span class="p">)</span>
-            <span class="n">pin_names</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">i</span> <span class="o">+</span> <span class="s2">&quot;_out&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">])</span>
-            <span class="n">pin_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Output_ref&quot;</span><span class="p">)</span>
-            <span class="n">matrix</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Reduce Matrix Choices&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">omatrix</span><span class="o">.</span><span class="n">ListReduceMatrixes</span><span class="p">())</span>
-        <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">variable_manager</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">string_value</span>
+        <span class="c1"># matrix = None</span>
+        <span class="c1"># if pyaedt_app.design_type == &quot;HFSS&quot;:</span>
+        <span class="c1">#     pin_names = pyaedt_app.get_excitations_name()</span>
+        <span class="c1"># elif pyaedt_app.design_type == &quot;Q3D Extractor&quot;:</span>
+        <span class="c1">#     excts = list(pyaedt_app.oboundary.GetExcitations())</span>
+        <span class="c1">#     i = 0</span>
+        <span class="c1">#     sources = []</span>
+        <span class="c1">#     sinks = []</span>
+        <span class="c1">#     while i &lt; len(excts):</span>
+        <span class="c1">#         if excts[i + 1] == &quot;Source&quot;:</span>
+        <span class="c1">#             sources.append(excts[i])</span>
+        <span class="c1">#         elif excts[i + 1] == &quot;Sink&quot;:</span>
+        <span class="c1">#             sinks.append(excts[i])</span>
+        <span class="c1">#         i += 2</span>
+        <span class="c1">#     pin_names = sources + sinks</span>
+        <span class="c1">#     matrix = [&quot;NAME:Reduce Matrix Choices&quot;] + list(pyaedt_app.omatrix.ListReduceMatrixes())</span>
+        <span class="c1"># elif pyaedt_app.design_type == &quot;2D Extractor&quot;:</span>
+        <span class="c1">#     excts = list(pyaedt_app.oboundary.GetExcitations())</span>
+        <span class="c1">#     pins = []</span>
+        <span class="c1">#     i = 0</span>
+        <span class="c1">#     while i &lt; len(excts):</span>
+        <span class="c1">#         if excts[i + 1] != &quot;ReferenceGround&quot;:</span>
+        <span class="c1">#             pins.append(excts[i])</span>
+        <span class="c1">#         i += 2</span>
+        <span class="c1">#     pin_names = [i + &quot;_in&quot; for i in pins]</span>
+        <span class="c1">#     pin_names.append(&quot;Input_ref&quot;)</span>
+        <span class="c1">#     pin_names.extend([i + &quot;_out&quot; for i in pins])</span>
+        <span class="c1">#     pin_names.append(&quot;Output_ref&quot;)</span>
+        <span class="c1">#     matrix = [&quot;NAME:Reduce Matrix Choices&quot;] + list(pyaedt_app.omatrix.ListReduceMatrixes())</span>
+        <span class="c1"># variables = {}</span>
+        <span class="c1"># for k, v in pyaedt_app.variable_manager.variables.items():</span>
+        <span class="c1">#     variables[k] = v.string_value</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_name</span><span class="p">:</span>
             <span class="n">solution_name</span> <span class="o">=</span> <span class="n">pyaedt_app</span><span class="o">.</span><span class="n">nominal_sweep</span>
-        <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_subcircuit_link</span><span class="p">(</span>
-            <span class="n">comp_name</span><span class="o">=</span><span class="n">comp_name</span><span class="p">,</span>
-            <span class="n">pin_names</span><span class="o">=</span><span class="n">pin_names</span><span class="p">,</span>
-            <span class="n">source_project_path</span><span class="o">=</span><span class="n">source_project_path</span><span class="p">,</span>
-            <span class="n">source_design_name</span><span class="o">=</span><span class="n">source_design_name</span><span class="p">,</span>
-            <span class="n">solution_name</span><span class="o">=</span><span class="n">solution_name</span><span class="p">,</span>
-            <span class="n">image_subcircuit_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-            <span class="n">model_type</span><span class="o">=</span><span class="n">pyaedt_app</span><span class="o">.</span><span class="n">design_type</span><span class="p">,</span>
-            <span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span>
-            <span class="n">extrusion_length_q2d</span><span class="o">=</span><span class="n">extrusion_length</span><span class="p">,</span>
-            <span class="n">matrix</span><span class="o">=</span><span class="n">matrix</span><span class="p">,</span>
-            <span class="n">enable_cable_modeling</span><span class="o">=</span><span class="n">enable_cable_modeling</span><span class="p">,</span>
-            <span class="n">default_matrix</span><span class="o">=</span><span class="n">default_matrix</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="c1">#</span>
-        <span class="c1">#</span>
-        <span class="c1"># self._app.odesign.AddDynamicLink(</span>
-        <span class="c1">#     source_design_name,</span>
-        <span class="c1">#     source_project_path,</span>
-        <span class="c1">#     comp_name,</span>
-        <span class="c1">#     solution_name,</span>
-        <span class="c1">#     tline_port,</span>
-        <span class="c1">#     default_matrix,</span>
-        <span class="c1">#     enable_cable_modeling,</span>
-        <span class="c1">#     &quot;Pyaedt Dynamic Link&quot;,</span>
+        <span class="c1"># comp = self._add_subcircuit_link(</span>
+        <span class="c1">#     comp_name=comp_name,</span>
+        <span class="c1">#     pin_names=pin_names,</span>
+        <span class="c1">#     source_project_path=source_project_path,</span>
+        <span class="c1">#     source_design_name=source_design_name,</span>
+        <span class="c1">#     solution_name=solution_name,</span>
+        <span class="c1">#     image_subcircuit_path=&quot;&quot;,</span>
+        <span class="c1">#     model_type=pyaedt_app.design_type,</span>
+        <span class="c1">#     variables=variables,</span>
+        <span class="c1">#     extrusion_length_q2d=extrusion_length,</span>
+        <span class="c1">#     matrix=matrix,</span>
+        <span class="c1">#     enable_cable_modeling=enable_cable_modeling,</span>
+        <span class="c1">#     default_matrix=default_matrix,</span>
         <span class="c1"># )</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">AddDynamicLink</span><span class="p">(</span>
+            <span class="n">source_design_name</span><span class="p">,</span>
+            <span class="n">source_project_path</span><span class="p">,</span>
+            <span class="n">comp_name</span><span class="p">,</span>
+            <span class="n">solution_name</span><span class="p">,</span>
+            <span class="n">tline_port</span><span class="p">,</span>
+            <span class="n">default_matrix</span><span class="p">,</span>
+            <span class="n">enable_cable_modeling</span><span class="p">,</span>
+            <span class="s2">&quot;Pyaedt Dynamic Link&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">comp_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">composed_name</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">extrusion_length</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;Length&quot;</span><span class="p">,</span> <span class="n">extrusion_length</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;Length&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">extrusion_length</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">tline_port</span> <span class="ow">and</span> <span class="n">extrusion_length</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;TLineLength&quot;</span><span class="p">,</span> <span class="n">extrusion_length</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">set_property</span><span class="p">(</span><span class="s2">&quot;TLineLength&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">extrusion_length</span><span class="p">))</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
@@ -1542,6 +1541,7 @@
         <span class="n">matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">enable_cable_modeling</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">default_matrix</span><span class="o">=</span><span class="s2">&quot;Original&quot;</span><span class="p">,</span>
+        <span class="n">simulate_solutions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a subcircuit HFSS link.</span>
 
@@ -1568,6 +1568,8 @@
 <span class="sd">        extrusion_length_q2d : str, float optional</span>
 <span class="sd">            Extrusion length for 2D Models. Default is 10 (in model units).</span>
 <span class="sd">        matrix : list, optional</span>
+<span class="sd">        simulate_solutions : bool, optional</span>
+<span class="sd">            Either if simulate or interpolate solutions.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1593,6 +1595,10 @@
             <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;2dext&quot;</span>
             <span class="n">owner</span> <span class="o">=</span> <span class="s2">&quot;2DExtractor&quot;</span>
             <span class="n">icon_file</span> <span class="o">=</span> <span class="s2">&quot;2dextractor.bmp&quot;</span>
+        <span class="k">elif</span> <span class="n">model_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;siwave&quot;</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;siwave&quot;</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="s2">&quot;Siwave&quot;</span>
+            <span class="n">icon_file</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="n">designer_customization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_comp_custom_settings</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">nexxim_customization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_comp_custom_settings</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">hspice_customization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_comp_custom_settings</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;False&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -1658,9 +1664,9 @@
             <span class="s2">&quot;numberofports:=&quot;</span><span class="p">,</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">pin_names</span><span class="p">),</span>
             <span class="s2">&quot;Simulate:=&quot;</span><span class="p">,</span>
-            <span class="kc">False</span><span class="p">,</span>
+            <span class="n">simulate_solutions</span><span class="p">,</span>
             <span class="s2">&quot;CloseProject:=&quot;</span><span class="p">,</span>
-            <span class="kc">False</span><span class="p">,</span>
+            <span class="n">model_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;siwave&quot;</span><span class="p">,</span>
             <span class="s2">&quot;SaveProject:=&quot;</span><span class="p">,</span>
             <span class="kc">True</span><span class="p">,</span>
             <span class="s2">&quot;InterpY:=&quot;</span><span class="p">,</span>
@@ -1670,7 +1676,7 @@
             <span class="s2">&quot;IgnoreDepVars:=&quot;</span><span class="p">,</span>
             <span class="kc">False</span><span class="p">,</span>
         <span class="p">]</span>
-        <span class="k">if</span> <span class="n">owner</span> <span class="o">==</span> <span class="s2">&quot;HFSS&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">owner</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS&quot;</span><span class="p">,</span> <span class="s2">&quot;Siwave&quot;</span><span class="p">]:</span>
             <span class="n">compInfo</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                 <span class="p">[</span>
                     <span class="s2">&quot;Renormalize:=&quot;</span><span class="p">,</span>
@@ -1951,7 +1957,107 @@
             <span class="s2">&quot;Use `assign_voltage_sinusoidal_excitation_to_ports` instead.&quot;</span><span class="p">,</span>
             <span class="ne">DeprecationWarning</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">assign_voltage_sinusoidal_excitation_to_ports</span><span class="p">(</span><span class="n">ports</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">assign_voltage_sinusoidal_excitation_to_ports</span><span class="p">(</span><span class="n">ports</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span></div>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_parse_spice_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_path</span><span class="p">):</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;.subckt&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                    <span class="n">pinNames</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; |</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="p">]</span>
+                    <span class="n">models</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pinNames</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">models</span>
+
+<div class="viewcode-block" id="NexximComponents.create_component_from_spicemodel"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.PrimitivesNexxim.NexximComponents.create_component_from_spicemodel.html#pyaedt.modeler.PrimitivesNexxim.NexximComponents.create_component_from_spicemodel">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_component_from_spicemodel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_path</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create and place a new component based on a spice .lib file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_path : str</span>
+<span class="sd">            Path to .lib file.</span>
+<span class="sd">        model_name : str, optional</span>
+<span class="sd">            Model name to import. If `None` the first subckt in the lib file will be placed.</span>
+<span class="sd">        location : list, optional</span>
+<span class="sd">            Position in the schematic of the new component.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.CircuitComponent`</span>
+<span class="sd">            Circuit Component Object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_spice_model</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_name</span> <span class="ow">and</span> <span class="n">models</span><span class="p">:</span>
+            <span class="n">model_name</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Options&quot;</span><span class="p">,</span> <span class="s2">&quot;Mode:=&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Overwrite:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;SupportsSimModels:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;LoadOnly:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="n">arg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Models&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+            <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">el</span> <span class="o">==</span> <span class="n">model_name</span><span class="p">:</span>
+                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">])</span>
+        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o_component_manager</span><span class="o">.</span><span class="n">ImportModelsFromFile</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_component</span><span class="p">(</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">component_library</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">component_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+            <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="NexximComponents.add_siwave_dynamic_link"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.PrimitivesNexxim.NexximComponents.add_siwave_dynamic_link.html#pyaedt.modeler.PrimitivesNexxim.NexximComponents.add_siwave_dynamic_link">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">add_siwave_dynamic_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_path</span><span class="p">,</span> <span class="n">solution_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">simulate_solutions</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a siwave dinamyc link object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_path : str</span>
+<span class="sd">            Full path to the .siw file.</span>
+<span class="sd">        solution_name : str, optional</span>
+<span class="sd">            Solution name.</span>
+<span class="sd">        simulate_solutions : bool, optional</span>
+<span class="sd">            Either if simulate or interpolate existing solutions.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.CircuitComponent`</span>
+<span class="sd">            Circuit Component Object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">model_path</span><span class="p">),</span> <span class="s2">&quot;Project file doesn&#39;t exist&quot;</span>
+        <span class="n">comp_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">model_path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">results_path</span> <span class="o">=</span> <span class="n">model_path</span> <span class="o">+</span> <span class="s2">&quot;averesults&quot;</span>
+        <span class="n">solution</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_path</span><span class="p">,</span> <span class="n">comp_name</span> <span class="o">+</span> <span class="s2">&quot;.asol&quot;</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">load_entire_aedt_file</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_name</span><span class="p">:</span>
+            <span class="n">solution_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s2">&quot;Solutions&quot;</span><span class="p">][</span><span class="s2">&quot;SYZSolutions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">results_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">results_path</span><span class="p">,</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;Solutions&quot;</span><span class="p">][</span><span class="s2">&quot;SYZSolutions&quot;</span><span class="p">][</span><span class="n">solution_name</span><span class="p">][</span><span class="s2">&quot;DiskName&quot;</span><span class="p">],</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;Solutions&quot;</span><span class="p">][</span><span class="s2">&quot;SYZSolutions&quot;</span><span class="p">][</span><span class="n">solution_name</span><span class="p">][</span><span class="s2">&quot;DiskName&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.syzinfo&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">pin_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">results_folder</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;PORT&quot;</span><span class="p">:</span>
+                    <span class="n">line_spit</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+                    <span class="n">pin_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_spit</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_subcircuit_link</span><span class="p">(</span>
+            <span class="n">comp_name</span><span class="p">,</span>
+            <span class="n">pin_names</span><span class="p">,</span>
+            <span class="n">model_path</span><span class="p">,</span>
+            <span class="n">comp_name</span><span class="p">,</span>
+            <span class="n">solution_name</span><span class="o">=</span><span class="n">solution_name</span><span class="p">,</span>
+            <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;siwave&quot;</span><span class="p">,</span>
+            <span class="n">simulate_solutions</span><span class="o">=</span><span class="n">simulate_solutions</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
 </pre></div>
 
               </div>
