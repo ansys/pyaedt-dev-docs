@@ -221,11 +221,11 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">db10</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">db20</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.filesystem</span> <span class="kn">import</span> <span class="n">Scratch</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span><span class="p">,</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">write_csv</span>
-
+<span class="kn">from</span> <span class="nn">pyaedt.generic.plot</span> <span class="kn">import</span> <span class="n">plot_2d_chart</span><span class="p">,</span> <span class="n">plot_polar_chart</span><span class="p">,</span> <span class="n">plot_3d_chart</span>
 
 <span class="n">orientation_to_view</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;isometric&quot;</span><span class="p">:</span> <span class="s2">&quot;iso&quot;</span><span class="p">,</span>
@@ -236,6 +236,18 @@
     <span class="s2">&quot;front&quot;</span><span class="p">:</span> <span class="s2">&quot;YZ&quot;</span><span class="p">,</span>
     <span class="s2">&quot;back&quot;</span><span class="p">:</span> <span class="s2">&quot;YZ&quot;</span><span class="p">,</span>
 <span class="p">}</span>
+
+
+<span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">_convert_dict_to_report_sel</span><span class="p">(</span><span class="n">sweeps</span><span class="p">):</span>
+    <span class="n">sweep_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">sweeps</span><span class="p">:</span>
+        <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">sweep_list</span>
 
 
 <div class="viewcode-block" id="SolutionData"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.html#pyaedt.modules.PostProcessor.SolutionData">[docs]</a><span class="k">class</span> <span class="nc">SolutionData</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -375,15 +387,35 @@
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">sols_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">expression</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
-            <span class="n">solution</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetRealDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+            <span class="n">combinations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">solution</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetRealDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">solution</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableUnits</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                    <span class="n">comb</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">()):</span>
+                        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                        <span class="n">comb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                    <span class="n">combinations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>
+                    <span class="n">solution</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetRealDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
             <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">):</span>
                 <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+
             <span class="n">solution_Data</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">):</span>
-                <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">combinations</span> <span class="ow">or</span> <span class="p">(</span><span class="n">combinations</span> <span class="ow">and</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">combinations</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">):</span>
+                    <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">sols_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution_Data</span>
         <span class="k">return</span> <span class="n">sols_data</span>
 
@@ -391,19 +423,36 @@
     <span class="k">def</span> <span class="nf">_solution_data_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">sols_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">combinations</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">expression</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">solution</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetImagDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="n">solution</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">expression</span><span class="p">]))]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">IsDataComplex</span><span class="p">(</span><span class="n">expression</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">solution</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetImagDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">solution</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
+                        <span class="n">comb</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">()):</span>
+                            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                            <span class="n">comb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                        <span class="n">combinations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>
+                        <span class="n">solution</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetImagDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">solution</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">):</span>
                 <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+
             <span class="n">solution_Data</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">):</span>
-                <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">combinations</span> <span class="ow">or</span> <span class="p">(</span><span class="n">combinations</span> <span class="ow">and</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">combinations</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">solution</span><span class="p">:</span>
+                        <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">sols_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution_Data</span>
         <span class="k">return</span> <span class="n">sols_data</span>
 
@@ -422,7 +471,7 @@
 <span class="sd">            List of inputs in degrees.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">360</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">360</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="SolutionData.to_radians"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.to_radians.html#pyaedt.modules.PostProcessor.SolutionData.to_radians">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">to_radians</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_list</span><span class="p">):</span>
@@ -439,9 +488,10 @@
 <span class="sd">            List of inputs in radians.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">360</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">360</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="SolutionData.data_magnitude"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_magnitude.html#pyaedt.modules.PostProcessor.SolutionData.data_magnitude">[docs]</a>    <span class="k">def</span> <span class="nf">data_magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SolutionData.data_magnitude"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_magnitude.html#pyaedt.modules.PostProcessor.SolutionData.data_magnitude">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">data_magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the data magnitude of an expression.</span>
 
 <span class="sd">        Parameters</span>
@@ -461,6 +511,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">expression</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">:</span>
             <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">it</span><span class="p">])</span>
@@ -580,6 +632,31 @@
             <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">db20</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="SolutionData.data_phase"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_phase.html#pyaedt.modules.PostProcessor.SolutionData.data_phase">[docs]</a>    <span class="k">def</span> <span class="nf">data_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">radians</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the phase part of the data for an expression.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expression : str, None</span>
+<span class="sd">            Name of the expression. The default is ``None``,</span>
+<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">        radians : bool, optional</span>
+<span class="sd">            Whether to convert the data into radians or degree.</span>
+<span class="sd">            The default is ``True`` for radians.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            Phase data for the expression.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">coefficient</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">radians</span><span class="p">:</span>
+            <span class="n">coefficient</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">coefficient</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="n">k</span> <span class="o">/</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_real</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_imag</span><span class="p">(</span><span class="n">expression</span><span class="p">))]</span></div>
 
 <div class="viewcode-block" id="SolutionData.data_real"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_real.html#pyaedt.modules.PostProcessor.SolutionData.data_real">[docs]</a>    <span class="k">def</span> <span class="nf">data_real</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the real part of the data for an expression.</span>
@@ -726,7 +803,155 @@
                     <span class="n">list_full</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">v</span><span class="p">])</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="k">return</span> <span class="n">write_csv</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">list_full</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">write_csv</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">list_full</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SolutionData.plot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.plot.html#pyaedt.modules.PostProcessor.SolutionData.plot">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">curves</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">math_formula</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+        <span class="n">show_legend</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">snapshot_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_polar</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a matplotlib plot based on a list of data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        curves : list</span>
+<span class="sd">            Curves to be plotted. If None, the first curve will be plotted.</span>
+<span class="sd">        math_formula : str , optional</span>
+<span class="sd">            Mathematical formula to apply to the plot curve.</span>
+<span class="sd">            Valid values are `&quot;re&quot;`, `&quot;im&quot;`, `&quot;db20&quot;`, `&quot;db10&quot;`, `&quot;abs&quot;`, `&quot;mag&quot;`, `&quot;phasedeg&quot;`, `&quot;phaserad&quot;`.</span>
+<span class="sd">        size : tuple, optional</span>
+<span class="sd">            Image size in pixel (width, height).</span>
+<span class="sd">        show_legend : bool</span>
+<span class="sd">            Either to show legend or not.</span>
+<span class="sd">        xlabel : str</span>
+<span class="sd">            Plot X label.</span>
+<span class="sd">        ylabel : str</span>
+<span class="sd">            Plot Y label.</span>
+<span class="sd">        title : str</span>
+<span class="sd">            Plot Title label.</span>
+<span class="sd">        snapshot_path : str</span>
+<span class="sd">            Full path to image file if a snapshot is needed.</span>
+<span class="sd">        is_polar : bool, optional</span>
+<span class="sd">            Set to `True` if this is a polar plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">curves</span><span class="p">:</span>
+            <span class="n">curves</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">curves</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">curves</span> <span class="o">=</span> <span class="p">[</span><span class="n">curves</span><span class="p">]</span>
+        <span class="n">data_plot</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">math_formula</span><span class="p">:</span>
+            <span class="n">math_formula</span> <span class="o">=</span> <span class="s2">&quot;mag&quot;</span>
+        <span class="k">if</span> <span class="n">is_polar</span><span class="p">:</span>
+            <span class="n">sw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">sweep_name</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">sweep_name</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">curve</span> <span class="ow">in</span> <span class="n">curves</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;re&quot;</span><span class="p">:</span>
+                <span class="n">data_plot</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_real</span><span class="p">(</span><span class="n">curve</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math_formula</span><span class="p">,</span> <span class="n">curve</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;im&quot;</span><span class="p">:</span>
+                <span class="n">data_plot</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_imag</span><span class="p">(</span><span class="n">curve</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math_formula</span><span class="p">,</span> <span class="n">curve</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;db20&quot;</span><span class="p">:</span>
+                <span class="n">data_plot</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_db20</span><span class="p">(</span><span class="n">curve</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math_formula</span><span class="p">,</span> <span class="n">curve</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;db10&quot;</span><span class="p">:</span>
+                <span class="n">data_plot</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_db10</span><span class="p">(</span><span class="n">curve</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math_formula</span><span class="p">,</span> <span class="n">curve</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;mag&quot;</span><span class="p">:</span>
+                <span class="n">data_plot</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">curve</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math_formula</span><span class="p">,</span> <span class="n">curve</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;phasedeg&quot;</span><span class="p">:</span>
+                <span class="n">data_plot</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_phase</span><span class="p">(</span><span class="n">curve</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math_formula</span><span class="p">,</span> <span class="n">curve</span><span class="p">)])</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;phaserad&quot;</span><span class="p">:</span>
+                <span class="n">data_plot</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_phase</span><span class="p">(</span><span class="n">curve</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">math_formula</span><span class="p">,</span> <span class="n">curve</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">xlabel</span><span class="p">:</span>
+            <span class="n">xlabel</span> <span class="o">=</span> <span class="n">sweep_name</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ylabel</span><span class="p">:</span>
+            <span class="n">ylabel</span> <span class="o">=</span> <span class="n">math_formula</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">title</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Simulation Results Plot&quot;</span>
+        <span class="k">if</span> <span class="n">is_polar</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">plot_polar_chart</span><span class="p">(</span><span class="n">data_plot</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">show_legend</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">snapshot_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">plot_2d_chart</span><span class="p">(</span><span class="n">data_plot</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">show_legend</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">snapshot_path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SolutionData.plot_3d"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.plot_3d.html#pyaedt.modules.PostProcessor.SolutionData.plot_3d">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">plot_3d</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">curve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">x_axis</span><span class="o">=</span><span class="s2">&quot;Theta&quot;</span><span class="p">,</span>
+        <span class="n">y_axis</span><span class="o">=</span><span class="s2">&quot;Phi&quot;</span><span class="p">,</span>
+        <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">ylabel</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">math_formula</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+        <span class="n">snapshot_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a matplotlib 3d plot based on a list of data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        curve : str</span>
+<span class="sd">            Curve to be plotted. If None, the first curve will be plotted.</span>
+<span class="sd">        x_axis : str, optional</span>
+<span class="sd">            X Axis sweep. Default is `&quot;Theta&quot;`.</span>
+<span class="sd">        y_axis : str, optional</span>
+<span class="sd">            Y Axis sweep. Default is `&quot;Phi&quot;`.</span>
+<span class="sd">        math_formula : str , optional</span>
+<span class="sd">            Mathematical formula to apply to the plot curve.</span>
+<span class="sd">            Valid values are `&quot;re&quot;`, `&quot;im&quot;`, `&quot;db20&quot;`, `&quot;db10&quot;`, `&quot;abs&quot;`, `&quot;mag&quot;`, `&quot;phasedeg&quot;`, `&quot;phaserad&quot;`.</span>
+<span class="sd">        size : tuple, optional</span>
+<span class="sd">            Image size in pixel (width, height).</span>
+<span class="sd">        snapshot_path : str</span>
+<span class="sd">            Full path to image file if a snapshot is needed.</span>
+<span class="sd">        is_polar : bool, optional</span>
+<span class="sd">            Set to `True` if this is a polar plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">curve</span><span class="p">:</span>
+            <span class="n">curve</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">math_formula</span><span class="p">:</span>
+            <span class="n">math_formula</span> <span class="o">=</span> <span class="s2">&quot;mag&quot;</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">x_axis</span><span class="p">])</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">y_axis</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+            <span class="n">phi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;re&quot;</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_real</span><span class="p">(</span><span class="n">curve</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;im&quot;</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_imag</span><span class="p">(</span><span class="n">curve</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;db20&quot;</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_db20</span><span class="p">(</span><span class="n">curve</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;db10&quot;</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_db10</span><span class="p">(</span><span class="n">curve</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;mag&quot;</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">curve</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;phasedeg&quot;</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_phase</span><span class="p">(</span><span class="n">curve</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;phaserad&quot;</span><span class="p">:</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_phase</span><span class="p">(</span><span class="n">curve</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="n">data_plot</span> <span class="o">=</span> <span class="p">[</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">xlabel</span><span class="p">:</span>
+            <span class="n">xlabel</span> <span class="o">=</span> <span class="n">x_axis</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ylabel</span><span class="p">:</span>
+            <span class="n">ylabel</span> <span class="o">=</span> <span class="n">y_axis</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">title</span><span class="p">:</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Simulation Results Plot&quot;</span>
+        <span class="k">return</span> <span class="n">plot_3d_chart</span><span class="p">(</span><span class="n">data_plot</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">snapshot_path</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="FieldPlot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.html#pyaedt.modules.PostProcessor.FieldPlot">[docs]</a><span class="k">class</span> <span class="nc">FieldPlot</span><span class="p">:</span>
@@ -1233,7 +1458,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; from pyaedt import Q3d</span>
 <span class="sd">    &gt;&gt;&gt; q3d = Q3d()</span>
-<span class="sd">    &gt;&gt;&gt; q3d = q.post.get_report_data(expression=&quot;C(Bar1,Bar1)&quot;, domain=[&quot;Context:=&quot;, &quot;Original&quot;])</span>
+<span class="sd">    &gt;&gt;&gt; q3d = q.post.get_solution_data(expression=&quot;C(Bar1,Bar1)&quot;, domain=&quot;Original&quot;)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
@@ -1383,9 +1608,11 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;dB(S(1,1))&quot;</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;Sweep&quot;</span><span class="p">,</span> <span class="n">families_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">report_input_type</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate report data.</span>
-
 <span class="sd">        This method returns the data object and the arrays ``solData`` and</span>
 <span class="sd">        ``FreqVals``.</span>
+
+<span class="sd">        .. deprecated:: 0.4.41</span>
+<span class="sd">           Use :func:`get_solution_data` method instead.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1426,6 +1653,7 @@
 <span class="sd">        &gt;&gt;&gt; m3d.post.get_report_data(&quot;Wind(LoadA,LaodA)&quot;)    # TransientAnalsysis</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`get_report_data` is deprecated. Use `get_solution_data` property instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS3DLayout&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximLNA&quot;</span><span class="p">,</span> <span class="s2">&quot;NexximTransient&quot;</span><span class="p">,</span> <span class="s2">&quot;TR&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;DC&quot;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Sweep&quot;</span><span class="p">:</span>
                 <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
@@ -1618,13 +1846,7 @@
             <span class="n">expression</span> <span class="o">=</span> <span class="p">[</span><span class="n">expression</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
             <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">nominal_adaptive</span>
-        <span class="n">sweep_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">sweeps</span><span class="p">:</span>
-            <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-                <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">sweep_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]])</span>
+        <span class="n">sweep_list</span> <span class="o">=</span> <span class="n">_convert_dict_to_report_sel</span><span class="p">(</span><span class="n">sweeps</span><span class="p">)</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">GetSolutionDataPerVariation</span><span class="p">(</span><span class="n">soltype</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">sweep_list</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
@@ -1766,7 +1988,7 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_report</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">_get_report_inputs</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">expressions</span><span class="p">,</span>
         <span class="n">setup_sweep_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -1779,117 +2001,41 @@
         <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">subdesign_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">plotname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">only_get_method</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a report in AEDT. It can be a 2D plot, 3D plot, polar plots or data tables.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        expressions : str or list, optional</span>
-<span class="sd">            One or more formulas to add to the report. Example is value = ``&quot;dB(S(1,1))&quot;``.</span>
-<span class="sd">        setup_sweep_name : str, optional</span>
-<span class="sd">            Setup name with the sweep. The default is ``&quot;&quot;``.</span>
-<span class="sd">        domain : str, optional</span>
-<span class="sd">            Plot Domain. Options are &quot;Sweep&quot; and &quot;Time&quot;.</span>
-<span class="sd">        variations : dict, optional</span>
-<span class="sd">            Dictionary of all families including the primary sweep. The default is ``{&quot;Freq&quot;: [&quot;All&quot;]}``.</span>
-<span class="sd">        primary_sweep_variable : str, optional</span>
-<span class="sd">            Name of the primary sweep. The default is ``&quot;Freq&quot;``.</span>
-<span class="sd">        secondary_sweep_variable : str, optional</span>
-<span class="sd">            Name of the secondary sweep variable in 3D Plots.</span>
-<span class="sd">        report_category : str, optional</span>
-<span class="sd">            Category of the Report to be created. If `None` default data Report will be used.</span>
-<span class="sd">            The Report Category can be one of the types available for creating a report depend on the simulation setup.</span>
-<span class="sd">            For example for a Far Field Plot in HFSS the UI shows the report category as &quot;Create Far Fields Report&quot;.</span>
-<span class="sd">            The report category will be in this case &quot;Far Fields&quot;.</span>
-<span class="sd">            Depending on the setup different categories are available.</span>
-<span class="sd">            If `None` default category will be used (the first item in the Results drop down menu in AEDT).</span>
-<span class="sd">        plot_type : str, optional</span>
-<span class="sd">            The format of Data Visualization. Default is ``Rectangular Plot``.</span>
-<span class="sd">        context : str, optional</span>
-<span class="sd">            The default is ``None``. It can be `None`, `&quot;Differential Pairs&quot;` or</span>
-<span class="sd">            Reduce Matrix Name for Q2d/Q3d solution or Infinite Sphere name for Far Fields Plot.</span>
-<span class="sd">        plotname : str, optional</span>
-<span class="sd">            Name of the plot. The default is ``None``.</span>
-<span class="sd">        subdesign_id : int, optional</span>
-<span class="sd">            Specify a subdesign ID to export a Touchstone file of this subdesign. Valid for Circuit Only.</span>
-<span class="sd">            The default value is ``None``.</span>
-<span class="sd">        context : str, optional</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-
-
-<span class="sd">        References</span>
-<span class="sd">        ----------</span>
-
-<span class="sd">        &gt;&gt;&gt; oModule.CreateReport</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        --------</span>
-<span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss</span>
-<span class="sd">        &gt;&gt;&gt; aedtapp = Hfss()</span>
-<span class="sd">        &gt;&gt;&gt; aedtapp.post.create_report(&quot;dB(S(1,1))&quot;)</span>
-
-<span class="sd">        &gt;&gt;&gt; variations = aedtapp.available_variations.nominal_w_values_dict</span>
-<span class="sd">        &gt;&gt;&gt; variations[&quot;Theta&quot;] = [&quot;All&quot;]</span>
-<span class="sd">        &gt;&gt;&gt; variations[&quot;Phi&quot;] = [&quot;All&quot;]</span>
-<span class="sd">        &gt;&gt;&gt; variations[&quot;Freq&quot;] = [&quot;30GHz&quot;]</span>
-<span class="sd">        &gt;&gt;&gt; aedtapp.post.create_report(</span>
-<span class="sd">        ...    &quot;db(GainTotal)&quot;,</span>
-<span class="sd">        ...    aedtapp.nominal_adaptive,</span>
-<span class="sd">        ...    variations=variations,</span>
-<span class="sd">        ...    primary_sweep_variable=&quot;Phi&quot;,</span>
-<span class="sd">        ...    secondary_sweep_variable=&quot;Theta&quot;,</span>
-<span class="sd">        ...    plot_type=&quot;3D Polar Plot&quot;,</span>
-<span class="sd">        ...    context=&quot;3D&quot;,</span>
-<span class="sd">        ...    report_category=&quot;Far Fields&quot;,</span>
-<span class="sd">        ...)</span>
-
-<span class="sd">        &gt;&gt;&gt; aedtapp.post.create_report(</span>
-<span class="sd">        ...    &quot;S(1,1)&quot;,</span>
-<span class="sd">        ...    aedtapp.nominal_sweep,</span>
-<span class="sd">        ...    variations=variations,</span>
-<span class="sd">        ...    plot_type=&quot;Smith Chart&quot;,</span>
-<span class="sd">        ...)</span>
-
-<span class="sd">        &gt;&gt;&gt; from pyaedt import Maxwell2d</span>
-<span class="sd">        &gt;&gt;&gt; maxwell_2d = Maxwell2d()</span>
-<span class="sd">        &gt;&gt;&gt; maxwell_2d.post.create_report(</span>
-<span class="sd">        ...     &quot;InputCurrent(PHA)&quot;, domain=&quot;Time&quot;, primary_sweep_variable=&quot;Time&quot;, plotname=&quot;Winding Plot 1&quot;</span>
-<span class="sd">        ... )</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_sweep_name</span><span class="p">:</span>
             <span class="n">setup_sweep_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">nominal_sweep</span>
         <span class="k">elif</span> <span class="n">setup_sweep_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">existing_analysis_sweeps</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Sweep not Available.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="n">families_input</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">families_input</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
         <span class="n">did</span> <span class="o">=</span> <span class="mi">3</span>
         <span class="k">if</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Sweep&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">primary_sweep_variable</span><span class="p">:</span>
             <span class="n">primary_sweep_variable</span> <span class="o">=</span> <span class="s2">&quot;Freq&quot;</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">primary_sweep_variable</span><span class="p">:</span>
             <span class="n">primary_sweep_variable</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span>
             <span class="n">did</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">primary_sweep_variable</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">variations</span> <span class="ow">or</span> <span class="n">primary_sweep_variable</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">variations</span><span class="p">:</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;All&quot;</span><span class="p">])</span>
+            <span class="n">families_input</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">variations</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variations</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">])</span>
+            <span class="n">families_input</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">variations</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">variations</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]])</span>
+            <span class="n">families_input</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">variations</span><span class="p">[</span><span class="n">primary_sweep_variable</span><span class="p">]]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">variations</span><span class="p">:</span>
             <span class="n">variations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">available_variations</span><span class="o">.</span><span class="n">nominal_w_values_dict</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">variations</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">variations</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">el</span> <span class="o">==</span> <span class="n">primary_sweep_variable</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">variations</span><span class="p">[</span><span class="n">el</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variations</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+                <span class="n">families_input</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">variations</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">families_input</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">variations</span><span class="p">[</span><span class="n">el</span><span class="p">]])</span>
+                <span class="n">families_input</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">variations</span><span class="p">[</span><span class="n">el</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">only_get_method</span> <span class="ow">and</span> <span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Sweep&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;Phi&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">families_input</span><span class="p">:</span>
+                <span class="n">families_input</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;Theta&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">families_input</span><span class="p">:</span>
+                <span class="n">families_input</span><span class="p">[</span><span class="s2">&quot;Theta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;All&quot;</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;TR&quot;</span><span class="p">,</span> <span class="s2">&quot;AC&quot;</span><span class="p">,</span> <span class="s2">&quot;DC&quot;</span><span class="p">]:</span>
             <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span>
@@ -1994,17 +2140,239 @@
                 <span class="s2">&quot;Z Component:=&quot;</span><span class="p">,</span>
                 <span class="n">expressions</span><span class="p">,</span>
             <span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">plotname</span><span class="p">,</span> <span class="n">modal_data</span><span class="p">,</span> <span class="n">plot_type</span><span class="p">,</span> <span class="n">setup_sweep_name</span><span class="p">,</span> <span class="n">ctxt</span><span class="p">,</span> <span class="n">families_input</span><span class="p">,</span> <span class="n">arg</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CreateReport</span><span class="p">(</span>
-            <span class="n">plotname</span><span class="p">,</span>
-            <span class="n">modal_data</span><span class="p">,</span>
-            <span class="n">plot_type</span><span class="p">,</span>
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_report</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expressions</span><span class="p">,</span>
+        <span class="n">setup_sweep_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;Sweep&quot;</span><span class="p">,</span>
+        <span class="n">variations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">primary_sweep_variable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">secondary_sweep_variable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">report_category</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot_type</span><span class="o">=</span><span class="s2">&quot;Rectangular Plot&quot;</span><span class="p">,</span>
+        <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">subdesign_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plotname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a report in AEDT. It can be a 2D plot, 3D plot, polar plots or data tables.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expressions : str or list, optional</span>
+<span class="sd">            One or more formulas to add to the report. Example is value = ``&quot;dB(S(1,1))&quot;``.</span>
+<span class="sd">        setup_sweep_name : str, optional</span>
+<span class="sd">            Setup name with the sweep. The default is ``&quot;&quot;``.</span>
+<span class="sd">        domain : str, optional</span>
+<span class="sd">            Plot Domain. Options are &quot;Sweep&quot; and &quot;Time&quot;.</span>
+<span class="sd">        variations : dict, optional</span>
+<span class="sd">            Dictionary of all families including the primary sweep. The default is ``{&quot;Freq&quot;: [&quot;All&quot;]}``.</span>
+<span class="sd">        primary_sweep_variable : str, optional</span>
+<span class="sd">            Name of the primary sweep. The default is ``&quot;Freq&quot;``.</span>
+<span class="sd">        secondary_sweep_variable : str, optional</span>
+<span class="sd">            Name of the secondary sweep variable in 3D Plots.</span>
+<span class="sd">        report_category : str, optional</span>
+<span class="sd">            Category of the Report to be created. If `None` default data Report will be used.</span>
+<span class="sd">            The Report Category can be one of the types available for creating a report depend on the simulation setup.</span>
+<span class="sd">            For example for a Far Field Plot in HFSS the UI shows the report category as &quot;Create Far Fields Report&quot;.</span>
+<span class="sd">            The report category will be in this case &quot;Far Fields&quot;.</span>
+<span class="sd">            Depending on the setup different categories are available.</span>
+<span class="sd">            If `None` default category will be used (the first item in the Results drop down menu in AEDT).</span>
+<span class="sd">        plot_type : str, optional</span>
+<span class="sd">            The format of Data Visualization. Default is ``Rectangular Plot``.</span>
+<span class="sd">        context : str, optional</span>
+<span class="sd">            The default is ``None``. It can be `None`, `&quot;Differential Pairs&quot;` or</span>
+<span class="sd">            Reduce Matrix Name for Q2d/Q3d solution or Infinite Sphere name for Far Fields Plot.</span>
+<span class="sd">        plotname : str, optional</span>
+<span class="sd">            Name of the plot. The default is ``None``.</span>
+<span class="sd">        subdesign_id : int, optional</span>
+<span class="sd">            Specify a subdesign ID to export a Touchstone file of this subdesign. Valid for Circuit Only.</span>
+<span class="sd">            The default value is ``None``.</span>
+<span class="sd">        context : str, optional</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.CreateReport</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss</span>
+<span class="sd">        &gt;&gt;&gt; aedtapp = Hfss()</span>
+<span class="sd">        &gt;&gt;&gt; aedtapp.post.create_report(&quot;dB(S(1,1))&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; variations = aedtapp.available_variations.nominal_w_values_dict</span>
+<span class="sd">        &gt;&gt;&gt; variations[&quot;Theta&quot;] = [&quot;All&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; variations[&quot;Phi&quot;] = [&quot;All&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; variations[&quot;Freq&quot;] = [&quot;30GHz&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; aedtapp.post.create_report(</span>
+<span class="sd">        ...    &quot;db(GainTotal)&quot;,</span>
+<span class="sd">        ...    aedtapp.nominal_adaptive,</span>
+<span class="sd">        ...    variations=variations,</span>
+<span class="sd">        ...    primary_sweep_variable=&quot;Phi&quot;,</span>
+<span class="sd">        ...    secondary_sweep_variable=&quot;Theta&quot;,</span>
+<span class="sd">        ...    plot_type=&quot;3D Polar Plot&quot;,</span>
+<span class="sd">        ...    context=&quot;3D&quot;,</span>
+<span class="sd">        ...    report_category=&quot;Far Fields&quot;,</span>
+<span class="sd">        ...)</span>
+
+<span class="sd">        &gt;&gt;&gt; aedtapp.post.create_report(</span>
+<span class="sd">        ...    &quot;S(1,1)&quot;,</span>
+<span class="sd">        ...    aedtapp.nominal_sweep,</span>
+<span class="sd">        ...    variations=variations,</span>
+<span class="sd">        ...    plot_type=&quot;Smith Chart&quot;,</span>
+<span class="sd">        ...)</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Maxwell2d</span>
+<span class="sd">        &gt;&gt;&gt; maxwell_2d = Maxwell2d()</span>
+<span class="sd">        &gt;&gt;&gt; maxwell_2d.post.create_report(</span>
+<span class="sd">        ...     &quot;InputCurrent(PHA)&quot;, domain=&quot;Time&quot;, primary_sweep_variable=&quot;Time&quot;, plotname=&quot;Winding Plot 1&quot;</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_report_inputs</span><span class="p">(</span>
+            <span class="n">expressions</span><span class="p">,</span>
             <span class="n">setup_sweep_name</span><span class="p">,</span>
-            <span class="n">ctxt</span><span class="p">,</span>
-            <span class="n">families_input</span><span class="p">,</span>
-            <span class="n">arg</span><span class="p">,</span>
+            <span class="n">domain</span><span class="p">,</span>
+            <span class="n">variations</span><span class="p">,</span>
+            <span class="n">primary_sweep_variable</span><span class="p">,</span>
+            <span class="n">secondary_sweep_variable</span><span class="p">,</span>
+            <span class="n">report_category</span><span class="p">,</span>
+            <span class="n">plot_type</span><span class="p">,</span>
+            <span class="n">context</span><span class="p">,</span>
+            <span class="n">subdesign_id</span><span class="p">,</span>
+            <span class="n">plotname</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">out</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">CreateReport</span><span class="p">(</span>
+            <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">out</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">out</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+            <span class="n">out</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+            <span class="n">_convert_dict_to_report_sel</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">5</span><span class="p">]),</span>
+            <span class="n">out</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get_solution_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expressions</span><span class="p">,</span>
+        <span class="n">setup_sweep_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">domain</span><span class="o">=</span><span class="s2">&quot;Sweep&quot;</span><span class="p">,</span>
+        <span class="n">variations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">primary_sweep_variable</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">report_category</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">subdesign_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get SolutionData of a report in AEDT. It can be a 2D plot, 3D solution data class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        expressions : str or list, optional</span>
+<span class="sd">            One or more formulas to add to the report. Example is value = ``&quot;dB(S(1,1))&quot;``.</span>
+<span class="sd">        setup_sweep_name : str, optional</span>
+<span class="sd">            Setup name with the sweep. The default is ``&quot;&quot;``.</span>
+<span class="sd">        domain : str, optional</span>
+<span class="sd">            Plot Domain. Options are &quot;Sweep&quot; and &quot;Time&quot;.</span>
+<span class="sd">        variations : dict, optional</span>
+<span class="sd">            Dictionary of all families including the primary sweep. The default is ``{&quot;Freq&quot;: [&quot;All&quot;]}``.</span>
+<span class="sd">        primary_sweep_variable : str, optional</span>
+<span class="sd">            Name of the primary sweep. The default is ``&quot;Freq&quot;``.</span>
+<span class="sd">        report_category : str, optional</span>
+<span class="sd">            Category of the Report to be created. If `None` default data Report will be used.</span>
+<span class="sd">            The Report Category can be one of the types available for creating a report depend on the simulation setup.</span>
+<span class="sd">            For example for a Far Field Plot in HFSS the UI shows the report category as &quot;Create Far Fields Report&quot;.</span>
+<span class="sd">            The report category will be in this case &quot;Far Fields&quot;.</span>
+<span class="sd">            Depending on the setup different categories are available.</span>
+<span class="sd">            If `None` default category will be used (the first item in the Results drop down menu in AEDT).</span>
+<span class="sd">        context : str, optional</span>
+<span class="sd">            The default is ``None``. It can be `None`, `&quot;Differential Pairs&quot;` or</span>
+<span class="sd">            Reduce Matrix Name for Q2d/Q3d solution or Infinite Sphere name for Far Fields Plot.</span>
+<span class="sd">        subdesign_id : int, optional</span>
+<span class="sd">            Specify a subdesign ID to export a Touchstone file of this subdesign. Valid for Circuit Only.</span>
+<span class="sd">            The default value is ``None``.</span>
+<span class="sd">        context : str, optional</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.PostProcessor.SolutionData`</span>
+<span class="sd">            `Solution Data object.</span>
+
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.GetSolutionDataPerVariation</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Hfss</span>
+<span class="sd">        &gt;&gt;&gt; aedtapp = Hfss()</span>
+<span class="sd">        &gt;&gt;&gt; aedtapp.post.create_report(&quot;dB(S(1,1))&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; variations = aedtapp.available_variations.nominal_w_values_dict</span>
+<span class="sd">        &gt;&gt;&gt; variations[&quot;Theta&quot;] = [&quot;All&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; variations[&quot;Phi&quot;] = [&quot;All&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; variations[&quot;Freq&quot;] = [&quot;30GHz&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; data1 = aedtapp.post.get_solution_data(</span>
+<span class="sd">        ...    &quot;GainTotal&quot;,</span>
+<span class="sd">        ...    aedtapp.nominal_adaptive,</span>
+<span class="sd">        ...    variations=variations,</span>
+<span class="sd">        ...    primary_sweep_variable=&quot;Phi&quot;,</span>
+<span class="sd">        ...    secondary_sweep_variable=&quot;Theta&quot;,</span>
+<span class="sd">        ...    context=&quot;3D&quot;,</span>
+<span class="sd">        ...    report_category=&quot;Far Fields&quot;,</span>
+<span class="sd">        ...)</span>
+
+<span class="sd">        &gt;&gt;&gt; data2 =aedtapp.post.get_solution_data(</span>
+<span class="sd">        ...    &quot;S(1,1)&quot;,</span>
+<span class="sd">        ...    aedtapp.nominal_sweep,</span>
+<span class="sd">        ...    variations=variations,</span>
+<span class="sd">        ...)</span>
+<span class="sd">        &gt;&gt;&gt; data2.plot()</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Maxwell2d</span>
+<span class="sd">        &gt;&gt;&gt; maxwell_2d = Maxwell2d()</span>
+<span class="sd">        &gt;&gt;&gt; data3 = maxwell_2d.post.get_solution_data(</span>
+<span class="sd">        ...     &quot;InputCurrent(PHA)&quot;, domain=&quot;Time&quot;, primary_sweep_variable=&quot;Time&quot;,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; data3.plot(&quot;InputCurrent(PHA)&quot;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_report_inputs</span><span class="p">(</span>
+            <span class="n">expressions</span><span class="p">,</span>
+            <span class="n">setup_sweep_name</span><span class="p">,</span>
+            <span class="n">domain</span><span class="p">,</span>
+            <span class="n">variations</span><span class="p">,</span>
+            <span class="n">primary_sweep_variable</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">report_category</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">context</span><span class="p">,</span>
+            <span class="n">subdesign_id</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">solution_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_data_per_variation</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">expressions</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">primary_sweep_variable</span><span class="p">:</span>
+            <span class="n">solution_data</span><span class="o">.</span><span class="n">primary_sweep</span> <span class="o">=</span> <span class="n">primary_sweep_variable</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_data</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No Data Available. Check inputs&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">solution_data</span>
 
 
 <span class="k">class</span> <span class="nc">PostProcessor</span><span class="p">(</span><span class="n">PostProcessorCommon</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
