@@ -636,7 +636,9 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Edb.import_layout_pcb"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.import_layout_pcb.html#pyaedt.Edb.import_layout_pcb">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">import_layout_pcb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">working_dir</span><span class="p">,</span> <span class="n">init_dlls</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">anstranslator_full_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">use_ppe</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">import_layout_pcb</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">working_dir</span><span class="p">,</span> <span class="n">init_dlls</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">anstranslator_full_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">use_ppe</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Import a BRD file and generate an ``edb.def`` file in the working directory.</span>
 
 <span class="sd">        Parameters</span>
@@ -652,6 +654,9 @@
 <span class="sd">            Full path to the Ansys translator. The default is ``&quot;&quot;``.</span>
 <span class="sd">        use_ppe : bool</span>
 <span class="sd">            Whether to use or not PPE License. The default is ``False``.</span>
+<span class="sd">        control_file : str, optional</span>
+<span class="sd">            Path to xml file. If None, the tool will try to get it from the same path/name of the gds.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
@@ -677,17 +682,19 @@
                 <span class="n">command</span> <span class="o">+=</span> <span class="s2">&quot;.exe&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">working_dir</span><span class="p">:</span>
             <span class="n">working_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
-        <span class="n">cmd_translator</span> <span class="o">=</span> <span class="n">command</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">input_file</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">)</span>
-        <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s2">&quot; -l=&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="s2">&quot;Translator.log&quot;</span><span class="p">)</span>
+        <span class="n">cmd_translator</span> <span class="o">=</span> <span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot; &quot;</span><span class="si">{}</span><span class="s1">&quot; &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">))</span>
+        <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s1">&#39; -l=&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="s2">&quot;Translator.log&quot;</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">use_ppe</span><span class="p">:</span>
             <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s2">&quot; -ppe=false&quot;</span>
+        <span class="k">if</span> <span class="n">control_file</span> <span class="ow">and</span> <span class="n">input_file</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;gds&quot;</span><span class="p">:</span>
+            <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s1">&#39; -c=&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">control_file</span><span class="p">)</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd_translator</span><span class="p">)</span>
         <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Translator failed to translate.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_edb</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_edb</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Edb.export_to_ipc2581"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.export_to_ipc2581.html#pyaedt.Edb.export_to_ipc2581">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">export_to_ipc2581</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ipc_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;millimeter&quot;</span><span class="p">):</span>
@@ -1052,7 +1059,7 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Edb.import_gds_file"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.import_gds_file.html#pyaedt.Edb.import_gds_file">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">import_gds_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputGDS</span><span class="p">,</span> <span class="n">WorkDir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anstranslator_full_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">use_ppe</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">import_gds_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputGDS</span><span class="p">,</span> <span class="n">WorkDir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">anstranslator_full_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">use_ppe</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Import a GDS file and generate an ``edb.def`` file in the working directory.</span>
 
 <span class="sd">        Parameters</span>
@@ -1066,6 +1073,8 @@
 <span class="sd">            Full path to the Ansys translator.</span>
 <span class="sd">        use_ppe : bool</span>
 <span class="sd">            Whether to use the PPE License. The default is ``False``.</span>
+<span class="sd">        control_file : str, optional</span>
+<span class="sd">            Path to xml file. If None, the tool will try to get it from the same path/name of the gds.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1074,7 +1083,11 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_layout_pcb</span><span class="p">(</span>
-            <span class="n">inputGDS</span><span class="p">,</span> <span class="n">working_dir</span><span class="o">=</span><span class="n">WorkDir</span><span class="p">,</span> <span class="n">anstranslator_full_path</span><span class="o">=</span><span class="n">anstranslator_full_path</span><span class="p">,</span> <span class="n">use_ppe</span><span class="o">=</span><span class="n">use_ppe</span>
+            <span class="n">inputGDS</span><span class="p">,</span>
+            <span class="n">working_dir</span><span class="o">=</span><span class="n">WorkDir</span><span class="p">,</span>
+            <span class="n">anstranslator_full_path</span><span class="o">=</span><span class="n">anstranslator_full_path</span><span class="p">,</span>
+            <span class="n">use_ppe</span><span class="o">=</span><span class="n">use_ppe</span><span class="p">,</span>
+            <span class="n">control_file</span><span class="o">=</span><span class="n">control_file</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
