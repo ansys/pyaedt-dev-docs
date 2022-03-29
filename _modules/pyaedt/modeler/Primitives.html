@@ -970,7 +970,7 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Polyline.insert_segment"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives.Polyline.insert_segment.html#pyaedt.modeler.Primitives3D.Polyline.insert_segment">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">insert_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_list</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">insert_segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_list</span><span class="p">,</span> <span class="n">segment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">segment_number</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a segment to an existing polyline.</span>
 
 <span class="sd">        Parameters</span>
@@ -1022,19 +1022,26 @@
         <span class="k">except</span><span class="p">:</span>
             <span class="n">end_point</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="n">segment_id</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">segment_index</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">num_vertices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">vertex</span><span class="o">.</span><span class="n">position</span> <span class="o">==</span> <span class="n">end_point</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">vertex</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">segment_id</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">segment_id</span> <span class="o">-=</span> <span class="mi">1</span>
                 <span class="n">at_start</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">break</span>
-            <span class="k">elif</span> <span class="n">vertex</span><span class="o">.</span><span class="n">position</span> <span class="o">==</span> <span class="n">start_point</span><span class="p">:</span>
+            <span class="c1"># If start_point=[0, 0, 0] (a list of integers provided by the user), it won&#39;t be equal to vertex.position</span>
+            <span class="c1"># that returns a list of float: [0., 0., 0.]. Thus we cast start_point as a list of floats.</span>
+            <span class="k">elif</span> <span class="n">vertex</span><span class="o">.</span><span class="n">position</span> <span class="o">==</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">start_point</span><span class="p">]:</span>
                 <span class="n">at_start</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="n">segment_index</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">segment_index</span> <span class="o">-=</span> <span class="mi">1</span>
                 <span class="k">break</span>
             <span class="n">segment_index</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">id_v</span> <span class="o">=</span> <span class="mi">0</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_segment_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">s_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_segment_types</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1075,6 +1082,25 @@
             <span class="n">varg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varg2</span><span class="p">)</span>
             <span class="n">varg1</span> <span class="o">+=</span> <span class="n">seg_str</span><span class="p">[</span><span class="mi">9</span><span class="p">:]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">InsertPolylineSegment</span><span class="p">(</span><span class="n">varg1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">segment</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Spline&quot;</span><span class="p">:</span>
+            <span class="n">varg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">]</span>
+            <span class="n">varg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Geometry3DPolylineTab&quot;</span><span class="p">]</span>
+
+            <span class="n">varg3</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">]</span>
+            <span class="n">varg3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_m_name</span> <span class="o">+</span> <span class="s2">&quot;:CreatePolyline:1&quot;</span> <span class="o">+</span> <span class="s2">&quot;:Segment&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">segment_id</span><span class="p">))</span>
+            <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varg3</span><span class="p">)</span>
+
+            <span class="n">varg4</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">]</span>
+            <span class="n">varg5</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Number of Segments&quot;</span><span class="p">]</span>
+            <span class="n">varg5</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Value:=&quot;</span><span class="p">)</span>
+            <span class="n">varg5</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">segment_number</span><span class="p">))</span>
+
+            <span class="n">varg4</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varg5</span><span class="p">)</span>
+            <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varg4</span><span class="p">)</span>
+            <span class="n">varg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varg2</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">varg1</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">True</span></div></div>
 
