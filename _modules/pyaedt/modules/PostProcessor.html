@@ -227,6 +227,16 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">write_csv</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.plot</span> <span class="kn">import</span> <span class="n">plot_2d_chart</span><span class="p">,</span> <span class="n">plot_polar_chart</span><span class="p">,</span> <span class="n">plot_3d_chart</span>
 
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;The NumPy module is required to run some functionalities of PostProcess.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install numpy</span><span class="se">\n\n</span><span class="s2">Requires CPython.&quot;</span>
+        <span class="p">)</span>
+
+
 <span class="n">orientation_to_view</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;isometric&quot;</span><span class="p">:</span> <span class="s2">&quot;iso&quot;</span><span class="p">,</span>
     <span class="s2">&quot;top&quot;</span><span class="p">:</span> <span class="s2">&quot;XY&quot;</span><span class="p">,</span>
@@ -272,6 +282,7 @@
             <span class="k">except</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_solutions_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ifft</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sweeps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -961,7 +972,159 @@
             <span class="n">ylabel</span> <span class="o">=</span> <span class="n">y_axis</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">title</span><span class="p">:</span>
             <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Simulation Results Plot&quot;</span>
-        <span class="k">return</span> <span class="n">plot_3d_chart</span><span class="p">(</span><span class="n">data_plot</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">snapshot_path</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">plot_3d_chart</span><span class="p">(</span><span class="n">data_plot</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">snapshot_path</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SolutionData.ifft"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.ifft.html#pyaedt.modules.PostProcessor.SolutionData.ifft">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">ifft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curve_header</span><span class="o">=</span><span class="s2">&quot;NearE&quot;</span><span class="p">,</span> <span class="n">u_axis</span><span class="o">=</span><span class="s2">&quot;_u&quot;</span><span class="p">,</span> <span class="n">v_axis</span><span class="o">=</span><span class="s2">&quot;_v&quot;</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create IFFT of given complex data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        curve_header : curve header. Solution data must contain 3 curves with X, Y and Z components of curve header.</span>
+<span class="sd">        u_axis : str, optional</span>
+<span class="sd">            U Axis name. Default is Hfss name &quot;_u&quot;</span>
+<span class="sd">        v_axis : str, optional</span>
+<span class="sd">            V Axis name. Default is Hfss name &quot;_v&quot;</span>
+<span class="sd">        window : bool, optional</span>
+<span class="sd">            Either if Hanning windowing has to be applied.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List</span>
+<span class="sd">            IFFT Matrix.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">u_axis</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">v_axis</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">v_axis</span><span class="p">]</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="s2">&quot;Freq&quot;</span><span class="p">]</span>
+        <span class="n">vals_real_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_imag_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_real_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_imag_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_real_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_imag_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+
+        <span class="n">E_realx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+        <span class="n">E_imagx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+        <span class="n">E_realy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+        <span class="n">E_imagy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+        <span class="n">E_realz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ez</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+        <span class="n">E_imagz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ez</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+
+        <span class="n">Temp_E_compx</span> <span class="o">=</span> <span class="n">E_realx</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">E_imagx</span>  <span class="c1"># Here is the complex FD data matrix, ready for transforming</span>
+        <span class="n">Temp_E_compy</span> <span class="o">=</span> <span class="n">E_realy</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">E_imagy</span>
+        <span class="n">Temp_E_compz</span> <span class="o">=</span> <span class="n">E_realz</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">E_imagz</span>
+
+        <span class="n">E_compx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;complex_&quot;</span><span class="p">)</span>
+        <span class="n">E_compy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;complex_&quot;</span><span class="p">)</span>
+        <span class="n">E_compz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;complex_&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">window</span><span class="p">:</span>
+            <span class="n">timewin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)):</span>
+                    <span class="n">E_compx</span><span class="p">[:,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">Temp_E_compx</span><span class="p">[:,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">],</span> <span class="n">timewin</span><span class="p">)</span>
+                    <span class="n">E_compy</span><span class="p">[:,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">Temp_E_compy</span><span class="p">[:,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">],</span> <span class="n">timewin</span><span class="p">)</span>
+                    <span class="n">E_compz</span><span class="p">[:,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">Temp_E_compz</span><span class="p">[:,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">],</span> <span class="n">timewin</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">E_compx</span> <span class="o">=</span> <span class="n">Temp_E_compx</span>
+            <span class="n">E_compy</span> <span class="o">=</span> <span class="n">Temp_E_compy</span>
+            <span class="n">E_compz</span> <span class="o">=</span> <span class="n">Temp_E_compz</span>
+
+        <span class="n">E_time_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">E_compx</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">E_time_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">E_compy</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">E_time_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">E_compz</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">E_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)):</span>
+            <span class="n">E_time</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">E_time_x</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">E_time_y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">E_time_z</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]))</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ifft</span> <span class="o">=</span> <span class="n">E_time</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ifft</span></div>
+
+<div class="viewcode-block" id="SolutionData.ifft_to_file"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.ifft_to_file.html#pyaedt.modules.PostProcessor.SolutionData.ifft_to_file">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">ifft_to_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">u_axis</span><span class="o">=</span><span class="s2">&quot;_u&quot;</span><span class="p">,</span>
+        <span class="n">v_axis</span><span class="o">=</span><span class="s2">&quot;_v&quot;</span><span class="p">,</span>
+        <span class="n">coord_system_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">db_val</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">num_frames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">csv_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name_str</span><span class="o">=</span><span class="s2">&quot;res_&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save IFFT Matrix to a list of csv files (one per time step).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        u_axis : str, optional</span>
+<span class="sd">            U Axis name. Default is Hfss name &quot;_u&quot;</span>
+<span class="sd">        v_axis : str, optional</span>
+<span class="sd">            V Axis name. Default is Hfss name &quot;_v&quot;</span>
+<span class="sd">        coord_system_center : list, optional</span>
+<span class="sd">            List of UV GlobalCS Center.</span>
+<span class="sd">        db_val : bool, optional</span>
+<span class="sd">            Either if data has to be exported in db or not.</span>
+<span class="sd">        num_frames : int, optional</span>
+<span class="sd">            Number of frames to export.</span>
+<span class="sd">        csv_dir : str</span>
+<span class="sd">            Output path</span>
+<span class="sd">        name_str : str, optional</span>
+<span class="sd">            csv file header.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Path to file containing the list of csv files.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">coord_system_center</span><span class="p">:</span>
+            <span class="n">coord_system_center</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">t_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ifft</span>
+        <span class="n">x_c_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">u_axis</span><span class="p">]</span>
+        <span class="n">y_c_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">v_axis</span><span class="p">]</span>
+        <span class="n">adj_x</span> <span class="o">=</span> <span class="n">coord_system_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">adj_y</span> <span class="o">=</span> <span class="n">coord_system_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">adj_z</span> <span class="o">=</span> <span class="n">coord_system_center</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">num_frames</span><span class="p">:</span>
+            <span class="n">frames</span> <span class="o">=</span> <span class="n">num_frames</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">frames</span> <span class="o">=</span> <span class="n">t_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">csv_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">csv_dir</span><span class="p">):</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csv_dir</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">csv_dir</span><span class="p">)</span> <span class="k">if</span> <span class="n">name_str</span> <span class="ow">in</span> <span class="n">f</span> <span class="ow">and</span> <span class="s2">&quot;.csv&quot;</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">csv_dir</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">csv_dir</span><span class="p">,</span> <span class="n">name_str</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
+            <span class="n">list_full</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;val&quot;</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">y_c_list</span><span class="p">):</span>
+
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x_c_list</span><span class="p">):</span>
+                    <span class="n">y_coord</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">adj_y</span>
+                    <span class="n">x_coord</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">adj_x</span>
+                    <span class="n">z_coord</span> <span class="o">=</span> <span class="n">adj_z</span>
+                    <span class="k">if</span> <span class="n">db_val</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">t_matrix</span><span class="p">[</span><span class="n">frame</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">t_matrix</span><span class="p">[</span><span class="n">frame</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                    <span class="n">row_lst</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_coord</span><span class="p">,</span> <span class="n">y_coord</span><span class="p">,</span> <span class="n">z_coord</span><span class="p">,</span> <span class="n">val</span><span class="p">]</span>
+                    <span class="n">list_full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row_lst</span><span class="p">)</span>
+            <span class="n">write_csv</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">list_full</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">csv_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="n">txt_file_name</span> <span class="o">=</span> <span class="n">csv_dir</span> <span class="o">+</span> <span class="s2">&quot;fft_list.txt&quot;</span>
+        <span class="n">textfile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">txt_file_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">csv_list</span><span class="p">:</span>
+            <span class="n">textfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">element</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">textfile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">txt_file_name</span></div></div>
 
 
 <div class="viewcode-block" id="FieldPlot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.FieldPlot.html#pyaedt.modules.PostProcessor.FieldPlot">[docs]</a><span class="k">class</span> <span class="nc">FieldPlot</span><span class="p">:</span>
