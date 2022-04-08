@@ -878,6 +878,61 @@
                 <span class="n">closest_pin</span> <span class="o">=</span> <span class="n">ref_pin</span>
         <span class="k">return</span> <span class="n">closest_pin</span>
 
+<div class="viewcode-block" id="Components.deactivate_rlc_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.deactivate_rlc_component.html#pyaedt.edb_core.components.Components.deactivate_rlc_component">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">deactivate_rlc_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create_circuit_port</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Deactivate RLC component with a possibility to convert to a circuit port.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        component : str</span>
+<span class="sd">            Reference designator of the RLC component.</span>
+
+<span class="sd">        create_circuit_port : bool, optional</span>
+<span class="sd">            Whether to replace the deactivated RLC component with a circuit port. The default</span>
+<span class="sd">            is ``False``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edb_file = r&#39;C:\my_edb_file.aedb&#39;</span>
+<span class="sd">        &gt;&gt;&gt; edb = Edb(edb_file)</span>
+<span class="sd">        &gt;&gt;&gt; for cmp in list(edb.core_components.components.keys()):</span>
+<span class="sd">        &gt;&gt;&gt;     edb.core_components.deactivate_rlc_component(component=cmp, create_circuit_port=False)</span>
+<span class="sd">        &gt;&gt;&gt; edb.save_edb()</span>
+<span class="sd">        &gt;&gt;&gt; edb.close_edb()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">component</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">component</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">component</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;component </span><span class="si">%s</span><span class="s2"> not found.&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="n">component_type</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">Other</span>
+                <span class="ow">or</span> <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IC</span>
+                <span class="ow">or</span> <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IO</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Component </span><span class="si">%s</span><span class="s2"> passed to deactivate is not an RLC.&quot;</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">component</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Component </span><span class="si">%s</span><span class="s2"> passed to deactivate is not an RLC.&quot;</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">create_circuit_port</span><span class="p">:</span>
+            <span class="n">_cmp</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">component</span><span class="o">.</span><span class="n">refdes</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_components_methods</span><span class="o">.</span><span class="n">AddPortOnRlcComponent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">_cmp</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_components_methods</span><span class="o">.</span><span class="n">DeactivateRlcComponent</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">edbcomponent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_create_pin_group_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pingroup</span><span class="p">,</span> <span class="n">isref</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Creates edb pin group terminal from given edb pin group.</span>
