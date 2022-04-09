@@ -643,18 +643,79 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">net_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">net_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">net_list</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">ref_des_list</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">pinname</span><span class="p">,</span> <span class="n">pin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span><span class="o">.</span><span class="n">pins</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">pin</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">in</span> <span class="n">net_list</span> <span class="ow">and</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">IsLayoutPin</span><span class="p">():</span>
-                    <span class="n">port_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">pin</span><span class="o">.</span><span class="n">net_name</span><span class="p">,</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-                    <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-                        <span class="n">res</span><span class="p">,</span> <span class="n">fromLayer_pos</span><span class="p">,</span> <span class="n">toLayer_pos</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>  <span class="c1"># pragma: no cover</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">res</span><span class="p">,</span> <span class="n">fromLayer_pos</span><span class="p">,</span> <span class="n">toLayer_pos</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">PadstackInstanceTerminal</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span> <span class="n">port_name</span><span class="p">,</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="p">,</span> <span class="n">toLayer_pos</span>
-                    <span class="p">):</span>
-                        <span class="n">coax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">port_name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">net_name</span> <span class="ow">in</span> <span class="n">net_list</span><span class="p">:</span>
+                <span class="n">port_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_coax_port_on_component_per_net</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
+                <span class="n">coax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">port_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">coax</span></div>
+
+<div class="viewcode-block" id="EdbHfss.create_coax_port_on_component_per_pin"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_coax_port_on_component_per_pin.html#pyaedt.edb_core.hfss.EdbHfss.create_coax_port_on_component_per_pin">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_coax_port_on_component_per_pin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_designator</span><span class="p">,</span> <span class="n">pin_number</span><span class="p">,</span> <span class="n">port_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a coaxial port on a component per pin.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reference_designator : str</span>
+<span class="sd">            Reference designator of the component.</span>
+<span class="sd">        pin_number : str</span>
+<span class="sd">            Pin number.</span>
+<span class="sd">        port_name : str, optional</span>
+<span class="sd">            Name of the net. The default is ``&quot;&quot;``, in which case a name is automatically assigned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Port name when successful; ``False`` otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">reference_designator</span><span class="p">]</span>
+        <span class="n">pin</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">pins</span><span class="p">[</span><span class="n">pin_number</span><span class="p">]</span>
+        <span class="n">edb_net</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span>
+        <span class="n">edb_pin</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">from_layer</span><span class="p">,</span> <span class="n">to_layer</span> <span class="o">=</span> <span class="n">edb_pin</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">from_layer</span><span class="p">,</span> <span class="n">to_layer</span> <span class="o">=</span> <span class="n">edb_pin</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">from_layer</span> <span class="o">==</span> <span class="n">comp</span><span class="o">.</span><span class="n">placement_layer</span><span class="p">:</span>
+            <span class="n">edb_layer</span> <span class="o">=</span> <span class="n">from_layer</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edb_layer</span> <span class="o">=</span> <span class="n">to_layer</span>
+
+        <span class="n">net_name</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">net_name</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">port_name</span><span class="p">:</span>
+            <span class="n">port_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reference_designator</span><span class="p">,</span> <span class="n">net_name</span><span class="p">,</span> <span class="n">pin</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">PadstackInstanceTerminal</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">edb_net</span><span class="p">,</span> <span class="n">port_name</span><span class="p">,</span> <span class="n">edb_pin</span><span class="p">,</span> <span class="n">edb_layer</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">port_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="EdbHfss.create_coax_port_on_component_per_net"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_coax_port_on_component_per_net.html#pyaedt.edb_core.hfss.EdbHfss.create_coax_port_on_component_per_net">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_coax_port_on_component_per_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_designator</span><span class="p">,</span> <span class="n">net_name</span><span class="p">,</span> <span class="n">port_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a coaxial port on a component pin.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reference_designator : str</span>
+<span class="sd">            Reference designator of the component.</span>
+<span class="sd">        net_name : str</span>
+<span class="sd">            Name of the net.</span>
+<span class="sd">        port_name : str, optional</span>
+<span class="sd">            Name of the net. The default is ``&quot;&quot;``, in which case a name is automatically assigned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            `Port name when successful; ``False`` otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">reference_designator</span><span class="p">]</span>
+        <span class="n">pin_number</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">pnum</span><span class="p">,</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">pins</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pin</span><span class="o">.</span><span class="n">net_name</span> <span class="o">==</span> <span class="n">net_name</span><span class="p">:</span>
+                <span class="n">pin_number</span> <span class="o">=</span> <span class="n">pnum</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_coax_port_on_component_per_pin</span><span class="p">(</span><span class="n">reference_designator</span><span class="p">,</span> <span class="n">pin_number</span><span class="p">,</span> <span class="n">port_name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbHfss.create_hfss_ports_on_padstack"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_hfss_ports_on_padstack.html#pyaedt.edb_core.hfss.EdbHfss.create_hfss_ports_on_padstack">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_hfss_ports_on_padstack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pinpos</span><span class="p">,</span> <span class="n">portname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
