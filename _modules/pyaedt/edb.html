@@ -39,6 +39,7 @@
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/clipboard.min.js"></script>
     <script src="../../_static/copybutton.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -223,10 +224,11 @@
     <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Pythonnet is needed to run PyAEDT.&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Python.NET is needed to run PyAEDT.&quot;</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core</span> <span class="kn">import</span> <span class="n">Components</span><span class="p">,</span> <span class="n">EdbNets</span><span class="p">,</span> <span class="n">EdbPadstacks</span><span class="p">,</span> <span class="n">EdbLayout</span><span class="p">,</span> <span class="n">EdbHfss</span><span class="p">,</span> <span class="n">EdbSiwave</span><span class="p">,</span> <span class="n">EdbStackup</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EdbBuilder</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EdbBuilder</span><span class="p">,</span> <span class="n">SimulationConfiguration</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">CutoutSubdesignType</span><span class="p">,</span> <span class="n">SolverType</span><span class="p">,</span> <span class="n">SourceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">pyaedt_function_handler</span><span class="p">,</span>
     <span class="n">env_path</span><span class="p">,</span>
@@ -1108,13 +1110,14 @@
 
 <div class="viewcode-block" id="Edb.create_cutout"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.create_cutout.html#pyaedt.Edb.create_cutout">[docs]</a>    <span class="k">def</span> <span class="nf">create_cutout</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">signal_list</span><span class="p">,</span>
+        <span class="n">signal_list</span><span class="o">=</span><span class="p">[],</span>
         <span class="n">reference_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GND&quot;</span><span class="p">],</span>
         <span class="n">extent_type</span><span class="o">=</span><span class="s2">&quot;Conforming&quot;</span><span class="p">,</span>
         <span class="n">expansion_size</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>
         <span class="n">use_round_corner</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">open_cutout_at_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">simulation_setup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout and save it to a new AEDB file.</span>
 
@@ -1136,6 +1139,8 @@
 <span class="sd">        open_cutout_at_end : bool, optional</span>
 <span class="sd">            Whether to open the cutout at the end. The default</span>
 <span class="sd">            is ``True``.</span>
+<span class="sd">        simulation_setup : EDB_Data.SimulationConfiguration object, optional</span>
+<span class="sd">            Simulation setup to use to overwrite the other parameters. The default is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1143,34 +1148,38 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">_signal_nets</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">simulation_setup</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>
+            <span class="n">signal_list</span> <span class="o">=</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_nets</span>
+            <span class="n">reference_list</span> <span class="o">=</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">power_nets</span>
+            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span> <span class="o">==</span> <span class="n">CutoutSubdesignType</span><span class="o">.</span><span class="n">Conformal</span><span class="p">:</span>
+                <span class="n">extent_type</span> <span class="o">=</span> <span class="s2">&quot;Conforming&quot;</span>
+                <span class="n">expansion_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_expansion</span><span class="p">)</span>
+                <span class="n">use_round_corner</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_round_corner</span><span class="p">)</span>
+
         <span class="c1"># validate nets in layout</span>
-        <span class="k">for</span> <span class="n">_sig</span> <span class="ow">in</span> <span class="n">signal_list</span><span class="p">:</span>
-            <span class="n">_netobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="p">,</span> <span class="n">_sig</span><span class="p">)</span>
-            <span class="n">_signal_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_netobj</span><span class="p">)</span>
-
-        <span class="n">_ref_nets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">net_signals</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">signal_list</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="c1"># validate references in layout</span>
-        <span class="k">for</span> <span class="n">_ref</span> <span class="ow">in</span> <span class="n">reference_list</span><span class="p">:</span>
-            <span class="n">_netobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="p">,</span> <span class="n">_ref</span><span class="p">)</span>
-            <span class="n">_ref_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_netobj</span><span class="p">)</span>
+        <span class="n">_netsClip</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">reference_list</span><span class="p">]</span>
+        <span class="p">)</span>
 
-        <span class="n">_netsClip</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="p">,</span> <span class="n">reference_list</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reference_list</span><span class="p">)</span>
-        <span class="p">]</span>
-        <span class="n">_netsClip</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">_netsClip</span><span class="p">)</span>
-        <span class="n">net_signals</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">_signal_nets</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">extent_type</span> <span class="o">==</span> <span class="s2">&quot;Conforming&quot;</span><span class="p">:</span>
             <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
             <span class="p">)</span>
 
         <span class="c1"># Create new cutout cell/design</span>
-        <span class="n">_cutout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">CutOut</span><span class="p">(</span><span class="n">net_signals</span><span class="p">,</span> <span class="n">_netsClip</span><span class="p">,</span> <span class="n">_poly</span><span class="p">)</span>
+        <span class="n">included_nets</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">signal_list</span> <span class="o">+</span> <span class="n">reference_list</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">_cutout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">CutOut</span><span class="p">(</span><span class="n">included_nets</span><span class="p">,</span> <span class="n">_netsClip</span><span class="p">,</span> <span class="n">_poly</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Analysis setups do not come over with the clipped design copy,</span>
         <span class="c1"># so add the analysis setups from the original here.</span>
@@ -1598,7 +1607,82 @@
 <span class="sd">            Bounding box as a [lower-left X, lower-left Y], [upper-right X, upper-right Y]) pair in meters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbutils</span><span class="o">.</span><span class="n">HfssUtilities</span><span class="o">.</span><span class="n">GetBBox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()],</span> <span class="p">[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]]</span></div></div>
+        <span class="k">return</span> <span class="p">[[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()],</span> <span class="p">[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]]</span></div>
+
+<div class="viewcode-block" id="Edb.build_simulation_project"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.build_simulation_project.html#pyaedt.Edb.build_simulation_project">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">build_simulation_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_setup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Build a ready-to-solve simulation project.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        simulation_setup : EDB_Data.SimulationConfiguratiom object.</span>
+<span class="sd">            SimulationConfiguration object that can be instantiated or directly loaded with a</span>
+<span class="sd">            configuration file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, False when ``Failed``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building simulation project.&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">simulation_setup</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">do_cutout_subdesign</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutting out using method: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span><span class="p">))</span>
+                <span class="n">old_cell_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_cutout</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">=</span><span class="n">simulation_setup</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutout processed.&quot;</span><span class="p">)</span>
+                    <span class="n">old_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">old_cell_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">old_cell</span><span class="p">:</span>
+                        <span class="n">old_cell</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cutout failed.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleting existing ports.&quot;</span><span class="p">)</span>
+            <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">port</span><span class="p">:</span> <span class="n">port</span><span class="o">.</span><span class="n">Delete</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">))</span>
+            <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">pg</span><span class="p">:</span> <span class="n">pg</span><span class="o">.</span><span class="n">Delete</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">PinGroups</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating ports for signal nets.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">solver_type</span> <span class="o">==</span> <span class="n">SolverType</span><span class="o">.</span><span class="n">Hfss3dLayout</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">create_port_on_component</span><span class="p">(</span>
+                        <span class="n">cmp</span><span class="p">,</span>
+                        <span class="n">net_list</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_nets</span><span class="p">,</span>
+                        <span class="n">do_pingroup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">reference_net</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">power_nets</span><span class="p">,</span>
+                        <span class="n">port_type</span><span class="o">=</span><span class="n">SourceType</span><span class="o">.</span><span class="n">CoaxPort</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_hfss</span><span class="o">.</span><span class="n">set_coax_port_attributes</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to configure coaxial port attributes.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of ports: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_hfss</span><span class="o">.</span><span class="n">get_ports_number</span><span class="p">()))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Configure HFSS extents.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">trim_reference_size</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;Trimming the reference plane for coaxial ports: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="nb">bool</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">trim_reference_size</span><span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">core_hfss</span><span class="o">.</span><span class="n">trim_component_reference_size</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">core_hfss</span><span class="o">.</span><span class="n">configure_hfss_extents</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_hfss</span><span class="o">.</span><span class="n">configure_hfss_analysis_setup</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to configure HFSS simulation setup.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">solver_type</span> <span class="o">==</span> <span class="n">SolverType</span><span class="o">.</span><span class="n">Siwave</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">create_port_on_component</span><span class="p">(</span>
+                        <span class="n">cmp</span><span class="p">,</span>
+                        <span class="n">net_list</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_nets</span><span class="p">,</span>
+                        <span class="n">do_pingroup</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">reference_net</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">power_nets</span><span class="p">,</span>
+                        <span class="n">port_type</span><span class="o">=</span><span class="n">SourceType</span><span class="o">.</span><span class="n">CircPort</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Configuring analysis setup.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_siwave</span><span class="o">.</span><span class="n">configure_siw_analysis_setup</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to configure Siwave simulation setup.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># if simulation_setup.defeature_layout:</span>
+            <span class="c1">#    self.core_hfss.layout_defeaturing(simulation_setup)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span></div></div>
 </pre></div>
 
               </div>
@@ -1622,7 +1706,7 @@
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.3.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
 </p>
     </div>
     
