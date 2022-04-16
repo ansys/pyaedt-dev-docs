@@ -245,6 +245,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">write_csv</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.LoadAEDTFile</span> <span class="kn">import</span> <span class="n">load_entire_aedt_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span>
+<span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">decompose_variable_value</span>
 
 <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">base64</span>
@@ -2540,6 +2541,26 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">change_design_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set Design Settings.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        settings : dict</span>
+<span class="sd">            Dictionary of settings with value to apply.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Design Settings Data&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="s2">&quot;:=&quot;</span><span class="p">)</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetDesignSettings</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">change_automatically_use_causal_materials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lossy_dielectric</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Enable or disable the automatic use of causal materials for lossy dielectrics.</span>
 
@@ -2563,8 +2584,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enabling Automatic use of causal materials&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Disabling Automatic use of causal materials&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetDesignSettings</span><span class="p">([</span><span class="s2">&quot;NAME:Design Settings Data&quot;</span><span class="p">,</span> <span class="s2">&quot;Calculate Lossy Dielectrics:=&quot;</span><span class="p">,</span> <span class="n">lossy_dielectric</span><span class="p">])</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">change_design_settings</span><span class="p">({</span><span class="s2">&quot;Calculate Lossy Dielectrics&quot;</span><span class="p">:</span> <span class="n">lossy_dielectric</span><span class="p">})</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">change_material_override</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_override</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -2590,8 +2610,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enabling Material Override&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Disabling Material Override&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetDesignSettings</span><span class="p">([</span><span class="s2">&quot;NAME:Design Settings Data&quot;</span><span class="p">,</span> <span class="s2">&quot;Allow Material Override:=&quot;</span><span class="p">,</span> <span class="n">material_override</span><span class="p">])</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">change_design_settings</span><span class="p">({</span><span class="s2">&quot;Allow Material Override&quot;</span><span class="p">:</span> <span class="n">material_override</span><span class="p">})</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">change_validation_settings</span><span class="p">(</span>
@@ -3355,12 +3374,25 @@
 <span class="sd">        &gt;&gt;&gt; M3D[&quot;p3&quot;] = &quot;P1 * p2&quot;</span>
 <span class="sd">        &gt;&gt;&gt; eval_p3 = M3D.get_evaluated_value(&quot;p3&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">:</span>
+                <span class="n">val_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">val_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
+            <span class="n">val</span><span class="p">,</span> <span class="n">units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">val_units</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">val_units</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">variation</span><span class="p">:</span>
             <span class="n">variation_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetNominalVariation</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">variation_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_variation</span><span class="p">(</span><span class="n">variation_string</span><span class="o">=</span><span class="n">variation</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">si_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetVariationVariableValue</span><span class="p">(</span><span class="n">variation_string</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">si_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
 
-        <span class="n">si_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetVariationVariableValue</span><span class="p">(</span><span class="n">variation_string</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
             <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="n">unit_system</span><span class="p">(</span><span class="n">units</span><span class="p">)][</span><span class="n">units</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>

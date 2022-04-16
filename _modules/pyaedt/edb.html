@@ -1567,8 +1567,70 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Edb.add_design_variable"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.add_design_variable.html#pyaedt.Edb.add_design_variable">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">add_design_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_design_variable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">,</span> <span class="n">is_parameter</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a design variable.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variable_name : str</span>
+<span class="sd">            Name of the variable. To be added as a project variable, the name must begin with ``$``.</span>
+<span class="sd">        variable_value : str, float</span>
+<span class="sd">            Value of the variable with units.</span>
+<span class="sd">        is_parameter : bool, optional</span>
+<span class="sd">            Whether to add the variable as a local variable. The default is ``False``.</span>
+<span class="sd">            When ``True``, the variable is added as a parameter default.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            Tuple containing the ``AddVariable`` result and variable server.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edb_app = Edb()</span>
+<span class="sd">        &gt;&gt;&gt; boolean_1, ant_length = edb_app.add_design_variable(&quot;my_local_variable&quot;, &quot;1cm&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; boolean_2, para_length = edb_app.change_design_variable_value(&quot;my_parameter&quot;, &quot;1m&quot;, is_parameter=True</span>
+<span class="sd">        &gt;&gt;&gt; boolean_3, project_length = edb_app.change_design_variable_value(&quot;$my_project_variable&quot;, &quot;1m&quot;)</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
+                <span class="n">is_parameter</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">string_message</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;Creating project variable </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Project variable </span><span class="si">%s</span><span class="s2"> already exists. You can use it.&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s2">&quot;The character ``$`` must be placed at the beginning of your variable name,&quot;</span>
+                    <span class="s2">&quot; to make it a project variable.&quot;</span>
+                <span class="p">)</span>
+
+                <span class="n">string_message</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Creating local variable </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="s2">&quot;Local variable </span><span class="si">%s</span><span class="s2"> already exists. You can use it.&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
+            <span class="n">string_message</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Creating local variable </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="s2">&quot;Local variable </span><span class="si">%s</span><span class="s2"> already exists. You can use it.&quot;</span><span class="p">]</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="n">var_server</span><span class="o">.</span><span class="n">GetAllVariableNames</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">variable_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">var_server</span><span class="o">.</span><span class="n">IsVariableParameter</span><span class="p">(</span><span class="n">variable_name</span><span class="p">):</span>
+                <span class="n">string_message</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Parameter default </span><span class="si">%s</span><span class="s2"> already exists. You can use it.&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">string_message</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">variable_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">var_server</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_parameter</span><span class="p">:</span>
+                <span class="n">string_message</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Creating parameter default </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">string_message</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">variable_name</span><span class="p">)</span>
+            <span class="n">var_server</span><span class="o">.</span><span class="n">AddVariable</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">variable_value</span><span class="p">),</span> <span class="n">is_parameter</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">var_server</span></div>
+
+<div class="viewcode-block" id="Edb.change_design_variable_value"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.change_design_variable_value.html#pyaedt.Edb.change_design_variable_value">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">change_design_variable_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change a variable value.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1580,22 +1642,53 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        tuple</span>
-<span class="sd">            tuple containing the ``AddVariable`` result and variable server.</span>
+<span class="sd">            Tuple containing the ``SetVariableValue`` result and variable server.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edb_app = Edb()</span>
+<span class="sd">        &gt;&gt;&gt; boolean, ant_length = edb_app.add_design_variable(&quot;ant_length&quot;, &quot;1cm&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; boolean, ant_length = edb_app.change_design_variable_value(&quot;ant_length&quot;, &quot;1m&quot;)</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">is_parameter</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">:</span>
-            <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
-            <span class="n">is_parameter</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
+                <span class="n">string_message</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;Value of the project variable </span><span class="si">%s</span><span class="s2"> has been changed from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Project variable </span><span class="si">%s</span><span class="s2"> doesn&#39;t exist. You can create it using method add_design_variable.&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
+                <span class="n">string_message</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;Value of the local variable </span><span class="si">%s</span><span class="s2"> has been changed from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Local variable or parameter default </span><span class="si">%s</span><span class="s2"> doesn&#39;t exist.&quot;</span>
+                    <span class="s2">&quot; You can create it using method add_design_variable.&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">var_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetVariableServer</span><span class="p">()</span>
+            <span class="n">string_message</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;Value of the local variable </span><span class="si">%s</span><span class="s2"> has been changed from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Local variable or parameter default </span><span class="si">%s</span><span class="s2"> doesn&#39;t exist.&quot;</span>
+                <span class="s2">&quot; You can create it using method add_design_variable.&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
         <span class="n">variables</span> <span class="o">=</span> <span class="n">var_server</span><span class="o">.</span><span class="n">GetAllVariableNames</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">variable_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">variables</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Parameter </span><span class="si">%s</span><span class="s2"> exists. Using it.&quot;</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="n">var_server</span>
+            <span class="n">out_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+                <span class="n">tuple_value</span> <span class="o">=</span> <span class="n">var_server</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tuple_value</span> <span class="o">=</span> <span class="n">var_server</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">out_value</span><span class="p">)</span>
+            <span class="n">var_server</span><span class="o">.</span><span class="n">SetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">variable_value</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">var_server</span><span class="o">.</span><span class="n">IsVariableParameter</span><span class="p">(</span><span class="n">variable_name</span><span class="p">):</span>
+                <span class="n">string_message</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Value of the parameter default </span><span class="si">%s</span><span class="s2"> has been changed from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">.&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">string_message</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">tuple_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">variable_value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">var_server</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating parameter </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">)</span>
-            <span class="n">var_server</span><span class="o">.</span><span class="n">AddVariable</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">variable_value</span><span class="p">),</span> <span class="n">is_parameter</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">var_server</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">string_message</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">variable_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Edb.get_bounding_box"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.get_bounding_box.html#pyaedt.Edb.get_bounding_box">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
