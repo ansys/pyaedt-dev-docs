@@ -4528,6 +4528,68 @@
                         <span class="c1"># self.modeler_oproject.ClearMessages()</span>
         <span class="k">return</span> <span class="kc">True</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">move_face</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Move an input face or a list of input faces of a specific object.</span>
+
+<span class="sd">        This method moves a face or a list of faces which belong to the same solid.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        faces : list</span>
+<span class="sd">            List of Face ID or List of :class:`pyaedt.modeler.Object3d.FacePrimitive` object or mixed.</span>
+<span class="sd">        offset : float, optional</span>
+<span class="sd">             Offset to apply in model units. The default is ``1.0``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.MoveFaces</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">face_selection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">faces</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">selection</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">face_selection</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectNameByFaceID</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="ow">in</span> <span class="n">selection</span><span class="p">:</span>
+                <span class="n">selection</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectNameByFaceID</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">selection</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectNameByFaceID</span><span class="p">(</span><span class="n">f</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="p">]</span>
+
+        <span class="n">arg1</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">selection</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="s2">&quot;NewPartsModelFlag:=&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Model&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">arg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Parameters&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">selection</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:MoveFacesParameters&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;MoveAlongNormalFlag:=&quot;</span><span class="p">,</span>
+                    <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;OffsetDistance:=&quot;</span><span class="p">,</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">,</span>
+                    <span class="s2">&quot;MoveVectorX:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;0mm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;MoveVectorY:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;0mm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;MoveVectorZ:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;0mm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;FacesToMove:=&quot;</span><span class="p">,</span>
+                    <span class="n">selection</span><span class="p">[</span><span class="n">el</span><span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">MoveFaces</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span> <span class="n">arg2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
     <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">instance</span>
         <span class="k">return</span> <span class="bp">self</span>
