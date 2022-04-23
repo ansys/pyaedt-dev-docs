@@ -206,9 +206,9 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Modeler</span> <span class="kn">import</span> <span class="n">Modeler</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">_dim_arg</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">CircuitComponent</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Primitives3DLayout</span> <span class="kn">import</span> <span class="n">Primitives3DLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.PrimitivesEmit</span> <span class="kn">import</span> <span class="n">EmitComponent</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.PrimitivesEmit</span> <span class="kn">import</span> <span class="n">EmitComponents</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.PrimitivesMaxwellCircuit</span> <span class="kn">import</span> <span class="n">MaxwellCircuitComponents</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.PrimitivesNexxim</span> <span class="kn">import</span> <span class="n">NexximComponents</span>
@@ -318,6 +318,24 @@
             <span class="n">pos2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">get_pin_location</span><span class="p">(</span><span class="n">secondcomponent</span><span class="p">,</span> <span class="n">pins2</span><span class="p">[</span><span class="n">pinnum_second</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">create_wire</span><span class="p">([</span><span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">])</span>
         <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_get_components_selections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selections</span><span class="p">,</span> <span class="n">return_as_list</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">sels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selections</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">selections</span> <span class="o">=</span> <span class="p">[</span><span class="n">selections</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">sels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schematic</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span><span class="o">.</span><span class="n">composed_name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="p">(</span><span class="n">CircuitComponent</span><span class="p">,</span> <span class="n">EmitComponent</span><span class="p">)):</span>
+                <span class="n">sels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">composed_name</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schematic</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="n">sel</span> <span class="ow">in</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">InstanceName</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">composed_name</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span>
+                        <span class="n">sels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">composed_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">return_as_list</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sels</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sels</span>
 
 
 <div class="viewcode-block" id="ModelerNexxim"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Circuit.ModelerNexxim.html#pyaedt.modeler.Circuit.ModelerNexxim">[docs]</a><span class="k">class</span> <span class="nc">ModelerNexxim</span><span class="p">(</span><span class="n">ModelerCircuit</span><span class="p">):</span>
@@ -444,19 +462,10 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.Move</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selections</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">selections</span> <span class="o">=</span> <span class="p">[</span><span class="n">selections</span><span class="p">]</span>
-        <span class="n">sels</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                <span class="n">sels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schematic</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span><span class="o">.</span><span class="n">composed_name</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="n">CircuitComponent</span><span class="p">):</span>
-                <span class="n">sels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">composed_name</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">schematic</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-                    <span class="k">if</span> <span class="n">sel</span> <span class="o">==</span> <span class="n">el</span><span class="o">.</span><span class="n">InstanceName</span> <span class="ow">or</span> <span class="n">el</span><span class="o">.</span><span class="n">composed_name</span> <span class="ow">or</span> <span class="n">el</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
-                        <span class="n">sels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">composed_name</span><span class="p">)</span>
-
+        <span class="n">sels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_selections</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sels</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No Component Found.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="n">x_location</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="s2">&quot;Length&quot;</span><span class="p">][</span><span class="n">units</span><span class="p">]</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">y_location</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="s2">&quot;Length&quot;</span><span class="p">][</span><span class="n">units</span><span class="p">]</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
@@ -497,18 +506,17 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.Rotate</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">sels</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-                <span class="k">if</span> <span class="n">sel</span> <span class="o">==</span> <span class="n">el</span><span class="o">.</span><span class="n">InstanceName</span><span class="p">:</span>
-                    <span class="n">sels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">id</span><span class="p">]</span><span class="o">.</span><span class="n">composed_name</span><span class="p">)</span>
+        <span class="n">sels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_components_selections</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sels</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No Component Found.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Rotate</span><span class="p">(</span>
             <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="n">sels</span><span class="p">],</span>
             <span class="p">[</span>
                 <span class="s2">&quot;NAME:RotateParameters&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;Degrees:=&quot;</span><span class="p">,</span>
-                <span class="n">_dim_arg</span><span class="p">(</span><span class="n">degrees</span><span class="p">,</span> <span class="s2">&quot;°&quot;</span><span class="p">),</span>
+                <span class="n">degrees</span><span class="p">,</span>
                 <span class="s2">&quot;Disconnect:=&quot;</span><span class="p">,</span>
                 <span class="kc">False</span><span class="p">,</span>
                 <span class="s2">&quot;Rubberband:=&quot;</span><span class="p">,</span>

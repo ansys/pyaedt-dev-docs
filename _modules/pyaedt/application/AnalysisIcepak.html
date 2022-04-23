@@ -206,6 +206,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.application.Analysis</span> <span class="kn">import</span> <span class="n">Analysis</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.configurations</span> <span class="kn">import</span> <span class="n">ConfigurationsIcepak</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
@@ -275,6 +276,8 @@
         <span class="n">new_desktop_session</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">close_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">machine</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">Analysis</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -288,12 +291,25 @@
             <span class="n">new_desktop_session</span><span class="p">,</span>
             <span class="n">close_on_exit</span><span class="p">,</span>
             <span class="n">student_version</span><span class="p">,</span>
+            <span class="n">machine</span><span class="p">,</span>
+            <span class="n">port</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_osolution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;Solutions&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_oboundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;BoundarySetup&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span> <span class="o">=</span> <span class="n">Modeler3D</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">IcepakMesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_post</span> <span class="o">=</span> <span class="n">PostProcessor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configurations</span> <span class="o">=</span> <span class="n">ConfigurationsIcepak</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configurations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Property to import and export configuration files.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.generic.configurations.Configurations`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configurations</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">osolution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -495,7 +511,7 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.Export</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">object_list</span><span class="p">:</span>
-            <span class="n">allObjects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">object_names</span>
+            <span class="n">allObjects</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">object_names</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">removed_objects</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">rem</span> <span class="ow">in</span> <span class="n">removed_objects</span><span class="p">:</span>
                     <span class="n">allObjects</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">rem</span><span class="p">)</span>
@@ -503,7 +519,7 @@
                 <span class="k">if</span> <span class="s2">&quot;Region&quot;</span> <span class="ow">in</span> <span class="n">allObjects</span><span class="p">:</span>
                     <span class="n">allObjects</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Region&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">allObjects</span> <span class="o">=</span> <span class="n">object_list</span><span class="p">[:]</span>
+            <span class="n">allObjects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Exporting </span><span class="si">{}</span><span class="s2"> objects&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">allObjects</span><span class="p">)))</span>
         <span class="n">major</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>

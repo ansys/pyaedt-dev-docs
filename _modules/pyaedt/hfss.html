@@ -267,6 +267,14 @@
 <span class="sd">        Whether to open the AEDT student version. The default is</span>
 <span class="sd">        ``False``. This parameter is ignored when a script is launched</span>
 <span class="sd">        within AEDT.</span>
+<span class="sd">    machine : str, optional</span>
+<span class="sd">        Machine name to which connect the oDesktop Session. Works only on 2022R2.</span>
+<span class="sd">        Remote Server must be up and running with command `&quot;ansysedt.exe -grpcsrv portnum&quot;`.</span>
+<span class="sd">        If machine is `&quot;localhost&quot;` the server will also start if not present.</span>
+<span class="sd">    port : int, optional</span>
+<span class="sd">        Port number of which start the oDesktop communication on already existing server.</span>
+<span class="sd">        This parameter is ignored in new server creation. It works only on 2022R2.</span>
+<span class="sd">        Remote Server must be up and running with command `&quot;ansysedt.exe -grpcsrv portnum&quot;`.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -343,6 +351,8 @@
         <span class="n">new_desktop_session</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">close_on_exit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">machine</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">FieldAnalysis3D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -356,6 +366,8 @@
             <span class="n">new_desktop_session</span><span class="p">,</span>
             <span class="n">close_on_exit</span><span class="p">,</span>
             <span class="n">student_version</span><span class="p">,</span>
+            <span class="n">machine</span><span class="p">,</span>
+            <span class="n">port</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">field_setups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rad_fields</span><span class="p">()</span>
 
@@ -518,7 +530,7 @@
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ShowReporterFilter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ReporterFilter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Impedance&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">impedance</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;ohm&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;LumpedPort&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Lumped Port&quot;</span><span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_create_port_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectname</span><span class="p">,</span> <span class="n">int_line_stop</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -550,9 +562,9 @@
                 <span class="k">except</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed To rename terminals.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
-                <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;WavePort&quot;</span>
+                <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;Wave Port&quot;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;LumpedPort&quot;</span>
+                <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;Lumped Port&quot;</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">objectname</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
                 <span class="n">props</span><span class="p">[</span><span class="s2">&quot;NumModes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
@@ -596,7 +608,7 @@
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;RenormImp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">renorm_imp</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;TerminalIDList&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CircuitPort&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Circuit Port&quot;</span><span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_create_waveport_driven</span><span class="p">(</span>
@@ -664,7 +676,7 @@
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ShowReporterFilter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ReporterFilter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">report_filter</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseAnalyticAlignment&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;WavePort&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Wave Port&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Hfss.assigncoating"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.assigncoating.html#pyaedt.Hfss.assigncoating">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">assigncoating</span><span class="p">(</span>
@@ -2231,7 +2243,7 @@
 <span class="sd">        --------</span>
 
 <span class="sd">        Create two boxes that will be used to create a wave port</span>
-<span class="sd">        named ``&#39;WavePort&#39;``.</span>
+<span class="sd">        named ``&#39;Wave Port&#39;``.</span>
 
 <span class="sd">        &gt;&gt;&gt; box1 = hfss.modeler.create_box([0,0,0], [10,10,5],</span>
 <span class="sd">        ...                                           &quot;BoxWave1&quot;, &quot;copper&quot;)</span>
@@ -2239,7 +2251,7 @@
 <span class="sd">        ...                                           &quot;BoxWave2&quot;, &quot;copper&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; wave_port = hfss.create_wave_port_between_objects(&quot;BoxWave1&quot;, &quot;BoxWave2&quot;,</span>
 <span class="sd">        ...                                                   hfss.AxisDir.XNeg, 50, 1,</span>
-<span class="sd">        ...                                                   &quot;WavePort&quot;, False)</span>
+<span class="sd">        ...                                                   &quot;Wave Port&quot;, False)</span>
 <span class="sd">        pyaedt info: Connection Correctly created</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -2368,7 +2380,7 @@
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;LatticeBVector&quot;</span><span class="p">][</span><span class="s2">&quot;End&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lattice_b_end</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">portname</span><span class="p">:</span>
             <span class="n">portname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Floquet&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;FloquetPort&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Floquet Port&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Hfss.assign_lattice_pair"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.assign_lattice_pair.html#pyaedt.Hfss.assign_lattice_pair">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">assign_lattice_pair</span><span class="p">(</span>
