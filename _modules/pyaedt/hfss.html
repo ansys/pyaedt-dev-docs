@@ -533,9 +533,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Lumped Port&quot;</span><span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_create_port_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectname</span><span class="p">,</span> <span class="n">int_line_stop</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_port_terminal</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">objectname</span><span class="p">,</span> <span class="n">int_line_stop</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">impedance</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
         <span class="n">ref_conductors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">int_line_stop</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">objectname</span><span class="p">)</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;IsWavePort&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">iswaveport</span>
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ReferenceConductors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ref_conductors</span>
@@ -545,10 +547,24 @@
         <span class="k">if</span> <span class="n">boundary</span><span class="p">:</span>
             <span class="n">new_ports</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetExcitationsOfType</span><span class="p">(</span><span class="s2">&quot;Terminal&quot;</span><span class="p">))</span>
             <span class="n">terminals</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">new_ports</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ports</span><span class="p">]</span>
-            <span class="nb">id</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">for</span> <span class="n">terminal</span> <span class="ow">in</span> <span class="n">terminals</span><span class="p">:</span>
-                <span class="n">new_name</span> <span class="o">=</span> <span class="n">portname</span> <span class="o">+</span> <span class="s2">&quot;_T&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
-                <span class="nb">id</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">terminal</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">terminals</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">impedance</span><span class="p">:</span>
+                    <span class="n">properties</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
+                        <span class="p">[</span>
+                            <span class="s2">&quot;NAME:HfssTab&quot;</span><span class="p">,</span>
+                            <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="s2">&quot;BoundarySetup:&quot;</span> <span class="o">+</span> <span class="n">terminal</span><span class="p">],</span>
+                            <span class="p">[</span>
+                                <span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span>
+                                <span class="p">[</span><span class="s2">&quot;NAME:Terminal Renormalizing Impedance&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">impedance</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;ohm&quot;</span><span class="p">],</span>
+                            <span class="p">],</span>
+                        <span class="p">],</span>
+                    <span class="p">]</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed to change terminal impedance.&quot;</span><span class="p">)</span>
+                <span class="n">new_name</span> <span class="o">=</span> <span class="n">portname</span> <span class="o">+</span> <span class="s2">&quot;_T&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
                 <span class="n">properties</span> <span class="o">=</span> <span class="p">[</span>
                     <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
                     <span class="p">[</span>
@@ -559,8 +575,9 @@
                 <span class="p">]</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed To rename terminals.&quot;</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed to rename terminal </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">terminal</span><span class="p">))</span>
+
             <span class="k">if</span> <span class="n">iswaveport</span><span class="p">:</span>
                 <span class="n">boundary</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;Wave Port&quot;</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1831,7 +1848,13 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">deembed</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
-                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span>
+                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">endobject</span><span class="p">,</span>
+                    <span class="n">portname</span><span class="p">,</span>
+                    <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span>
+                    <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span>
+                    <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">impedance</span><span class="o">=</span><span class="n">impedance</span><span class="p">,</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span></div>
 
@@ -2279,7 +2302,13 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">deembed</span> <span class="o">=</span> <span class="n">deembed_dist</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
-                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">endobject</span><span class="p">,</span>
+                    <span class="n">portname</span><span class="p">,</span>
+                    <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span>
+                    <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span>
+                    <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">impedance</span><span class="o">=</span><span class="n">impedance</span><span class="p">,</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span></div>
 
@@ -2733,7 +2762,13 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">deembed</span> <span class="o">=</span> <span class="n">deembed_dist</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
-                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endobject</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="n">faces</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">endobject</span><span class="p">,</span>
+                    <span class="n">portname</span><span class="p">,</span>
+                    <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span>
+                    <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span>
+                    <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">impedance</span><span class="o">=</span><span class="n">impedance</span><span class="p">,</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
@@ -3318,7 +3353,13 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">deembed</span> <span class="o">=</span> <span class="n">deemb</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
-                    <span class="n">faces</span><span class="p">,</span> <span class="n">terminal_references</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="n">faces</span><span class="p">,</span>
+                    <span class="n">terminal_references</span><span class="p">,</span>
+                    <span class="n">portname</span><span class="p">,</span>
+                    <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span>
+                    <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span>
+                    <span class="n">iswaveport</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">impedance</span><span class="o">=</span><span class="n">impedance</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Reference conductors are missing.&quot;</span><span class="p">)</span>
@@ -3401,7 +3442,13 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">deembed</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_port_terminal</span><span class="p">(</span>
-                    <span class="n">faces</span><span class="p">,</span> <span class="n">reference_object_list</span><span class="p">,</span> <span class="n">portname</span><span class="p">,</span> <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span> <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span> <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span>
+                    <span class="n">faces</span><span class="p">,</span>
+                    <span class="n">reference_object_list</span><span class="p">,</span>
+                    <span class="n">portname</span><span class="p">,</span>
+                    <span class="n">renorm</span><span class="o">=</span><span class="n">renorm</span><span class="p">,</span>
+                    <span class="n">deembed</span><span class="o">=</span><span class="n">deembed</span><span class="p">,</span>
+                    <span class="n">iswaveport</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">impedance</span><span class="o">=</span><span class="n">impedance</span><span class="p">,</span>
                 <span class="p">)</span>
 
             <span class="k">return</span> <span class="n">port</span>
