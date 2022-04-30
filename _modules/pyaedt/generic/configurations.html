@@ -208,6 +208,7 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_arg2dict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_create_json_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
@@ -1443,23 +1444,33 @@
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_update_mesh_operations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">):</span>
-        <span class="k">pass</span>
-        <span class="c1"># update = False</span>
-        <span class="c1"># for mesh_el in self._app.mesh.meshoperations:</span>
-        <span class="c1">#     if mesh_el.name == name:</span>
-        <span class="c1">#         if not self.options.skip_import_if_exists:</span>
-        <span class="c1">#             mesh_el.props = props</span>
-        <span class="c1">#             mesh_el.update()</span>
-        <span class="c1">#         update = True</span>
-        <span class="c1"># if update:</span>
-        <span class="c1">#     return</span>
-        <span class="c1"># bound = MeshOperation(self._app.mesh, name, props, props[&quot;Type&quot;])</span>
-        <span class="c1"># if bound.create():</span>
-        <span class="c1">#     self._app.mesh.meshoperations.append(bound)</span>
-        <span class="c1">#     self._app.logger.info(&quot;mesh Operation {} added.&quot;.format(name))</span>
-        <span class="c1"># else:</span>
-        <span class="c1">#     self._app.logger.warning(&quot;Failed to add Mesh {} &quot;.format(name))</span>
-        <span class="c1"># return True</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Settings&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">skip_import_if_exists</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">global_mesh_region</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">global_mesh_region</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">global_mesh_region</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">mesh_el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">meshregions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">mesh_el</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">skip_import_if_exists</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">mesh_el</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+                            <span class="n">mesh_el</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="n">mesh_el</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="n">bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshRegion</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">omeshmodule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">boundingdimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">_model_units</span>
+        <span class="p">)</span>
+        <span class="n">bound</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">bound</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
+                <span class="n">bound</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">meshregions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;mesh Operation </span><span class="si">{}</span><span class="s2"> added.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Failed to add Mesh </span><span class="si">{}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_export_objects_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_out</span><span class="p">):</span>
@@ -1477,11 +1488,29 @@
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_export_mesh_operations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dict_out</span><span class="p">):</span>
-        <span class="c1"># if self._app.mesh.meshregions:</span>
-        <span class="c1">#     dict_out[&quot;mesh&quot;] = {}</span>
-        <span class="c1">#     for mesh in self._app.mesh.meshoperations:</span>
-        <span class="c1">#         dict_out[&quot;mesh&quot;][mesh.name] = mesh.props</span>
-        <span class="c1">#         self._map_object(mesh.props, dict_out)</span>
+        <span class="n">dict_out</span><span class="p">[</span><span class="s2">&quot;mesh&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Settings&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">global_mesh_region</span><span class="o">.</span><span class="n">UserSpecifiedSettings</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">global_mesh_region</span><span class="o">.</span><span class="n">manualsettings</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">global_mesh_region</span><span class="o">.</span><span class="n">autosettings</span>
+        <span class="n">mop</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+        <span class="n">_arg2dict</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">mop</span><span class="p">)</span>
+        <span class="n">dict_out</span><span class="p">[</span><span class="s2">&quot;mesh&quot;</span><span class="p">][</span><span class="s2">&quot;Settings&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mop</span><span class="p">[</span><span class="s2">&quot;Settings&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">meshregions</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mesh</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">meshregions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">mesh</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Settings&quot;</span><span class="p">:</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Settings&quot;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">mesh</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Enable:=&quot;</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">Enable</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">mesh</span><span class="o">.</span><span class="n">UserSpecifiedSettings</span><span class="p">:</span>
+                    <span class="n">args</span> <span class="o">+=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">manualsettings</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">args</span> <span class="o">+=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">autosettings</span>
+                <span class="n">mop</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+                <span class="n">_arg2dict</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">mop</span><span class="p">)</span>
+                <span class="n">dict_out</span><span class="p">[</span><span class="s2">&quot;mesh&quot;</span><span class="p">][</span><span class="n">mesh</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mop</span><span class="p">[</span><span class="n">mesh</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_map_object</span><span class="p">(</span><span class="n">mop</span><span class="p">,</span> <span class="n">dict_out</span><span class="p">)</span>
         <span class="k">pass</span>
 </pre></div>
 

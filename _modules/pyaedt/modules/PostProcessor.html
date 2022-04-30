@@ -764,31 +764,67 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aedtdata</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span> <span class="o">=</span> <span class="n">aedtdata</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">number_of_variations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aedtdata</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_variation</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_variation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetSweepNames</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_sweeps</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_primary_sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variations</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_intrinsics</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_intrinsic</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_intrinsic</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_primary_sweep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_primary_sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_variation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">e</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetSweepUnits</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_solutions_data</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ifft</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sweeps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Sweeps.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span>
+<div class="viewcode-block" id="SolutionData.set_active_variation"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.set_active_variation.html#pyaedt.modules.PostProcessor.SolutionData.set_active_variation">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">set_active_variation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the active variations to one of available variations in self.variations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        var_id : int</span>
+<span class="sd">            Index of Variations to assign.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">var_id</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_variation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">[</span><span class="n">var_id</span><span class="p">]</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_get_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">variations_lists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
+            <span class="n">variations</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">():</span>
+                <span class="n">variations</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">variations_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variations</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">variations_lists</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_get_intrinsics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_sweeps</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+        <span class="n">intrinsics</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">intrinsics</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetSweepValues</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+            <span class="n">_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
+            <span class="n">_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">OrderedDict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">_sweeps</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">sweeps_siunits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_sweeps_siunits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;SI units for the sweep.&quot;&quot;&quot;</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">:</span>
@@ -796,15 +832,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">variations_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Variation values for design variables.&quot;&quot;&quot;</span>
-        <span class="nb">vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">()</span>
-        <span class="n">variationvals</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">:</span>
-            <span class="n">variationvals</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">variationvals</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nominal_variation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -832,7 +859,7 @@
 
     <span class="nd">@primary_sweep</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">primary_sweep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ps</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">ps</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">ps</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_primary_sweep</span> <span class="o">=</span> <span class="n">ps</span>
 
     <span class="nd">@property</span>
@@ -843,9 +870,9 @@
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_init_solutions_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution_data_real</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution_data_imag</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_mag</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution_data_real</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution_data_imag</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
@@ -853,11 +880,11 @@
                     <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetDataUnits</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">expr</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span>
-                    <span class="nb">complex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span>
+                    <span class="nb">complex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
                 <span class="p">)</span>
 
 <div class="viewcode-block" id="SolutionData.update_sweeps"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.update_sweeps.html#pyaedt.modules.PostProcessor.SolutionData.update_sweeps">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -870,11 +897,24 @@
 <span class="sd">            Updated sweeps.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetSweepNames</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">:</span>
+
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
             <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetSweepValues</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">OrderedDict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="nb">reversed</span><span class="p">(</span><span class="n">names</span><span class="p">)))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -901,42 +941,20 @@
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">sols_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">expression</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
-            <span class="n">combinations</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">solution</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetRealDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">solution</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="n">extendes_sweep_names</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">():</span>
-                        <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">extendes_sweep_names</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                            <span class="n">extendes_sweep_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableUnits</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-                    <span class="n">comb</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">()):</span>
-                        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-                        <span class="n">comb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-                    <span class="n">combinations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>
-                    <span class="n">solution</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetRealDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
+
+            <span class="n">solution</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
+                <span class="n">solution</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetRealDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
             <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">):</span>
-                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
             <span class="n">solution_Data</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">if</span> <span class="n">combinations</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">comb</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">):</span>
-
-                        <span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">comb</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">comb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">:</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">comb</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">comb</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
                 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">combinations</span><span class="p">:</span>
-                        <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">sols_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution_Data</span>
         <span class="k">return</span> <span class="n">sols_data</span>
 
@@ -944,46 +962,25 @@
     <span class="k">def</span> <span class="nf">_solution_data_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">sols_data</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">combinations</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">expression</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">IsDataComplex</span><span class="p">(</span><span class="n">expression</span><span class="p">):</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">solution</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetImagDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">solution</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
-                        <span class="n">solution</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetImagDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">solution</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
-                    <span class="n">comb</span> <span class="o">=</span> <span class="p">[]</span>
-                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableNames</span><span class="p">()):</span>
-                        <span class="n">comb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetDesignVariableValue</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-                    <span class="n">combinations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">):</span>
-                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
 
+            <span class="n">solution</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">IsDataComplex</span><span class="p">(</span><span class="n">expression</span><span class="p">):</span>
+                    <span class="n">solution</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetImagDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">GetRealDataValues</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
+                    <span class="n">solution</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">l</span><span class="p">)</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
             <span class="n">solution_Data</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">if</span> <span class="n">combinations</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">comb</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">):</span>
-                        <span class="k">if</span> <span class="n">solution</span><span class="p">:</span>
-                            <span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">comb</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">comb</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">0</span>
-
-                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">comb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">:</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">comb</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">comb</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
                 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">values</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">combinations</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">solution</span><span class="p">:</span>
-                            <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">solution_Data</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">sols_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution_Data</span>
         <span class="k">return</span> <span class="n">sols_data</span>
 
@@ -1021,6 +1018,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">360</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span></div>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_variation_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_variation</span><span class="p">[</span><span class="n">it</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_intrinsic</span><span class="p">[</span><span class="n">it</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">temp</span>
+
 <div class="viewcode-block" id="SolutionData.data_magnitude"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_magnitude.html#pyaedt.modules.PostProcessor.SolutionData.data_magnitude">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">data_magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the data magnitude of an expression.</span>
@@ -1029,7 +1036,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, optional</span>
 <span class="sd">            Name of the expression. The default is ``None``, in which case the</span>
-<span class="sd">            first expression is used.</span>
+<span class="sd">            active expression is used.</span>
 <span class="sd">        convert_to_SI : bool, optional</span>
 <span class="sd">            Whether to convert the data to the SI unit system.</span>
 <span class="sd">            The default is ``False``.</span>
@@ -1041,22 +1048,19 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
         <span class="k">elif</span> <span class="n">expression</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">:</span>
-            <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">it</span><span class="p">])</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">temp</span><span class="p">))</span>
-        <span class="n">solution_Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_mag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variation_tuple</span><span class="p">()</span>
+        <span class="n">solution_Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
         <span class="n">sol</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">))</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]:</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]:</span>
             <span class="n">temp</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">temp</span><span class="p">)])</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1e-15</span><span class="p">)</span>
+                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">convert_to_SI</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]):</span>
             <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_list_to_SI</span><span class="p">(</span>
                 <span class="n">sol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
@@ -1098,7 +1102,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, optional</span>
 <span class="sd">            Name of the expression. The default is ``None``,</span>
-<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">            in which case the active expression is used.</span>
 <span class="sd">        convert_to_SI : bool, optional</span>
 <span class="sd">            Whether to convert the data to the SI unit system.</span>
 <span class="sd">            The default is ``False``.</span>
@@ -1110,18 +1114,19 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">db10</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">)]</span></div>
 
-<div class="viewcode-block" id="SolutionData.data_db10"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_db10.html#pyaedt.modules.PostProcessor.SolutionData.data_db10">[docs]</a>    <span class="k">def</span> <span class="nf">data_db10</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SolutionData.data_db10"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_db10.html#pyaedt.modules.PostProcessor.SolutionData.data_db10">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">data_db10</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the data in the database for an expression and convert in db10.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, optional</span>
 <span class="sd">            Name of the expression. The default is ``None``,</span>
-<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">            in which case the active expression is used.</span>
 <span class="sd">        convert_to_SI : bool, optional</span>
 <span class="sd">            Whether to convert the data to the SI unit system.</span>
 <span class="sd">            The default is ``False``.</span>
@@ -1133,18 +1138,19 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">db10</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">)]</span></div>
 
-<div class="viewcode-block" id="SolutionData.data_db20"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_db20.html#pyaedt.modules.PostProcessor.SolutionData.data_db20">[docs]</a>    <span class="k">def</span> <span class="nf">data_db20</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SolutionData.data_db20"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_db20.html#pyaedt.modules.PostProcessor.SolutionData.data_db20">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">data_db20</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the data in the database for an expression and convert in db20.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, optional</span>
 <span class="sd">            Name of the expression. The default is ``None``,</span>
-<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">            in which case the active expression is used.</span>
 <span class="sd">        convert_to_SI : bool, optional</span>
 <span class="sd">            Whether to convert the data to the SI unit system.</span>
 <span class="sd">            The default is ``False``.</span>
@@ -1156,18 +1162,19 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">db20</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">)]</span></div>
 
-<div class="viewcode-block" id="SolutionData.data_phase"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_phase.html#pyaedt.modules.PostProcessor.SolutionData.data_phase">[docs]</a>    <span class="k">def</span> <span class="nf">data_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">radians</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="SolutionData.data_phase"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_phase.html#pyaedt.modules.PostProcessor.SolutionData.data_phase">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">data_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">radians</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the phase part of the data for an expression.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, None</span>
 <span class="sd">            Name of the expression. The default is ``None``,</span>
-<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">            in which case the active expression is used.</span>
 <span class="sd">        radians : bool, optional</span>
 <span class="sd">            Whether to convert the data into radians or degree.</span>
 <span class="sd">            The default is ``True`` for radians.</span>
@@ -1179,20 +1186,63 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
         <span class="n">coefficient</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">radians</span><span class="p">:</span>
             <span class="n">coefficient</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">coefficient</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="n">k</span> <span class="o">/</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_real</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_imag</span><span class="p">(</span><span class="n">expression</span><span class="p">))]</span></div>
 
-<div class="viewcode-block" id="SolutionData.data_real"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_real.html#pyaedt.modules.PostProcessor.SolutionData.data_real">[docs]</a>    <span class="k">def</span> <span class="nf">data_real</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">primary_sweep_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the primary sweep for a given data and primary variable.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of the primary sweep valid points for the expression.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">primary_sweep_variations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the variations lists for a given primary variable.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of the primary sweep valid points for the expression.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variation_tuple</span><span class="p">()</span>
+
+        <span class="n">solution_Data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]:</span>
+            <span class="n">temp</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+            <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span> <span class="ow">in</span> <span class="n">solution_Data</span><span class="p">:</span>
+                <span class="n">sol_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">:</span>
+                    <span class="n">sol_dict</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol_dict</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sol</span>
+
+<div class="viewcode-block" id="SolutionData.data_real"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_real.html#pyaedt.modules.PostProcessor.SolutionData.data_real">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">data_real</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the real part of the data for an expression.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, None</span>
 <span class="sd">            Name of the expression. The default is ``None``,</span>
-<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">            in which case the active expression is used.</span>
 <span class="sd">        convert_to_SI : bool, optional</span>
 <span class="sd">            Whether to convert the data to the SI unit system.</span>
 <span class="sd">            The default is ``False``.</span>
@@ -1204,34 +1254,35 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">:</span>
-            <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">it</span><span class="p">])</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">temp</span><span class="p">))</span>
-        <span class="n">solution_Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variation_tuple</span><span class="p">()</span>
+
+        <span class="n">solution_Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
         <span class="n">sol</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">))</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]:</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]:</span>
             <span class="n">temp</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">temp</span><span class="p">)])</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1e-15</span><span class="p">)</span>
+                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">convert_to_SI</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]):</span>
             <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_list_to_SI</span><span class="p">(</span>
                 <span class="n">sol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">sol</span></div>
 
-<div class="viewcode-block" id="SolutionData.data_imag"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_imag.html#pyaedt.modules.PostProcessor.SolutionData.data_imag">[docs]</a>    <span class="k">def</span> <span class="nf">data_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SolutionData.data_imag"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.SolutionData.data_imag.html#pyaedt.modules.PostProcessor.SolutionData.data_imag">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">data_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the imaginary part of the data for an expression.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, optional</span>
 <span class="sd">            Name of the expression. The default is ``None``,</span>
-<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">            in which case the active expression is used.</span>
 <span class="sd">        convert_to_SI : bool, optional</span>
 <span class="sd">            Whether to convert the data to the SI unit system.</span>
 <span class="sd">            The default is ``False``.</span>
@@ -1243,20 +1294,18 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">:</span>
-            <span class="n">temp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">it</span><span class="p">])</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">temp</span><span class="p">))</span>
-        <span class="n">solution_Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variation_tuple</span><span class="p">()</span>
+
+        <span class="n">solution_Data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
         <span class="n">sol</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">))</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]:</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">]:</span>
             <span class="n">temp</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">temp</span><span class="p">)])</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1e-15</span><span class="p">)</span>
+                <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">convert_to_SI</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]):</span>
             <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_list_to_SI</span><span class="p">(</span>
                 <span class="n">sol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
@@ -1271,7 +1320,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        expression : str, optional</span>
 <span class="sd">            Name of the expression. The default is ``None``,</span>
-<span class="sd">            in which case the first expression is used.</span>
+<span class="sd">            in which case the active expression is used.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1279,8 +1328,8 @@
 <span class="sd">            ``True`` if the Solution Data for specific expression contains only real values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
-            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
+        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -1300,7 +1349,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">)]</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_real_only</span><span class="p">(</span><span class="n">el</span><span class="p">):</span>
                 <span class="n">header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">+</span> <span class="s2">&quot; (Real)&quot;</span><span class="p">)</span>
@@ -1309,16 +1358,16 @@
                 <span class="n">header</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
 
         <span class="n">list_full</span> <span class="o">=</span> <span class="p">[</span><span class="n">header</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">list_full</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">list_full</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">v</span><span class="p">])</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_real_only</span><span class="p">(</span><span class="n">el</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">list_full</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">v</span><span class="p">])</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -1369,7 +1418,7 @@
         <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">curves</span><span class="p">:</span>
-            <span class="n">curves</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">curves</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">curves</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">curves</span> <span class="o">=</span> <span class="p">[</span><span class="n">curves</span><span class="p">]</span>
         <span class="n">data_plot</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1377,9 +1426,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">math_formula</span><span class="p">:</span>
             <span class="n">math_formula</span> <span class="o">=</span> <span class="s2">&quot;mag&quot;</span>
         <span class="k">if</span> <span class="n">is_polar</span><span class="p">:</span>
-            <span class="n">sw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">sweep_name</span><span class="p">])</span>
+            <span class="n">sw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">sweep_name</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">sw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">sweep_name</span><span class="p">]</span>
+            <span class="n">sw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">sweep_name</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">curve</span> <span class="ow">in</span> <span class="n">curves</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;re&quot;</span><span class="p">:</span>
@@ -1448,15 +1497,15 @@
         <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># pragma: no cover</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">curve</span><span class="p">:</span>
-            <span class="n">curve</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">curve</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">math_formula</span><span class="p">:</span>
             <span class="n">math_formula</span> <span class="o">=</span> <span class="s2">&quot;mag&quot;</span>
-        <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">x_axis</span><span class="p">])</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">x_axis</span><span class="p">])</span>
         <span class="n">phi</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">r</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">y_axis</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">nominal_sweeps</span><span class="p">[</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">y_axis</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">active_variation</span><span class="p">[</span><span class="n">y_axis</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
             <span class="n">phi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">math_formula</span> <span class="o">==</span> <span class="s2">&quot;re&quot;</span><span class="p">:</span>
@@ -1503,16 +1552,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">u_axis</span><span class="p">]</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">u_axis</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">v_axis</span><span class="p">:</span>
-            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">v_axis</span><span class="p">]</span>
-        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="s2">&quot;Freq&quot;</span><span class="p">]</span>
-        <span class="n">vals_real_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_imag_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_real_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_imag_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_real_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_imag_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solutions_data_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v_axis</span><span class="p">]</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="s2">&quot;Freq&quot;</span><span class="p">]</span>
+        <span class="n">vals_real_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_imag_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_real_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_imag_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_real_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="n">vals_imag_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
 
         <span class="n">E_realx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
         <span class="n">E_imagx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
@@ -1591,8 +1640,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">coord_system_center</span><span class="p">:</span>
             <span class="n">coord_system_center</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">t_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ifft</span>
-        <span class="n">x_c_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">u_axis</span><span class="p">]</span>
-        <span class="n">y_c_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sweeps</span><span class="p">[</span><span class="n">v_axis</span><span class="p">]</span>
+        <span class="n">x_c_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">u_axis</span><span class="p">]</span>
+        <span class="n">y_c_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps</span><span class="p">[</span><span class="n">v_axis</span><span class="p">]</span>
         <span class="n">adj_x</span> <span class="o">=</span> <span class="n">coord_system_center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">adj_y</span> <span class="o">=</span> <span class="n">coord_system_center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">adj_z</span> <span class="o">=</span> <span class="n">coord_system_center</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
