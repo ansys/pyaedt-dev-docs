@@ -1,24 +1,30 @@
 @echo off
-if  "%ANSYSEM_ROOT221%" =="" (
-    if "%ANSYSEM_ROOT212%" =="" (
-        if "%ANSYSEM_ROOT211%" =="" (
-            echo AEDT 21R1 or greater has to be installed
-            pause
-            EXIT /B
+if  "%ANSYSEM_ROOT222%" =="" (
+    if  "%ANSYSEM_ROOT221%" =="" (
+        if "%ANSYSEM_ROOT212%" =="" (
+            if "%ANSYSEM_ROOT211%" =="" (
+                echo AEDT 21R1 or greater has to be installed
+                pause
+                EXIT /B
+            ) else (
+                set aedt_path=%ANSYSEM_ROOT211%
+                set aedt_var=ANSYSEM_ROOT211
+                echo Found AEDT Version 21R1
+              )
         ) else (
-            set aedt_path=%ANSYSEM_ROOT211%
-            set aedt_var=ANSYSEM_ROOT211
-            echo Found AEDT Version 21R1
-          )
+         set aedt_path=%ANSYSEM_ROOT212%
+         set aedt_var=ANSYSEM_ROOT212
+         echo Found AEDT Version 21R2
+        )
     ) else (
-     set aedt_path=%ANSYSEM_ROOT212%
-     set aedt_var=ANSYSEM_ROOT212
-     echo Found AEDT Version 21R2
-    )
+        set aedt_path=%ANSYSEM_ROOT221%
+        set aedt_var=ANSYSEM_ROOT221
+        echo Found AEDT Version 22R1
+        )
 ) else (
-    set aedt_path=%ANSYSEM_ROOT221%
-    set aedt_var=ANSYSEM_ROOT221
-    echo Found AEDT Version 22R1
+        set aedt_path=%ANSYSEM_ROOT222%
+        set aedt_var=ANSYSEM_ROOT222
+        echo Found AEDT Version 22R2
 )
 
 set /p run=Python or Jupyter?(0=Spyder, 1=Jupyter, 2=Console)

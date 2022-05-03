@@ -936,6 +936,7 @@
         <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">postprocessing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">circuit_parameter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the value of a design property or project variable.</span>
 
@@ -961,7 +962,12 @@
 <span class="sd">            Whether to overwrite an existing value for the design</span>
 <span class="sd">            property or project variable. The default is ``False``, in</span>
 <span class="sd">            which case this method is ignored.</span>
-
+<span class="sd">        postprocessing : bool, optional</span>
+<span class="sd">            Whether to define a postprocessing variable.</span>
+<span class="sd">             The default is ``False``, in which case the variable is not used in postprocessing.</span>
+<span class="sd">        circuit_parameter : bool, optional</span>
+<span class="sd">            Whether to define a parameter in a circuit design or a local parameter.</span>
+<span class="sd">             The default is ``True``, in which case a circuit variable is created as a parameter default.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
@@ -1005,6 +1011,11 @@
         <span class="n">test</span> <span class="o">=</span> <span class="n">desktop_object</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
         <span class="n">proj_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
         <span class="n">var_type</span> <span class="o">=</span> <span class="s2">&quot;Project&quot;</span> <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;Local&quot;</span>
+        <span class="k">if</span> <span class="n">circuit_parameter</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Circuit Design&quot;</span><span class="p">]:</span>
+            <span class="n">tab_name</span> <span class="o">=</span> <span class="s2">&quot;DefinitionParameterTab&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tab_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">VariableTab&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_type</span><span class="p">)</span>
+
         <span class="n">prop_type</span> <span class="o">=</span> <span class="s2">&quot;VariableProp&quot;</span>
         <span class="k">if</span> <span class="n">postprocessing</span> <span class="ow">or</span> <span class="s2">&quot;post&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]:</span>
             <span class="n">prop_type</span> <span class="o">=</span> <span class="s2">&quot;PostProcessingVariableProp&quot;</span>
@@ -1041,6 +1052,8 @@
         <span class="n">lower_case_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Maxwell Circuit&quot;</span> <span class="ow">and</span> <span class="s2">&quot;$&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">:</span>
             <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;Instance:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Circuit Design&quot;</span> <span class="ow">and</span> <span class="n">circuit_parameter</span><span class="p">:</span>
+            <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;DefinitionParameters&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">Variables&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_type</span><span class="p">)</span>
 
@@ -1050,7 +1063,7 @@
                     <span class="p">[</span>
                         <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
                         <span class="p">[</span>
-                            <span class="s2">&quot;NAME:</span><span class="si">{0}</span><span class="s2">VariableTab&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_type</span><span class="p">),</span>
+                            <span class="s2">&quot;NAME:</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tab_name</span><span class="p">),</span>
                             <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">prop_server</span><span class="p">],</span>
                             <span class="p">[</span>
                                 <span class="s2">&quot;NAME:NewProps&quot;</span><span class="p">,</span>
@@ -1080,7 +1093,7 @@
                         <span class="p">[</span>
                             <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
                             <span class="p">[</span>
-                                <span class="s2">&quot;NAME:</span><span class="si">{}</span><span class="s2">VariableTab&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_type</span><span class="p">),</span>
+                                <span class="s2">&quot;NAME:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tab_name</span><span class="p">),</span>
                                 <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">prop_server</span><span class="p">],</span>
                                 <span class="p">[</span>
                                     <span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span>
@@ -1104,7 +1117,7 @@
                 <span class="p">[</span>
                     <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
                     <span class="p">[</span>
-                        <span class="s2">&quot;NAME:</span><span class="si">{}</span><span class="s2">VariableTab&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_type</span><span class="p">),</span>
+                        <span class="s2">&quot;NAME:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tab_name</span><span class="p">),</span>
                         <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">prop_server</span><span class="p">],</span>
                         <span class="p">[</span>
                             <span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span>
