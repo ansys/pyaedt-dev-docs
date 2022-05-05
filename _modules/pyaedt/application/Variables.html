@@ -226,7 +226,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">AEDT_UNITS</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SI_UNITS</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">unit_system</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_number</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_number</span><span class="p">,</span> <span class="n">is_array</span>
 
 
 <div class="viewcode-block" id="CSVDataset"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Variables.CSVDataset.html#pyaedt.application.Variables.CSVDataset">[docs]</a><span class="k">class</span> <span class="nc">CSVDataset</span><span class="p">:</span>
@@ -888,15 +888,21 @@
                 <span class="n">all_names</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable_expression</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">variable_expression</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">independent</span> <span class="ow">and</span> <span class="n">is_number</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">is_array</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="k">elif</span> <span class="n">independent</span> <span class="ow">and</span> <span class="n">is_number</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
                         <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
                     <span class="k">elif</span> <span class="n">dependent</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                         <span class="n">float_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_evaluated_value</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
-                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span><span class="n">variable_expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">all_names</span><span class="p">)</span>
+                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span>
+                            <span class="n">variable_expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">all_names</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span>
+                        <span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">dependent</span><span class="p">:</span>
                         <span class="n">float_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_evaluated_value</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
-                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span><span class="n">variable_expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">all_names</span><span class="p">)</span>
+                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span>
+                            <span class="n">variable_expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">all_names</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span>
+                        <span class="p">)</span>
         <span class="k">return</span> <span class="n">var_dict</span>
 
 <div class="viewcode-block" id="VariableManager.get_expression"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Variables.VariableManager.get_expression.html#pyaedt.application.Variables.VariableManager.get_expression">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1238,7 +1244,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    value : float</span>
+<span class="sd">    value : float, str</span>
 <span class="sd">        Numerical value of the variable in SI units.</span>
 <span class="sd">    units : str</span>
 <span class="sd">        Units for the value.</span>
@@ -1309,6 +1315,8 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">numeric_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Numeric part of the expression as a float value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">is_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">unit_system</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">]</span>
@@ -1627,9 +1635,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">full_variables</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">full_variables</span><span class="o">=</span><span class="p">{},</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">expression</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">float_value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">value</span><span class="p">,</span> <span class="n">units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">full_variables</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
@@ -1640,6 +1650,19 @@
     <span class="k">def</span> <span class="nf">expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Expression.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">numeric_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Numeric part of the expression as a float value.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[\w+]+\[\w+].*&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
+                <span class="n">var_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span>
+                <span class="n">val</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">var_obj</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;EvaluatedValue&quot;</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">val</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Variable</span><span class="o">.</span><span class="n">numeric_value</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Variable</span><span class="o">.</span><span class="n">numeric_value</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="DataSet"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Variables.DataSet.html#pyaedt.application.Variables.DataSet">[docs]</a><span class="k">class</span> <span class="nc">DataSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>

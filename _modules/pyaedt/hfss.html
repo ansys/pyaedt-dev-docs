@@ -3259,7 +3259,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">sheet</span><span class="p">,</span>
         <span class="n">deemb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="n">axisdir</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">axisdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
         <span class="n">nummodes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">portname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -3270,14 +3270,16 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        sheet : str or int or :class:`pyaedt.modeler.Object3d.Object3d`</span>
+<span class="sd">        sheet : str or int or list or :class:`pyaedt.modeler.Object3d.Object3d`</span>
 <span class="sd">            Name of the sheet.</span>
 <span class="sd">        deemb : float, optional</span>
 <span class="sd">            Deembedding value distance in model units. The default is ``0``.</span>
 <span class="sd">        axisdir : int or :class:`pyaedt.application.Analysis.Analysis.AxisDir`, optional</span>
-<span class="sd">            Position of the port. It should be one of the values for ``Application.AxisDir``,</span>
+<span class="sd">            Position of the port. It is used to auto evaluate the integration line.</span>
+<span class="sd">            If set to ``None`` the integration line is not defined.</span>
+<span class="sd">            It should be one of the values for ``Application.AxisDir``,</span>
 <span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``.</span>
-<span class="sd">            The default is 0 for ``Application.AxisDir.XNeg``.</span>
+<span class="sd">            The default is ``None`` and no integration line is defined.</span>
 <span class="sd">        impedance : float, optional</span>
 <span class="sd">            Port impedance. The default is ``50``.</span>
 <span class="sd">        nummodes : int, optional</span>
@@ -3327,9 +3329,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">oname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;Modal&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="p">:</span>
-
-            <span class="n">refid</span><span class="p">,</span> <span class="n">int_start</span><span class="p">,</span> <span class="n">int_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reference_and_integration_points</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">,</span> <span class="n">oname</span><span class="p">)</span>
-
+            <span class="k">if</span> <span class="n">axisdir</span><span class="p">:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">int_start</span><span class="p">,</span> <span class="n">int_stop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reference_and_integration_points</span><span class="p">(</span><span class="n">sheet</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">,</span> <span class="n">oname</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">int_start</span> <span class="o">=</span> <span class="n">int_stop</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">portname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique_source_name</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="s2">&quot;Port&quot;</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_waveport_driven</span><span class="p">(</span>
@@ -3930,16 +3933,19 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Hfss.edit_source"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.edit_source.html#pyaedt.Hfss.edit_source">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">edit_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">portandmode</span><span class="p">,</span> <span class="n">powerin</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0deg&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">edit_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">portandmode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">powerin</span><span class="o">=</span><span class="s2">&quot;1W&quot;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0deg&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set up the power loaded for Hfss Post-Processing.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        portandmode : str</span>
+<span class="sd">        portandmode : str, optional</span>
 <span class="sd">            Port name and mode. For example, ``&quot;Port1:1&quot;``.</span>
-<span class="sd">        powerin : str</span>
+<span class="sd">            It must be defined if solution type is other than Eigenmodal. It is ignored for solution type Eigenmodal.</span>
+<span class="sd">        powerin : str, optional</span>
 <span class="sd">            Power in Watts or the project variable to put as stored energy in the project.</span>
+<span class="sd">            The default is ``&quot;1W&quot;``.</span>
 <span class="sd">        phase : str, optional</span>
+<span class="sd">            Phase of the excitation.</span>
 <span class="sd">            The default is ``&quot;0deg&quot;``.</span>
 
 <span class="sd">        Returns</span>
@@ -3965,13 +3971,16 @@
 <span class="sd">        &gt;&gt;&gt; wave_port = hfss.create_wave_port_from_sheet(sheet, 5, hfss.AxisDir.XNeg, 40,</span>
 <span class="sd">        ...                                              2, &quot;SheetWavePort&quot;, True)</span>
 <span class="sd">        &gt;&gt;&gt; hfss.edit_source(&quot;SheetWavePort&quot; + &quot;:1&quot;, &quot;10W&quot;)</span>
-<span class="sd">        pyaedt info: Setting up power to Eigenmode 10W</span>
+<span class="sd">        pyaedt info: Setting up power to &quot;SheetWavePort:1&quot; = 10W</span>
 <span class="sd">        True</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting up power to Eigenmode &quot;</span> <span class="o">+</span> <span class="n">powerin</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;Eigenmode&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">portandmode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Port and Mode must be defined for solution type </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="p">))</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Setting up power to &quot;</span><span class="si">{}</span><span class="s1">&quot; = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">portandmode</span><span class="p">,</span> <span class="n">powerin</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">osolution</span><span class="o">.</span><span class="n">EditSources</span><span class="p">(</span>
                 <span class="p">[</span>
                     <span class="p">[</span><span class="s2">&quot;IncludePortPostProcessing:=&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;SpecifySystemPower:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
@@ -3979,6 +3988,7 @@
                 <span class="p">]</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting up power to Eigenmode = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">powerin</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">osolution</span><span class="o">.</span><span class="n">EditSources</span><span class="p">(</span>
                 <span class="p">[[</span><span class="s2">&quot;FieldType:=&quot;</span><span class="p">,</span> <span class="s2">&quot;EigenStoredEnergy&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Modes&quot;</span><span class="p">,</span> <span class="s2">&quot;Magnitudes:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">powerin</span><span class="p">]]]</span>
             <span class="p">)</span>
@@ -3987,6 +3997,7 @@
 <div class="viewcode-block" id="Hfss.thicken_port_sheets"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.thicken_port_sheets.html#pyaedt.Hfss.thicken_port_sheets">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">thicken_port_sheets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputlist</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">internalExtr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">internalvalue</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create thickened sheets over a list of input port sheets.</span>
+<span class="sd">        This method is built to work with the output of ``modeler.find_port_faces``.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -4003,8 +4014,9 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of int</span>
-<span class="sd">            List of the port IDs where thickened sheets were created.</span>
+<span class="sd">        Dict</span>
+<span class="sd">            For each input sheet returns the port IDs where thickened sheets were created</span>
+<span class="sd">            if the name contains the word &quot;Vacuum&quot;.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -4053,7 +4065,7 @@
                     <span class="p">[</span><span class="s2">&quot;NAME:SheetThickenParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;Thickness:=&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;BothSides:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
                 <span class="p">)</span>
                 <span class="c1"># aedt_bounding_box2 = self._oeditor.GetModelBoundingBox()</span>
-                <span class="n">aedt_bounding_box2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="o">.</span><span class="n">get_model_bounding_box</span><span class="p">()</span>
+                <span class="n">aedt_bounding_box2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_model_bounding_box</span><span class="p">()</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">Undo</span><span class="p">()</span>
 
@@ -4260,7 +4272,7 @@
             <span class="k">for</span> <span class="n">setup</span> <span class="ow">in</span> <span class="n">setups</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">setup</span><span class="p">)</span>
                 <span class="n">val_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;EigenMode&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;eigenmode&quot;</span><span class="p">:</span>
                     <span class="n">sweepsname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span><span class="o">.</span><span class="n">GetSweeps</span><span class="p">(</span><span class="n">setup</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">sweepsname</span><span class="p">:</span>
                         <span class="k">for</span> <span class="n">sw</span> <span class="ow">in</span> <span class="n">sweepsname</span><span class="p">:</span>

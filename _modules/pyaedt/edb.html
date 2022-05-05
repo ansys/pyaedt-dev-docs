@@ -896,7 +896,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        val : str, float int</span>
+<span class="sd">        val : str, float, int</span>
 
 
 <span class="sd">        Returns</span>
@@ -1263,13 +1263,14 @@
         <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">open_cutout_at_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">nets_to_include</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">include_partial_instances</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout on a specified shape and save it to a new AEDB file.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        point_list : list</span>
-<span class="sd">            List of points defining the cutout shape.</span>
+<span class="sd">            Points list defining the cutout shape.</span>
 <span class="sd">        units : str</span>
 <span class="sd">            Units of the point list. The default is ``&quot;mm&quot;``.</span>
 <span class="sd">        output_aedb_path : str, optional</span>
@@ -1279,6 +1280,9 @@
 <span class="sd">        nets_to_include : list, optional</span>
 <span class="sd">            List of nets to include in the cutout. The default is ``None``, in</span>
 <span class="sd">            which case all nets are included.</span>
+<span class="sd">        include_partial_instances : bool, optional</span>
+<span class="sd">            Whether to include padstack instances that have bounding boxes intersecting with point list polygons.</span>
+<span class="sd">            This operation may slow down the cutout export.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1292,13 +1296,24 @@
         <span class="n">point_list</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">units</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">units</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">]</span>
         <span class="n">plane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span><span class="s2">&quot;polygon&quot;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">point_list</span><span class="p">)</span>
         <span class="n">polygonData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">plane</span><span class="p">)</span>
-
         <span class="n">_ref_nets</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">nets_to_include</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating cutout on </span><span class="si">{}</span><span class="s2"> nets.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nets_to_include</span><span class="p">)))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating cutout on all nets.&quot;</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
 
+        <span class="c1"># Check Padstack Instances overlapping the cutout</span>
+        <span class="n">pinstance_to_add</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">include_partial_instances</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">nets_to_include</span><span class="p">:</span>
+                <span class="n">pinst</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">in</span> <span class="n">nets_to_include</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pinst</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pinst</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">in_polygon</span><span class="p">(</span><span class="n">polygonData</span><span class="p">):</span>
+                    <span class="n">pinstance_to_add</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
         <span class="c1"># validate references in layout</span>
         <span class="k">for</span> <span class="n">_ref</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">nets_to_include</span><span class="p">:</span>
@@ -1306,7 +1321,6 @@
                     <span class="n">_ref_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">_ref</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">_ref_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">_ref</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
-        <span class="c1"># TODO check and insert via check on polygon intersection</span>
         <span class="n">voids</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">circles</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_void</span><span class="p">]</span>
         <span class="n">voids2</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">polygons</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_void</span><span class="p">]</span>
         <span class="n">voids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">voids2</span><span class="p">)</span>
@@ -1320,6 +1334,49 @@
         <span class="c1"># Create new cutout cell/design</span>
         <span class="n">_cutout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">CutOut</span><span class="p">(</span><span class="n">net_signals</span><span class="p">,</span> <span class="n">_netsClip</span><span class="p">,</span> <span class="n">polygonData</span><span class="p">)</span>
         <span class="n">layout</span> <span class="o">=</span> <span class="n">_cutout</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span>
+        <span class="n">cutout_obj_coll</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">cutout_obj_coll</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
+            <span class="n">lobj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">lobj</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PadstackInstance</span><span class="p">:</span>
+                <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lobj</span><span class="o">.</span><span class="n">GetId</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">include_partial_instances</span><span class="p">:</span>
+            <span class="n">p_missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pinstance_to_add</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Added </span><span class="si">{}</span><span class="s2"> padstack instances after cutout&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p_missing</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">p_missing</span><span class="p">:</span>
+                <span class="n">position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">find_or_create_net</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">net_name</span><span class="p">)</span>
+                <span class="n">rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">rotation</span><span class="p">)</span>
+                <span class="n">sign_layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">start_layer</span><span class="p">:</span>
+                    <span class="n">fromlayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">sign_layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">_layer</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">fromlayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">start_layer</span><span class="p">]</span><span class="o">.</span><span class="n">_layer</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">stop_layer</span><span class="p">:</span>
+                    <span class="n">tolayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">sign_layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">_layer</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">tolayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">stop_layer</span><span class="p">]</span><span class="o">.</span><span class="n">_layer</span>
+                <span class="n">padstack</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">for</span> <span class="n">pad</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstacks</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                    <span class="k">if</span> <span class="n">pad</span> <span class="o">==</span> <span class="n">p</span><span class="o">.</span><span class="n">padstack_definition</span><span class="p">:</span>
+                        <span class="n">padstack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">pad</span><span class="p">]</span><span class="o">.</span><span class="n">edb_padstack</span>
+                        <span class="n">padstack_instance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PadstackInstance</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+                            <span class="n">_cutout</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">(),</span>
+                            <span class="n">net</span><span class="p">,</span>
+                            <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                            <span class="n">padstack</span><span class="p">,</span>
+                            <span class="n">position</span><span class="p">,</span>
+                            <span class="n">rotation</span><span class="p">,</span>
+                            <span class="n">fromlayer</span><span class="p">,</span>
+                            <span class="n">tolayer</span><span class="p">,</span>
+                            <span class="kc">None</span><span class="p">,</span>
+                            <span class="kc">None</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">padstack_instance</span><span class="o">.</span><span class="n">SetIsLayoutPin</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">is_pin</span><span class="p">)</span>
+                        <span class="k">break</span>
+
         <span class="k">for</span> <span class="n">void_circle</span> <span class="ow">in</span> <span class="n">voids_to_add</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">void_circle</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Circle&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
@@ -1734,6 +1791,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">simulation_setup</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
                 <span class="k">return</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">classify_nets</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">do_cutout_subdesign</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutting out using method: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span><span class="p">))</span>
                 <span class="n">old_cell_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>

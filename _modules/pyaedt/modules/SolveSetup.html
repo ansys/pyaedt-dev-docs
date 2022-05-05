@@ -263,10 +263,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">solutiontype</span> <span class="ow">or</span> <span class="n">solutiontype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_solution_options</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">solutiontype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">default_setup</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solutiontype</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="n">solutiontype</span>
+        <span class="k">elif</span> <span class="n">solutiontype</span> <span class="ow">in</span> <span class="n">SetupKeys</span><span class="o">.</span><span class="n">SetupNames</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="n">SetupKeys</span><span class="o">.</span><span class="n">SetupNames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">solutiontype</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_solution_options</span><span class="p">[</span><span class="n">solutiontype</span><span class="p">][</span><span class="s2">&quot;default_setup&quot;</span><span class="p">]</span>
 
@@ -739,7 +741,123 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SweepRanges&quot;</span><span class="p">][</span><span class="s2">&quot;Subrange&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SweepRanges&quot;</span><span class="p">][</span><span class="s2">&quot;Subrange&quot;</span><span class="p">],</span> <span class="n">props</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="n">legacy_update</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Setup.enable_adaptive_setup_single"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.SolveSetup.Setup.enable_adaptive_setup_single.html#pyaedt.modules.SolveSetup.Setup.enable_adaptive_setup_single">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">enable_adaptive_setup_single</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_passes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_delta_s</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable HFSS single frequency setup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        freq : float, str, optional</span>
+<span class="sd">            Frequency at which to set the adaptive convergence.</span>
+<span class="sd">            The default is ``None`` which will not update the value in setup.</span>
+<span class="sd">            You can enter a float value in (GHz) or a string.</span>
+<span class="sd">        max_passes : int, optional</span>
+<span class="sd">            Maximum number of adaptive passes. The default is ``None`` which will not update the value in setup.</span>
+<span class="sd">        max_delta_s : float, optional</span>
+<span class="sd">            Delta S convergence criteria. The default is ``None`` which will not update the value in setup.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method applies only to HFSS-driven solutions.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SolveType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Single&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">GHz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">freq</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">freq</span>
+        <span class="k">if</span> <span class="n">max_passes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaximumPasses&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_passes</span>
+        <span class="k">if</span> <span class="n">max_delta_s</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaxDeltaS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_delta_s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Setup.enable_adaptive_setup_broadband"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.SolveSetup.Setup.enable_adaptive_setup_broadband.html#pyaedt.modules.SolveSetup.Setup.enable_adaptive_setup_broadband">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">enable_adaptive_setup_broadband</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">low_frequency</span><span class="p">,</span> <span class="n">high_frquency</span><span class="p">,</span> <span class="n">max_passes</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">max_delta_s</span><span class="o">=</span><span class="mf">0.02</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable HFSS broadband setup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        low_frequency : float, str</span>
+<span class="sd">            Lower Frequency at which set the adaptive convergence.</span>
+<span class="sd">            It can be float (GHz) or str.</span>
+<span class="sd">        high_frquency : float, str</span>
+<span class="sd">            Lower Frequency at which set the adaptive convergence. It can be float (GHz) or str.</span>
+<span class="sd">        max_passes : int, optional</span>
+<span class="sd">            Maximum number of adaptive passes. The default is ``6``.</span>
+<span class="sd">        max_delta_s : float, optional</span>
+<span class="sd">            Delta S Convergence criteria. The default is ``0.02``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method applies only to HFSS-driven solutions.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SolveType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;BroadBand&quot;</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">][</span><span class="n">el</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">low_frequency</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">low_frequency</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">GHz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">low_frequency</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">high_frquency</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">high_frquency</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">GHz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">high_frquency</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">][</span><span class="s2">&quot;Low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">low_frequency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">][</span><span class="s2">&quot;High&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">high_frquency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaximumPasses&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_passes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaxDeltaS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_delta_s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Setup.enable_adaptive_setup_multifrequency"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.SolveSetup.Setup.enable_adaptive_setup_multifrequency.html#pyaedt.modules.SolveSetup.Setup.enable_adaptive_setup_multifrequency">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">enable_adaptive_setup_multifrequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">max_delta_s</span><span class="o">=</span><span class="mf">0.02</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enable HFSS multi-frequency setup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        frequencies : list</span>
+<span class="sd">            Frequency at which to set the adaptive convergence. You can enter list entries</span>
+<span class="sd">            as float values in GHz or as strings.</span>
+<span class="sd">        max_delta_s : list, float</span>
+<span class="sd">            Delta S convergence criteria. The default is ``0.02``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method applies only to HFSS-driven solutions.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SolveType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;MultiFrequency&quot;</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">][</span><span class="n">el</span><span class="p">]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frequencies</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">max_delta_s</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">GHz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">max_delta_s</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">GHz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">max_delta_s</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;MultipleAdaptiveFreqsSetup&quot;</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">]</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div></div>
 
 
 <div class="viewcode-block" id="SetupCircuit"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.SolveSetup.SetupCircuit.html#pyaedt.modules.SolveSetup.SetupCircuit">[docs]</a><span class="k">class</span> <span class="nc">SetupCircuit</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -760,6 +878,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">solutiontype</span><span class="p">,</span> <span class="n">setupname</span><span class="o">=</span><span class="s2">&quot;MySetupAuto&quot;</span><span class="p">,</span> <span class="n">isnewsetup</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span> <span class="o">=</span> <span class="n">app</span>
@@ -767,6 +886,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">default_setup</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solutiontype</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="n">solutiontype</span>
+        <span class="k">elif</span> <span class="n">solutiontype</span> <span class="ow">in</span> <span class="n">SetupKeys</span><span class="o">.</span><span class="n">SetupNames</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="n">SetupKeys</span><span class="o">.</span><span class="n">SetupNames</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">solutiontype</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setuptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_solution_options</span><span class="p">[</span><span class="n">solutiontype</span><span class="p">][</span><span class="s2">&quot;default_setup&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Name</span> <span class="o">=</span> <span class="s2">&quot;LinearFrequency&quot;</span>

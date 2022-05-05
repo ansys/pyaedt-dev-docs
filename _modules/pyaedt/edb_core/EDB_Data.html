@@ -1931,6 +1931,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antipad_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">thermalpad_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bounding_box</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_layers</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBPadProperties</span><span class="p">(</span><span class="n">edb_padstack</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">antipad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBPadProperties</span><span class="p">(</span><span class="n">edb_padstack</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
@@ -2239,6 +2240,62 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edb_padstackinstance</span><span class="p">,</span> <span class="n">_pedb</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span> <span class="o">=</span> <span class="n">edb_padstackinstance</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span> <span class="o">=</span> <span class="n">_pedb</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bounding_box</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get bounding box of the padstack instance.</span>
+<span class="sd">        Because this method is slow, the bounding box is stored in a variable and reused.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounding_box</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounding_box</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">GetLayoutObjInstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">GetBBox</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bounding_box</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item1</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()],</span>
+            <span class="p">[</span><span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">bbox</span><span class="o">.</span><span class="n">Item2</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()],</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounding_box</span>
+
+<div class="viewcode-block" id="EDBPadstackInstance.in_polygon"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPadstackInstance.in_polygon.html#pyaedt.edb_core.EDB_Data.EDBPadstackInstance.in_polygon">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">in_polygon</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">polygon_data</span><span class="p">,</span> <span class="n">include_partial</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if padstack Instance is in given polygon data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        polygon_data : PolygonData Object</span>
+<span class="sd">        include_partial : bool, optional</span>
+<span class="sd">            Whether to include partial intersecting instances. The default is ``True``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span><span class="s2">&quot;rectangle&quot;</span><span class="p">,</span> <span class="n">pointA</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pointB</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">rectangle_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">plane</span><span class="p">)</span>
+        <span class="n">int_val</span> <span class="o">=</span> <span class="n">polygon_data</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">rectangle_data</span><span class="p">)</span>
+        <span class="c1"># Intersection type:</span>
+        <span class="c1"># 0 = objects do not intersect</span>
+        <span class="c1"># 1 = this object fully inside other (no common contour points)</span>
+        <span class="c1"># 2 = other object fully inside this</span>
+        <span class="c1"># 3 = common contour points 4 = undefined intersection</span>
+        <span class="k">if</span> <span class="n">int_val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">include_partial</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">int_val</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2301,9 +2358,14 @@
 <span class="sd">        str</span>
 <span class="sd">            Name of the starting layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">start_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">start_layer</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">start_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@start_layer</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">start_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">):</span>
@@ -2320,9 +2382,14 @@
 <span class="sd">        str</span>
 <span class="sd">            Name of the stopping layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">stop_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stop_layer</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stop_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@stop_layer</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">stop_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">):</span>

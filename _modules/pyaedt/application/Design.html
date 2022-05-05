@@ -243,6 +243,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">write_csv</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.LoadAEDTFile</span> <span class="kn">import</span> <span class="n">load_entire_aedt_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">decompose_variable_value</span>
@@ -538,6 +539,20 @@
     <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">variable_manager</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable_value</span>
         <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_init_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">design_name</span><span class="p">,</span> <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">projectname</span><span class="o">=</span><span class="n">project_name</span><span class="p">,</span>
+            <span class="n">designname</span><span class="o">=</span><span class="n">design_name</span><span class="p">,</span>
+            <span class="n">solution_type</span><span class="o">=</span><span class="n">solution_type</span> <span class="k">if</span> <span class="n">solution_type</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span><span class="p">,</span>
+            <span class="n">specified_version</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">aedt_version</span><span class="p">,</span>
+            <span class="n">non_graphical</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">non_graphical</span><span class="p">,</span>
+            <span class="n">new_desktop_session</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">close_on_exit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">,</span>
+            <span class="n">student_version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">student_version</span><span class="p">,</span>
+            <span class="n">machine</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">machine</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">port</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1833,7 +1848,7 @@
 <span class="sd">        -------</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">):</span>
             <span class="n">tab</span> <span class="o">=</span> <span class="s2">&quot;NAME:ProjectVariableTab&quot;</span>
             <span class="n">propserver</span> <span class="o">=</span> <span class="s2">&quot;ProjectVariables&quot;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1928,7 +1943,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optimetrics_variable_args</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="s2">&quot;Optimization&quot;</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
@@ -2338,7 +2353,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">close_project</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
         <span class="n">proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">OpenProject</span><span class="p">(</span><span class="n">project_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">proj</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">projectname</span><span class="o">=</span><span class="n">proj</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">designname</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_design</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="n">proj</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">design_name</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -2886,7 +2901,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable_manager</span><span class="o">.</span><span class="n">delete_variable</span><span class="p">(</span><span class="n">sVarName</span><span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">insert_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">insert_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a design of a specified type.</span>
 
 <span class="sd">        The default design type is taken from the derived application class.</span>
@@ -2899,6 +2914,9 @@
 <span class="sd">            given or default design name is in use, then an underscore and</span>
 <span class="sd">            index is added to ensure that the design name is unique.</span>
 <span class="sd">            The inserted object is assigned to the ``Design`` object.</span>
+<span class="sd">        solution_type : str, optional</span>
+<span class="sd">            Solution type to apply to the design. The default is</span>
+<span class="sd">            ``None``, in which case the default type is applied.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2911,10 +2929,11 @@
 <span class="sd">        &gt;&gt;&gt; oProject.InsertDesign</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">projectname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">designname</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">projectname</span><span class="o">=</span><span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Project&quot;</span><span class="p">),</span> <span class="n">designname</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_design</span><span class="p">(</span>
+            <span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="k">else</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Project&quot;</span><span class="p">),</span>
+            <span class="n">design_name</span><span class="o">=</span><span class="n">design_name</span><span class="p">,</span>
+            <span class="n">solution_type</span><span class="o">=</span><span class="n">solution_type</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insert_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">design_type</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solution_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">assert</span> <span class="n">design_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">design_types</span><span class="p">,</span> <span class="s2">&quot;Invalid design type for insert: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -3064,8 +3083,8 @@
         <span class="c1"># reset the active design (very important)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_project</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">new_designname</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">active_design</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_design</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="n">new_designname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_active_design</span><span class="p">(</span><span class="n">active_design</span><span class="p">)</span>
 
         <span class="c1"># return the pasted design name</span>
         <span class="k">return</span> <span class="n">new_designname</span>
@@ -3108,7 +3127,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span> <span class="o">=</span> <span class="n">actual_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span> <span class="o">=</span> <span class="n">newname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_design</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">True</span>
 
@@ -3320,10 +3339,8 @@
 
 <span class="sd">        &gt;&gt;&gt; oProject.SetActiveDesign</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_design</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -3524,8 +3541,9 @@
         <span class="sd">&quot;&quot;&quot;Check solution consistency.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Twin Builder&quot;</span><span class="p">,</span> <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;EMIT&quot;</span><span class="p">,</span> <span class="s2">&quot;Q3D Extractor&quot;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_solution_type</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_solution_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetSolutionType</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">solution_type</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetSolutionType</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
 

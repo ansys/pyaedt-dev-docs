@@ -206,7 +206,7 @@
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBNetsData</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBNetsData</span><span class="p">,</span> <span class="n">SimulationConfiguration</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">CSS4_COLORS</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
@@ -554,6 +554,32 @@
         <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Nets Point Generation time </span><span class="si">%s</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">end_time</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">objects_lists</span></div>
+
+<div class="viewcode-block" id="EdbNets.classify_nets"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.nets.EdbNets.classify_nets.html#pyaedt.edb_core.nets.EdbNets.classify_nets">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">classify_nets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_configuration_object</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sort nets based on SimulationConfiguration object.</span>
+<span class="sd">        If nets specified as ``power/ground`` or ``signal`` in the simulation</span>
+<span class="sd">        configuration object are not initially sorted.</span>
+<span class="sd">        in EDB, they are sorted accordingly.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        simulation_configuration_object : :class:`pyaedt.edb_core.EDB_Data.SimulationConfiguration`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_configuration_object</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">simulation_configuration_object</span><span class="o">.</span><span class="n">power_nets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">signal_nets</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">signal_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span><span class="o">.</span><span class="n">SetIsPowerGround</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">simulation_configuration_object</span><span class="o">.</span><span class="n">signal_nets</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_nets</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">power_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span><span class="o">.</span><span class="n">SetIsPowerGround</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbNets.plot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.nets.EdbNets.plot.html#pyaedt.edb_core.nets.EdbNets.plot">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span>
