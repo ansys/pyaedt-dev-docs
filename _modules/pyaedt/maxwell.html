@@ -100,6 +100,12 @@
 </li>
 
 <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../Resources/ClientServer.html">
+  Client/Server
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../API/index.html">
   API Documentation
  </a>
@@ -912,16 +918,18 @@
             <span class="p">{</span>
                 <span class="s2">&quot;Type&quot;</span><span class="p">:</span> <span class="n">winding_type</span><span class="p">,</span>
                 <span class="s2">&quot;IsSolid&quot;</span><span class="p">:</span> <span class="n">is_solid</span><span class="p">,</span>
-                <span class="s2">&quot;Current&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">current_value</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Resistance&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;ohm&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Inductance&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;Voltage&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;V&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Current&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">current_value</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;Resistance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;ohm&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;Inductance&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">ind</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;Voltage&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">voltage</span><span class="p">,</span> <span class="s2">&quot;V&quot;</span><span class="p">),</span>
                 <span class="s2">&quot;ParallelBranchesNum&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">parallel_branches</span><span class="p">),</span>
             <span class="p">}</span>
         <span class="p">)</span>
         <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Winding&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">coil_terminals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">coil_terminals</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">coil_terminals</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">:</span>
                 <span class="n">coil_terminals</span> <span class="o">=</span> <span class="p">[</span><span class="n">coil_terminals</span><span class="p">]</span>
             <span class="n">coil_names</span> <span class="o">=</span> <span class="p">[]</span>
@@ -930,7 +938,8 @@
                 <span class="k">if</span> <span class="n">c</span><span class="p">:</span>
                     <span class="n">coil_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_winding_coils</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">coil_names</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">coil_names</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_winding_coils</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">coil_names</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">bound</span>
         <span class="k">return</span> <span class="kc">False</span>
 
@@ -987,7 +996,7 @@
 
 <span class="sd">        &gt;&gt;&gt; oModule.AssignCoil</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">polarity</span> <span class="o">==</span> <span class="s2">&quot;Positive&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">polarity</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;positive&quot;</span><span class="p">:</span>
             <span class="n">point</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">point</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1005,7 +1014,11 @@
                 <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props2</span><span class="p">,</span> <span class="s2">&quot;CoilTerminal&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">props2</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                    <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">input_object</span><span class="p">,</span> <span class="s2">&quot;Conductor number&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">conductor_number</span><span class="p">),</span> <span class="s2">&quot;PolarityType&quot;</span><span class="p">:</span> <span class="n">polarity</span><span class="p">}</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">input_object</span><span class="p">,</span>
+                        <span class="s2">&quot;Conductor number&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">conductor_number</span><span class="p">),</span>
+                        <span class="s2">&quot;PolarityType&quot;</span><span class="p">:</span> <span class="n">polarity</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                    <span class="p">}</span>
                 <span class="p">)</span>
                 <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props2</span><span class="p">,</span> <span class="s2">&quot;Coil&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
