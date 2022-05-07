@@ -224,7 +224,7 @@
 <span class="k">else</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">subprocess</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt.application.AnalysisIcepak</span> <span class="kn">import</span> <span class="n">FieldAnalysisIcepak</span>
+<span class="kn">from</span> <span class="nn">pyaedt.application.Analysis3D</span> <span class="kn">import</span> <span class="n">FieldAnalysis3D</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span><span class="p">,</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_arg2dict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span><span class="p">,</span> <span class="n">NativeComponentObject</span>
@@ -232,7 +232,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
 
-<div class="viewcode-block" id="Icepak"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.html#pyaedt.Icepak">[docs]</a><span class="k">class</span> <span class="nc">Icepak</span><span class="p">(</span><span class="n">FieldAnalysisIcepak</span><span class="p">):</span>
+<div class="viewcode-block" id="Icepak"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.html#pyaedt.Icepak">[docs]</a><span class="k">class</span> <span class="nc">Icepak</span><span class="p">(</span><span class="n">FieldAnalysis3D</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Provides the Icepak application interface.</span>
 
 <span class="sd">    This class allows you to connect to an existing Icepack design or create a</span>
@@ -338,7 +338,7 @@
         <span class="n">machine</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="n">FieldAnalysisIcepak</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">FieldAnalysis3D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="s2">&quot;Icepak&quot;</span><span class="p">,</span>
             <span class="n">projectname</span><span class="p">,</span>
@@ -2867,7 +2867,125 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">assign_mesh_from_file</span><span class="p">(</span><span class="n">object_lists</span><span class="p">,</span> <span class="n">mesh_file_pointer</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to create msh file&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="kc">False</span></div></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Icepak.apply_icepak_settings"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.apply_icepak_settings.html#pyaedt.Icepak.apply_icepak_settings">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">apply_icepak_settings</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">ambienttemp</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">gravityDir</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">perform_minimal_val</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default_fluid</span><span class="o">=</span><span class="s2">&quot;air&quot;</span><span class="p">,</span>
+        <span class="n">default_solid</span><span class="o">=</span><span class="s2">&quot;Al-Extruded&quot;</span><span class="p">,</span>
+        <span class="n">default_surface</span><span class="o">=</span><span class="s2">&quot;Steel-oxidised-surface&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply Icepak default design settings.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ambienttemp : float, optional</span>
+<span class="sd">            Ambient temperature, which can be an integer or a parameter already</span>
+<span class="sd">            created in AEDT. The default is ``20``.</span>
+<span class="sd">        gravityDir : int, optional</span>
+<span class="sd">            Gravity direction index in the range ``[0, 5]``. The default is ``5``.</span>
+<span class="sd">        perform_minimal_val : bool, optional</span>
+<span class="sd">            Whether to perform minimal validation. The default is ``True``.</span>
+<span class="sd">            If ``False``, full validation is performend.</span>
+<span class="sd">        default_fluid : str, optional</span>
+<span class="sd">            Default for the type of fluid. The default is ``&quot;Air&quot;``.</span>
+<span class="sd">        default_solid :</span>
+<span class="sd">            Default for  the type of solid. The default is ``&quot;Al-Extruded&quot;``.</span>
+<span class="sd">        default_surface :</span>
+<span class="sd">            Default for the type of surface. The default is ``&quot;Steel-oxidised-surface&quot;``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDesign.SetDesignSettings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">AmbientTemp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ambienttemp</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;cel&quot;</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">AmbientTemp</span> <span class="o">=</span> <span class="n">ambienttemp</span>
+
+        <span class="n">IceGravity</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span>
+        <span class="n">GVPos</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">gravityDir</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">GVPos</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">GVA</span> <span class="o">=</span> <span class="n">IceGravity</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">gravityDir</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">SetDesignSettings</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;NAME:Design Settings Data&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Perform Minimal validation:=&quot;</span><span class="p">,</span>
+                <span class="n">perform_minimal_val</span><span class="p">,</span>
+                <span class="s2">&quot;Default Fluid Material:=&quot;</span><span class="p">,</span>
+                <span class="n">default_fluid</span><span class="p">,</span>
+                <span class="s2">&quot;Default Solid Material:=&quot;</span><span class="p">,</span>
+                <span class="n">default_solid</span><span class="p">,</span>
+                <span class="s2">&quot;Default Surface Material:=&quot;</span><span class="p">,</span>
+                <span class="n">default_surface</span><span class="p">,</span>
+                <span class="s2">&quot;AmbientTemperature:=&quot;</span><span class="p">,</span>
+                <span class="n">AmbientTemp</span><span class="p">,</span>
+                <span class="s2">&quot;AmbientPressure:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;0n_per_meter_sq&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;AmbientRadiationTemperature:=&quot;</span><span class="p">,</span>
+                <span class="n">AmbientTemp</span><span class="p">,</span>
+                <span class="s2">&quot;Gravity Vector CS ID:=&quot;</span><span class="p">,</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;Gravity Vector Axis:=&quot;</span><span class="p">,</span>
+                <span class="n">GVA</span><span class="p">,</span>
+                <span class="s2">&quot;Positive:=&quot;</span><span class="p">,</span>
+                <span class="n">GVPos</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot;NAME:Model Validation Settings&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Icepak.assign_surface_material"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.assign_surface_material.html#pyaedt.Icepak.assign_surface_material">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">assign_surface_material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">mat</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign a surface material to one or more objects.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : str, list</span>
+<span class="sd">            One or more objects to assign surface materials to.</span>
+<span class="sd">        mat : str</span>
+<span class="sd">            Material to assign. The material must be present in the database.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.ChangeProperty</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">surface_material_keys</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning. The material is not the database. Use add_surface_material.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
+                        <span class="p">[</span>
+                            <span class="s2">&quot;NAME:Geometry3DAttributeTab&quot;</span><span class="p">,</span>
+                            <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">el</span><span class="p">],</span>
+                            <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Surface Material&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">]],</span>
+                        <span class="p">],</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </div>

@@ -207,17 +207,21 @@
               <div>
                 
   <h1>Source code for pyaedt.application.Analysis3D</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">ntpath</span>
+<span></span><span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.application.Analysis</span> <span class="kn">import</span> <span class="n">Analysis</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.configurations</span> <span class="kn">import</span> <span class="n">Configurations</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.Model2D</span> <span class="kn">import</span> <span class="n">Modeler2D</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Model3D</span> <span class="kn">import</span> <span class="n">Modeler3D</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modules.MeshIcepak</span> <span class="kn">import</span> <span class="n">IcepakMesh</span>
 
 <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">pyaedt.modules.PostProcessor</span> <span class="kn">import</span> <span class="n">PostProcessor</span>
@@ -300,8 +304,8 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_osolution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;Solutions&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_oboundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;BoundarySetup&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span> <span class="o">=</span> <span class="n">Modeler3D</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span> <span class="o">=</span> <span class="n">Modeler2D</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">application</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Maxwell 2D&quot;</span><span class="p">,</span> <span class="s2">&quot;2D Extractor&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="n">Modeler3D</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">IcepakMesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">if</span> <span class="n">application</span> <span class="o">==</span> <span class="s2">&quot;Icepak&quot;</span> <span class="k">else</span> <span class="n">Mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_post</span> <span class="o">=</span> <span class="n">PostProcessor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_configurations</span> <span class="o">=</span> <span class="n">Configurations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -353,7 +357,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`pyaedt.modules.Mesh.Mesh`</span>
+<span class="sd">        :class:`pyaedt.modules.Mesh.Mesh` or :class:`pyaedt.modules.MeshIcepak.IcepakMesh`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span>
 
@@ -585,7 +589,6 @@
                     <span class="k">return</span> <span class="n">val</span>
         <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="c1"># TODO Refactor this</span>
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">copy_solid_bodies_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">object_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">no_vacuum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">no_pec</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_sheets</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Copy a list of objects from one design to the active design.</span>
@@ -847,6 +850,8 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetObjectsByMaterial</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">object_names</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
         <span class="n">cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">conductors</span>
 
         <span class="n">obj_names</span> <span class="o">=</span> <span class="p">[]</span>
@@ -868,12 +873,143 @@
 <span class="sd">        ----------</span>
 <span class="sd">        &gt;&gt;&gt; oEditor.GetObjectsByMaterial</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">object_names</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
         <span class="n">diel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">dielectrics</span>
         <span class="n">obj_names</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">obj_val</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">obj_val</span><span class="o">.</span><span class="n">material_name</span> <span class="ow">in</span> <span class="n">diel</span><span class="p">:</span>
                 <span class="n">obj_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj_val</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">obj_names</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_create_dataset_from_sherlock</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_string</span><span class="p">,</span> <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;Mass_Density&quot;</span><span class="p">):</span>
+        <span class="n">mats</span> <span class="o">=</span> <span class="n">material_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">mat_temp</span> <span class="o">=</span> <span class="p">[[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mats</span><span class="p">]</span>
+        <span class="n">nominal_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mat_temp</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">nominal_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mat_temp</span><span class="p">[</span><span class="n">nominal_id</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">ds_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">property_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+            <span class="n">ds_name</span><span class="p">,</span>
+            <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mat_temp</span><span class="p">],</span>
+            <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">nominal_val</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mat_temp</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">nominal_val</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span> <span class="o">+</span> <span class="n">ds_name</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">assignmaterial_from_sherlock_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_component</span><span class="p">,</span> <span class="n">csv_material</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign material to objects in a design based on a CSV file obtained from Sherlock.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        csv_component :  str</span>
+<span class="sd">            Name of the CSV file containing the component properties, including the</span>
+<span class="sd">            material name.</span>
+<span class="sd">        csv_material : str</span>
+<span class="sd">            Name of the CSV file containing the material properties.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.AssignMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_material</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+            <span class="n">csv_input</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
+            <span class="n">material_header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">material_data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">material_header</span><span class="p">:</span>
+                <span class="n">material_data</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+                <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_component</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+            <span class="n">csv_input</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
+            <span class="n">component_header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">component_data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">component_header</span><span class="p">:</span>
+                <span class="n">component_data</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+                <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">all_objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">object_names</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">mat</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]:</span>
+            <span class="n">list_mat_obj</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;COMP_&quot;</span> <span class="o">+</span> <span class="n">rd</span> <span class="k">for</span> <span class="n">rd</span><span class="p">,</span> <span class="n">md</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;Ref Des&quot;</span><span class="p">],</span> <span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;Material&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">md</span> <span class="o">==</span> <span class="n">mat</span>
+            <span class="p">]</span>
+            <span class="n">list_mat_obj</span> <span class="o">+=</span> <span class="p">[</span><span class="n">rd</span> <span class="k">for</span> <span class="n">rd</span><span class="p">,</span> <span class="n">md</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;Ref Des&quot;</span><span class="p">],</span> <span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;Material&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">md</span> <span class="o">==</span> <span class="n">mat</span><span class="p">]</span>
+            <span class="n">list_mat_obj</span> <span class="o">=</span> <span class="p">[</span><span class="n">mo</span> <span class="k">for</span> <span class="n">mo</span> <span class="ow">in</span> <span class="n">list_mat_obj</span> <span class="k">if</span> <span class="n">mo</span> <span class="ow">in</span> <span class="n">all_objs</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">list_mat_obj</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">checkifmaterialexists</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                    <span class="n">newmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_material</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">newmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+                <span class="k">if</span> <span class="s2">&quot;Material Density&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material Density&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material Density&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                        <span class="n">nominal_val</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dataset_from_sherlock</span><span class="p">(</span>
+                            <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material Density&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;Mass_Density&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">mass_density</span> <span class="o">=</span> <span class="n">nominal_val</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">mass_density</span><span class="o">.</span><span class="n">thermalmodifier</span> <span class="o">=</span> <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Temp)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material Density&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">mass_density</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="s2">&quot;Thermal Conductivity&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Thermal Conductivity&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="ow">and</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Thermal Conductivity&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                    <span class="p">):</span>
+                        <span class="n">nominal_val</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dataset_from_sherlock</span><span class="p">(</span>
+                            <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Thermal Conductivity&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;Thermal_Conductivity&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">thermal_conductivity</span> <span class="o">=</span> <span class="n">nominal_val</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">thermal_conductivity</span><span class="o">.</span><span class="n">thermalmodifier</span> <span class="o">=</span> <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Temp)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Thermal Conductivity&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">thermal_conductivity</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="s2">&quot;Material CTE&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material CTE&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material CTE&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                        <span class="n">nominal_val</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dataset_from_sherlock</span><span class="p">(</span>
+                            <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material CTE&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;CTE&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">thermal_expansion_coefficient</span> <span class="o">=</span> <span class="n">nominal_val</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">thermal_expansion_coefficient</span><span class="o">.</span><span class="n">thermalmodifier</span> <span class="o">=</span> <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Temp)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material CTE&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">thermal_expansion_coefficient</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="s2">&quot;Poisson Ratio&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Poisson Ratio&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Poisson Ratio&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                        <span class="n">nominal_val</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dataset_from_sherlock</span><span class="p">(</span>
+                            <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Poisson Ratio&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;Poisson_Ratio&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">poissons_ratio</span> <span class="o">=</span> <span class="n">nominal_val</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">poissons_ratio</span><span class="o">.</span><span class="n">thermalmodifier</span> <span class="o">=</span> <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Temp)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Poisson Ratio&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">poissons_ratio</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">if</span> <span class="s2">&quot;Elastic Modulus&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Elastic Modulus&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Elastic Modulus&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                        <span class="n">nominal_val</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dataset_from_sherlock</span><span class="p">(</span>
+                            <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Elastic Modulus&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="s2">&quot;Youngs_Modulus&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">youngs_modulus</span> <span class="o">=</span> <span class="n">nominal_val</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">youngs_modulus</span><span class="o">.</span><span class="n">thermalmodifier</span> <span class="o">=</span> <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Temp)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Elastic Modulus&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">newmat</span><span class="o">.</span><span class="n">youngs_modulus</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assign_material</span><span class="p">(</span><span class="n">list_mat_obj</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">obj_name</span> <span class="ow">in</span> <span class="n">list_mat_obj</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">obj_name</span><span class="p">]</span><span class="o">.</span><span class="n">surface_material_name</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">obj_name</span><span class="p">]</span><span class="o">.</span><span class="n">surface_material_name</span> <span class="o">=</span> <span class="s2">&quot;Steel-oxidised-surface&quot;</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">all_objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ao</span> <span class="k">for</span> <span class="n">ao</span> <span class="ow">in</span> <span class="n">all_objs</span> <span class="k">if</span> <span class="n">ao</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">list_mat_obj</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 
               </div>
