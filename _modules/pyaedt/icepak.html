@@ -2968,24 +2968,42 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.ChangeProperty</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">mat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">surface_material_keys</span><span class="p">:</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">]</span>
+        <span class="n">objs</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
+                    <span class="p">[</span>
+                        <span class="s2">&quot;NAME:Geometry3DAttributeTab&quot;</span><span class="p">,</span>
+                        <span class="n">objs</span><span class="p">,</span>
+                        <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Surface Material&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">]],</span>
+                    <span class="p">],</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning. The material is not the database. Use add_surface_material.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
-                    <span class="p">[</span>
-                        <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
-                        <span class="p">[</span>
-                            <span class="s2">&quot;NAME:Geometry3DAttributeTab&quot;</span><span class="p">,</span>
-                            <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">el</span><span class="p">],</span>
-                            <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Surface Material&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">]],</span>
-                        <span class="p">],</span>
-                    <span class="p">]</span>
-                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">surface_material_keys</span><span class="p">:</span>
+            <span class="n">oo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_oo_object</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="p">,</span> <span class="s2">&quot;Surface Materials/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mat</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">oo</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">pyaedt.modules.Material</span> <span class="kn">import</span> <span class="n">SurfaceMaterial</span>
 
-            <span class="k">return</span> <span class="kc">True</span></div></div>
+                <span class="n">sm</span> <span class="o">=</span> <span class="n">SurfaceMaterial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span>
+                <span class="n">sm</span><span class="o">.</span><span class="n">coordinate_system</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;Coordinate System Type&quot;</span><span class="p">)</span>
+                <span class="n">props</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetPropNames</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s2">&quot;Surface Emissivity&quot;</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                    <span class="n">sm</span><span class="o">.</span><span class="n">emissivity</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;Surface Emissivity&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;Surface Roughness&quot;</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                    <span class="n">sm</span><span class="o">.</span><span class="n">surface_roughness</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;Surface Roughness&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;Solar Behavior&quot;</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                    <span class="n">sm</span><span class="o">.</span><span class="n">surface_clarity_type</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;Solar Behavior&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;Solar Diffuse Absorptance&quot;</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                    <span class="n">sm</span><span class="o">.</span><span class="n">surface_diffuse_absorptance</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;Solar Diffuse Absorptance&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;Solar Normal Absorptance&quot;</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+                    <span class="n">sm</span><span class="o">.</span><span class="n">surface_incident_absorptance</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;Solar Normal Absorptance&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">surface_material_keys</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">sm</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </div>

@@ -813,21 +813,19 @@
 <span class="sd">        &gt;&gt;&gt; obj_names_list = [box1.name, box2.name, cylinder1.name, cylinder2.name]</span>
 <span class="sd">        &gt;&gt;&gt; hfss.assign_material(obj_names_list, &quot;aluminum&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">mat</span> <span class="o">=</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">mat_exists</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">mat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">:</span>
-            <span class="n">mat_exists</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">mat_exists</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">checkifmaterialexists</span><span class="p">(</span><span class="n">mat</span><span class="p">):</span>
-            <span class="n">Mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">mat_exists</span><span class="p">:</span>
-                <span class="n">Mat</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">:</span>
+            <span class="n">matobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_aedmattolibrary</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">matobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="n">matobj</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Assign Material &quot;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s2">&quot; to object &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">selections</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">mat</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="p">]</span><span class="o">.</span><span class="n">material_appearance</span>
-                <span class="k">if</span> <span class="n">Mat</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">matobj</span><span class="o">.</span><span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">matobj</span><span class="o">.</span><span class="n">material_appearance</span>
+                <span class="k">if</span> <span class="n">matobj</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">False</span>
@@ -945,10 +943,9 @@
             <span class="n">list_mat_obj</span> <span class="o">+=</span> <span class="p">[</span><span class="n">rd</span> <span class="k">for</span> <span class="n">rd</span><span class="p">,</span> <span class="n">md</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;Ref Des&quot;</span><span class="p">],</span> <span class="n">component_data</span><span class="p">[</span><span class="s2">&quot;Material&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">md</span> <span class="o">==</span> <span class="n">mat</span><span class="p">]</span>
             <span class="n">list_mat_obj</span> <span class="o">=</span> <span class="p">[</span><span class="n">mo</span> <span class="k">for</span> <span class="n">mo</span> <span class="ow">in</span> <span class="n">list_mat_obj</span> <span class="k">if</span> <span class="n">mo</span> <span class="ow">in</span> <span class="n">all_objs</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">list_mat_obj</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">checkifmaterialexists</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+                <span class="n">newmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">checkifmaterialexists</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">newmat</span><span class="p">:</span>
                     <span class="n">newmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_material</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">newmat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
                 <span class="k">if</span> <span class="s2">&quot;Material Density&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">:</span>
                     <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material Density&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">material_data</span><span class="p">[</span><span class="s2">&quot;Material Density&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
                         <span class="n">nominal_val</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_dataset_from_sherlock</span><span class="p">(</span>
@@ -1009,6 +1006,39 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">obj_name</span><span class="p">]</span><span class="o">.</span><span class="n">surface_material_name</span> <span class="o">=</span> <span class="s2">&quot;Steel-oxidised-surface&quot;</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">all_objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">ao</span> <span class="k">for</span> <span class="n">ao</span> <span class="ow">in</span> <span class="n">all_objs</span> <span class="k">if</span> <span class="n">ao</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">list_mat_obj</span><span class="p">]</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">cleanup_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variations</span><span class="o">=</span><span class="s2">&quot;All&quot;</span><span class="p">,</span> <span class="n">entire_solution</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">linked_data</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete a set of Solution Variations or part of them.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variations : List, str, optional</span>
+<span class="sd">            All variations to delete. Default is `&quot;All&quot;` which deletes all available solutions.</span>
+<span class="sd">        entire_solution : bool, optional</span>
+<span class="sd">            Either if delete entire Solution or part of it. If `True` other booleans will be ignored</span>
+<span class="sd">            as solution will be entirely deleted.</span>
+<span class="sd">        field : bool, optional</span>
+<span class="sd">            Either if delete entire Fields of variation or not. Default is `True`.</span>
+<span class="sd">        mesh : bool, optional</span>
+<span class="sd">            Either if delete entire Mesh of variation or not. Default is `True`.</span>
+<span class="sd">        linked_data : bool, optional</span>
+<span class="sd">            Either if delete entire Linked Data of variation or not. Default is `True`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            `True` if Delete operation succeeded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">variations</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">variations</span> <span class="o">=</span> <span class="p">[</span><span class="n">variations</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">entire_solution</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">DeleteFullVariation</span><span class="p">(</span><span class="n">variations</span><span class="p">,</span> <span class="n">linked_data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">field</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">DeleteFieldVariation</span><span class="p">(</span><span class="n">variations</span><span class="p">,</span> <span class="n">mesh</span><span class="p">,</span> <span class="n">linked_data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">linked_data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">DeleteLinkedDataVariation</span><span class="p">(</span><span class="n">variations</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 </pre></div>
 

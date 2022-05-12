@@ -218,6 +218,7 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -255,6 +256,30 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pyaedt_cs</span> <span class="o">=</span> <span class="n">cs_object</span>
+
+    <span class="k">def</span> <span class="nf">_setitem_without_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">ListsProps</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;AEDT Lists Internal Parameters.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pyaedt_lists</span><span class="o">.</span><span class="n">auto_update</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pyaedt_lists</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pyaedt_lists</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Update of </span><span class="si">%s</span><span class="s2"> Failed. Check needed arguments&quot;</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cs_object</span><span class="p">,</span> <span class="n">props</span><span class="p">):</span>
+        <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">props</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)):</span>
+                    <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">CsProps</span><span class="p">(</span><span class="n">cs_object</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pyaedt_lists</span> <span class="o">=</span> <span class="n">cs_object</span>
 
     <span class="k">def</span> <span class="nf">_setitem_without_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
@@ -1071,6 +1096,176 @@
         <span class="k">return</span> <span class="n">coordinateSystemAttributes</span></div>
 
 
+<span class="k">class</span> <span class="nc">Lists</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Manages Lists data and execution.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    modeler :</span>
+<span class="sd">        Inherited parent object.</span>
+<span class="sd">    props : dict, optional</span>
+<span class="sd">        Dictionary of properties. The default is ``None``.</span>
+<span class="sd">    name : optional</span>
+<span class="sd">        The default is ``None``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modeler</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span> <span class="o">=</span> <span class="n">modeler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">ListsProps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the List.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># self._change_property(self.name, [&quot;NAME:ChangedProps&quot;, [&quot;NAME:Reference CS&quot;, &quot;Value:=&quot;, self.ref_cs]])</span>
+        <span class="n">object_list_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_verification</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;List&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">])</span>
+
+        <span class="n">argument1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">argument2</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:GeometryEntityListParameters&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;EntityType:=&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;EntityList:=&quot;</span><span class="p">,</span>
+            <span class="n">object_list_new</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">EditEntityList</span><span class="p">(</span><span class="n">argument1</span><span class="p">,</span> <span class="n">argument2</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input List not correct for the type &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">object_list</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Object&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a List.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        object_list : list</span>
+<span class="sd">            List of ``[&quot;Obj1&quot;, &quot;Obj2&quot;]`` objects or face ID if type is &quot;Face&quot;.</span>
+<span class="sd">            The default is ``None``, in which case all objects are selected.</span>
+<span class="sd">        name : list, str</span>
+<span class="sd">            List of names. The default is ``None``.</span>
+<span class="sd">        type : str, optional</span>
+<span class="sd">            List type. Options are ``&quot;Object&quot;``, ``&quot;Face&quot;``. The default is ``&quot;Object&quot;``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="nb">type</span> <span class="o">+</span> <span class="s2">&quot;List&quot;</span><span class="p">)</span>
+
+        <span class="n">object_list_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_verification</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">object_list_new</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateEntityList</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:GeometryEntityListParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;EntityType:=&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="s2">&quot;EntityList:=&quot;</span><span class="p">,</span> <span class="n">object_list_new</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;Object&quot;</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;List&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">object_list</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;List&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">object_list_new</span>
+
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">get_entitylist_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">type</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">ListsProps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">user_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete the List.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Delete</span><span class="p">([</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">user_lists</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rename the List.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newname : str</span>
+<span class="sd">            New name for the List.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">argument</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;NAME:Geometry3DListTab&quot;</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">newname</span><span class="p">]],</span>
+            <span class="p">],</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span><span class="n">argument</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">newname</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_list_verification</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">list_type</span><span class="p">):</span>
+        <span class="n">object_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">object_list_new</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">list_type</span> <span class="o">==</span> <span class="s2">&quot;Object&quot;</span><span class="p">:</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">object_names</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">object_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+                <span class="n">object_list_new</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">object_list</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">list_type</span> <span class="o">==</span> <span class="s2">&quot;Face&quot;</span><span class="p">:</span>
+            <span class="n">object_list_new</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">object_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">():</span>
+                        <span class="n">object_list_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">object_names</span><span class="p">:</span>
+                            <span class="n">obj_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">object_id_dict</span><span class="p">[</span><span class="n">element</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">sel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span><span class="o">.</span><span class="n">object_list</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">sel</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">obj_id</span><span class="p">:</span>
+                                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">sel</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+                                        <span class="n">object_list_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                                    <span class="k">break</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">object_list_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">object_list_new</span>
+
+
 <span class="k">class</span> <span class="nc">Modeler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Provides the `Modeler` application class that other `Modeler` classes inherit.</span>
 
@@ -1138,6 +1333,7 @@
         <span class="n">Modeler</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
         <span class="c1"># TODO Refactor this as a dictionary with names as key</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coordinate_systems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_coordinates_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_lists</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_lists_data</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is3d</span> <span class="o">=</span> <span class="n">is3d</span>
 
     <span class="nd">@property</span>
@@ -1317,6 +1513,40 @@
                     <span class="k">except</span><span class="p">:</span>
                         <span class="k">pass</span>
         <span class="k">return</span> <span class="n">coord</span>
+
+    <span class="k">def</span> <span class="nf">_get_lists_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve user object list data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        [Dict with List information]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">design_lists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">key1</span> <span class="o">=</span> <span class="s2">&quot;GeometryOperations&quot;</span>
+            <span class="n">key2</span> <span class="o">=</span> <span class="s2">&quot;GeometryEntityLists&quot;</span>
+            <span class="n">key3</span> <span class="o">=</span> <span class="s2">&quot;GeometryEntityListOperation&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">geom_entry</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="n">key1</span><span class="p">][</span><span class="n">key2</span><span class="p">][</span><span class="n">key3</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geom_entry</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)):</span>
+                    <span class="n">geom_entry</span> <span class="o">=</span> <span class="p">[</span><span class="n">geom_entry</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">geom_entry</span><span class="p">:</span>
+                    <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span>
+                    <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;ID&quot;</span><span class="p">]</span>
+                    <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;GeometryEntityListParameters&quot;</span><span class="p">][</span><span class="s2">&quot;EntityType&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Object&quot;</span><span class="p">:</span>
+                        <span class="n">name_list</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;GeometryEntityListParameters&quot;</span><span class="p">][</span><span class="s2">&quot;EntityList&quot;</span><span class="p">]:</span>
+                            <span class="n">element_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectNameByID</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+                            <span class="n">name_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element_name</span><span class="p">)</span>
+                        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;List&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name_list</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;List&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;GeometryEntityListParameters&quot;</span><span class="p">][</span><span class="s2">&quot;EntityList&quot;</span><span class="p">]</span>
+                    <span class="n">design_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Lists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Lists were not retrieved from AEDT file&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">design_lists</span>
 
     <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">instance</span>
@@ -3444,15 +3674,15 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_face_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fl</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a list of faces given a list of face names.</span>
+    <span class="k">def</span> <span class="nf">create_face_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a list of faces given a list of face ID or a list of objects.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        fl : list</span>
-<span class="sd">            List of face names.</span>
+<span class="sd">        face_list : list</span>
+<span class="sd">            List of face ID or list of objects</span>
 
-<span class="sd">        name : str</span>
+<span class="sd">        name : str, optional</span>
 <span class="sd">           Name of the new list.</span>
 
 <span class="sd">        Returns</span>
@@ -3465,43 +3695,72 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateEntityList</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">fl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateEntityList</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;NAME:GeometryEntityListParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;EntityType:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Face&quot;</span><span class="p">,</span> <span class="s2">&quot;EntityList:=&quot;</span><span class="p">,</span> <span class="n">fl</span><span class="p">],</span>
-            <span class="p">[</span><span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">],</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Face List &quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; created&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">list_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_lists</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">list_names</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A List with the specified name already exists!&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">face_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">face_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">user_list</span> <span class="o">=</span> <span class="n">Lists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">list_type</span> <span class="o">=</span> <span class="s2">&quot;Face&quot;</span>
+        <span class="k">if</span> <span class="n">user_list</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">user_list</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">object_list</span><span class="o">=</span><span class="n">face_list</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="nb">type</span><span class="o">=</span><span class="n">list_type</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong object definition. Review object list and type&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;User list object could not be created&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_object_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fl</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_object_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_list</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an object list given a list of object names.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        fl : list</span>
+<span class="sd">        object_list : list</span>
 <span class="sd">            List of object names.</span>
-<span class="sd">        name : str</span>
+<span class="sd">        name : str, optional</span>
 <span class="sd">            Name of the new object list.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            ID of the new object list.</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
 
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateEntityList</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">listf</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fl</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateEntityList</span><span class="p">(</span>
-            <span class="p">[</span><span class="s2">&quot;NAME:GeometryEntityListParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;EntityType:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Object&quot;</span><span class="p">,</span> <span class="s2">&quot;EntityList:=&quot;</span><span class="p">,</span> <span class="n">listf</span><span class="p">],</span>
-            <span class="p">[</span><span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">],</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Object List &quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; created&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_entitylist_id</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">list_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_lists</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">list_names</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A List with the specified name already exists!&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">object_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">user_list</span> <span class="o">=</span> <span class="n">Lists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">list_type</span> <span class="o">=</span> <span class="s2">&quot;Object&quot;</span>
+        <span class="k">if</span> <span class="n">user_list</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">user_list</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+                <span class="n">object_list</span><span class="o">=</span><span class="n">object_list</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="nb">type</span><span class="o">=</span><span class="n">list_type</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong object definition. Review object list and type&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;User list object could not be created&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">generate_object_history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectname</span><span class="p">):</span>
