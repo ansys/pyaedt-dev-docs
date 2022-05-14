@@ -209,31 +209,32 @@
   <h1>Source code for pyaedt.modeler.Primitives3DLayout</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">_uname</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Components3DLayout</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">ComponentsSubCircuit3DLayout</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Geometries3DLayout</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Nets3DLayout</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Padstack</span>
-<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Pins3DLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Circle3dLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Components3DLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">ComponentsSubCircuit3DLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Line3dLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Nets3DLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Pins3DLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Polygons3DLayout</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Rect3dLayout</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Primitives</span> <span class="kn">import</span> <span class="n">default_materials</span>
 
 <span class="c1"># import pkgutil</span>
 <span class="c1"># modules = [tup[1] for tup in pkgutil.iter_modules()]</span>
 <span class="c1"># if &quot;clr&quot; in modules or is_ironpython:</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">clr</span>
-    <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">String</span>
-    <span class="kn">import</span> <span class="nn">System</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Pythonnet has to be installed to run Pyaedt&quot;</span><span class="p">)</span>
+<span class="c1"># try:</span>
+<span class="c1">#     import clr</span>
+<span class="c1">#     from System import String</span>
+<span class="c1">#     import System</span>
+<span class="c1"># except ImportError:</span>
+<span class="c1">#     if os.name != &quot;posix&quot;:</span>
+<span class="c1">#         warnings.warn(&quot;Pythonnet has to be installed to run Pyaedt&quot;)</span>
 
 
 <div class="viewcode-block" id="Primitives3DLayout"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout">[docs]</a><span class="k">class</span> <span class="nc">Primitives3DLayout</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -280,13 +281,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">is_outside_desktop</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isoutsideDesktop</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_opadstackmanager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetDefinitionManager</span><span class="p">()</span><span class="o">.</span><span class="n">GetManager</span><span class="p">(</span><span class="s2">&quot;Padstack&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_components3d</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_prims</span><span class="p">()</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_init_prims</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_components</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_polygons</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_power_nets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_signal_nets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_modeler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -309,18 +319,15 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            List of components from EDB. If EDB is not present, ``None`` is returned.</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Components3DLayout`]</span>
+<span class="sd">            Components objects.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">project_timestamp_changed</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">comps</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">comps</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_components</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">Components3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">el</span><span class="p">])</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;component&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_components</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Components3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components</span>
 
     <span class="nd">@property</span>
@@ -329,51 +336,99 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            List of geometries from EDB. If EDB is not present, ``None`` is returned.</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of geometries.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">project_timestamp_changed</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">prims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">primitives</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">prims</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="n">prims</span><span class="p">:</span>
-            <span class="n">el</span> <span class="o">=</span> <span class="n">prim</span><span class="o">.</span><span class="n">primitive_object</span>
-            <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="n">clr</span><span class="o">.</span><span class="n">Reference</span><span class="p">[</span><span class="n">System</span><span class="o">.</span><span class="n">String</span><span class="p">]()</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">response</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="n">response</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygons</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">geom</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rectangles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">geom</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">geom</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="n">geom</span>
 
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">response</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="n">response</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-                <span class="n">elval</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetType</span><span class="p">()</span>
-                <span class="n">elid</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-                <span class="n">el_str</span> <span class="o">=</span> <span class="n">elval</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="s2">&quot;Rectangle&quot;</span> <span class="ow">in</span> <span class="n">el_str</span><span class="p">:</span>
-                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;rect_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elid</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="s2">&quot;Circle&quot;</span> <span class="ow">in</span> <span class="n">el_str</span><span class="p">:</span>
-                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;circle_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elid</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="s2">&quot;Polygon&quot;</span> <span class="ow">in</span> <span class="n">el_str</span><span class="p">:</span>
-                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;poly_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elid</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="s2">&quot;Path&quot;</span> <span class="ow">in</span> <span class="n">el_str</span><span class="p">:</span>
-                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;line_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elid</span><span class="p">)</span>
-                    <span class="k">elif</span> <span class="s2">&quot;Bondwire&quot;</span> <span class="ow">in</span> <span class="n">el_str</span><span class="p">:</span>
-                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;bondwire_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">elid</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="k">continue</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Geometries3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">elid</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">polygons</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Polygons.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Polygons3DLayout`]</span>
+<span class="sd">            Pyaedt Objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polygons</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polygons</span>
+        <span class="n">poly_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;poly&quot;</span><span class="p">,</span> <span class="s2">&quot;plg&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">poly_types</span><span class="p">:</span>
+            <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="n">poly</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_polygons</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Polygons3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">poly</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="n">poly</span> <span class="o">+</span> <span class="s2">&quot; void&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_polygons</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Polygons3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">poly</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_polygons</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lines</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lines.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Line3dLayout`]</span>
+<span class="sd">            Pyaedt Objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span>
+        <span class="n">poly_types</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;line&quot;</span><span class="p">,</span> <span class="s2">&quot;arc&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">poly_types</span><span class="p">:</span>
+            <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="n">poly</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Line3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="n">poly</span> <span class="o">+</span> <span class="s2">&quot; void&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Line3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">circles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Circles.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Circle3dLayout`]</span>
+<span class="sd">            Pyaedt Objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;circle&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Circle3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;circle void&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Circle3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rectangles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rectangles.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Rect3dLayout`]</span>
+<span class="sd">            Pyaedt Objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;rect&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rect3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;rect void&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rect3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">components_3d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -381,9 +436,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            List of components from EDB. If EDB is not present, ``None`` is returned.</span>
-
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Components3DLayout`]</span>
+<span class="sd">            Pyaedt Objects.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components3d</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1000</span><span class="p">):</span>
@@ -398,33 +452,32 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            List of pins from EDB. If EDB is not present, ``None`` is returned.</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Pins3DLayout`]</span>
+<span class="sd">            Pins Dictionary.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">project_timestamp_changed</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">pins_objs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">pins</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">pins_objs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">pins_objs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="n">clr</span><span class="o">.</span><span class="n">Reference</span><span class="p">[</span><span class="n">System</span><span class="o">.</span><span class="n">String</span><span class="p">]()</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">response</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">response</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Pins3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">el</span><span class="o">.</span><span class="n">GetComponent</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">el</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;pin&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Pins3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pins</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vias</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Vias.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Pins3DLayout`]</span>
+<span class="sd">            Vias Dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span>
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;via&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Pins3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">is_pin</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -432,16 +485,52 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
-<span class="sd">            List of nets from EDB. If EDB is not present, ``None`` is returned.</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Nets3DLayout`]</span>
+<span class="sd">            Nets Dictionary.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">project_timestamp_changed</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">net</span><span class="p">,</span> <span class="n">net_object</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nets3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">net_object</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nets</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_nets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">n</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">signal_nets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">n</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="n">n</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">power_nets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Nets.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Nets3DLayout`]</span>
+<span class="sd">            Power Nets Dictionary.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_nets</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_nets</span>
+
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetNetClassNets</span><span class="p">(</span><span class="s2">&quot;&lt;Power/Ground&gt;&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_power_nets</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nets3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_nets</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">signal_nets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Nets.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Nets3DLayout`]</span>
+<span class="sd">            Signal Nets Dictionary.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_nets</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_nets</span>
+
+        <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetNetClassNets</span><span class="p">(</span><span class="s2">&quot;Non Power/Ground&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_signal_nets</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nets3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_nets</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">defaultmaterial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -508,8 +597,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Padstack</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opadstackmanager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Primitives3DLayout.init_padstacks"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.init_padstacks.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.init_padstacks">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">init_padstacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">padstacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Read all padstacks from HFSS 3D Layout.</span>
 
 <span class="sd">        Returns</span>
@@ -518,6 +607,9 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">names</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">List2list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">opadstackmanager</span><span class="o">.</span><span class="n">GetNames</span><span class="p">())</span>
 
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
@@ -530,32 +622,32 @@
                         <span class="n">props</span> <span class="o">=</span> <span class="n">p</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="k">pass</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Padstack</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opadstackmanager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Padstack</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opadstackmanager</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;mat:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mat</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">mat</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;plt:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">plating</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">plating</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;hRg:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">holerange</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">holerange</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;sbsh:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_shape</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_shape</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;sbpl:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_placement</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_placement</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;sbr:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_rad</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_rad</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;sb2:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">sb2</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">sb2</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;sbn:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_mat</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">solder_mat</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
                     <span class="k">elif</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">&quot;hle:=&quot;</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">sizes</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">rot</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">9</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">sizes</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">hole</span><span class="o">.</span><span class="n">rot</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="n">props</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">9</span><span class="p">]</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">prop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NAME:pds&quot;</span><span class="p">:</span>
                         <span class="n">layers_num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
@@ -565,26 +657,26 @@
                             <span class="n">lay_name</span> <span class="o">=</span> <span class="n">lay</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
                             <span class="n">lay_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lay</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
                             <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">lay_name</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">layername</span> <span class="o">=</span> <span class="n">lay_name</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_hole</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">lay_name</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">layername</span> <span class="o">=</span> <span class="n">lay_name</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_hole</span><span class="p">(</span>
                                 <span class="n">lay</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="n">lay</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="mi">3</span><span class="p">]),</span> <span class="n">lay</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="mi">5</span><span class="p">],</span> <span class="n">lay</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="mi">7</span><span class="p">],</span> <span class="n">lay</span><span class="p">[</span><span class="mi">6</span><span class="p">][</span><span class="mi">9</span><span class="p">]</span>
                             <span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">antipad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_hole</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">antipad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_hole</span><span class="p">(</span>
                                 <span class="n">lay</span><span class="p">[</span><span class="mi">8</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="n">lay</span><span class="p">[</span><span class="mi">8</span><span class="p">][</span><span class="mi">3</span><span class="p">]),</span> <span class="n">lay</span><span class="p">[</span><span class="mi">8</span><span class="p">][</span><span class="mi">5</span><span class="p">],</span> <span class="n">lay</span><span class="p">[</span><span class="mi">8</span><span class="p">][</span><span class="mi">7</span><span class="p">],</span> <span class="n">lay</span><span class="p">[</span><span class="mi">8</span><span class="p">][</span><span class="mi">9</span><span class="p">]</span>
                             <span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">thermal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_hole</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">thermal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">add_hole</span><span class="p">(</span>
                                 <span class="n">lay</span><span class="p">[</span><span class="mi">10</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="n">lay</span><span class="p">[</span><span class="mi">10</span><span class="p">][</span><span class="mi">3</span><span class="p">]),</span> <span class="n">lay</span><span class="p">[</span><span class="mi">10</span><span class="p">][</span><span class="mi">5</span><span class="p">],</span> <span class="n">lay</span><span class="p">[</span><span class="mi">10</span><span class="p">][</span><span class="mi">7</span><span class="p">],</span> <span class="n">lay</span><span class="p">[</span><span class="mi">10</span><span class="p">][</span><span class="mi">9</span><span class="p">]</span>
                             <span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">connectionx</span> <span class="o">=</span> <span class="n">lay</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">connectiony</span> <span class="o">=</span> <span class="n">lay</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">connectiondir</span> <span class="o">=</span> <span class="n">lay</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">connectionx</span> <span class="o">=</span> <span class="n">lay</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">connectiony</span> <span class="o">=</span> <span class="n">lay</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">lay_name</span><span class="p">]</span><span class="o">.</span><span class="n">connectiondir</span> <span class="o">=</span> <span class="n">lay</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span>
                             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="k">pass</span>
                 <span class="k">except</span><span class="p">:</span>
                     <span class="k">pass</span>
 
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span>
 
 <div class="viewcode-block" id="Primitives3DLayout.change_net_visibility"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.change_net_visibility.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.change_net_visibility">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">change_net_visibility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">netlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -754,10 +846,7 @@
         <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;r:=&quot;</span><span class="p">),</span> <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">radius</span><span class="p">))</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vArg2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">CreateCircle</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_outside_desktop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Geometries3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">netname</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">set_net_name</span><span class="p">(</span><span class="n">netname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Circle3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.create_rectangle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -813,10 +902,7 @@
         <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ang=&quot;</span><span class="p">),</span> <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vArg2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">CreateRectangle</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_outside_desktop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Geometries3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">netname</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">set_net_name</span><span class="p">(</span><span class="n">netname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rect3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.create_line"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -889,10 +975,7 @@
             <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">CreateLine</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_outside_desktop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Geometries3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">netname</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_geometries</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">set_net_name</span><span class="p">(</span><span class="n">netname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Line3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.arg_with_dim"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
