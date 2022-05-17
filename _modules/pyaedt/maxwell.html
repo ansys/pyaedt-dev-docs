@@ -1265,26 +1265,35 @@
 
 <span class="sd">        &gt;&gt;&gt; oModule.AssignForce</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">input_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">force_name</span><span class="p">:</span>
-            <span class="n">force_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Force&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Maxwell 3D&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">o_maxwell_parameters</span><span class="o">.</span><span class="n">AssignForce</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">force_name</span><span class="p">,</span>
-                    <span class="s2">&quot;Reference CS:=&quot;</span><span class="p">,</span>
-                    <span class="n">reference_cs</span><span class="p">,</span>
-                    <span class="s2">&quot;Is Virtual:=&quot;</span><span class="p">,</span>
-                    <span class="n">is_virtual</span><span class="p">,</span>
-                    <span class="s2">&quot;Objects:=&quot;</span><span class="p">,</span>
-                    <span class="n">input_object</span><span class="p">,</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ACConduction&quot;</span><span class="p">,</span> <span class="s2">&quot;DCConduction&quot;</span><span class="p">]:</span>
+            <span class="n">input_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">force_name</span><span class="p">:</span>
+                <span class="n">force_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Force&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Maxwell 3D&quot;</span><span class="p">:</span>
+                <span class="n">prop</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="n">force_name</span><span class="p">,</span>
+                        <span class="s2">&quot;Reference CS&quot;</span><span class="p">:</span> <span class="n">reference_cs</span><span class="p">,</span>
+                        <span class="s2">&quot;Is Virtual&quot;</span><span class="p">:</span> <span class="n">is_virtual</span><span class="p">,</span>
+                        <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">input_object</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prop</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="n">force_name</span><span class="p">,</span>
+                        <span class="s2">&quot;Reference CS&quot;</span><span class="p">:</span> <span class="n">reference_cs</span><span class="p">,</span>
+                        <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">input_object</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+            <span class="n">bound</span> <span class="o">=</span> <span class="n">MaxwellParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_name</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="s2">&quot;Force&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">bound</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">o_maxwell_parameters</span><span class="o">.</span><span class="n">AssignForce</span><span class="p">(</span>
-                <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">force_name</span><span class="p">,</span> <span class="s2">&quot;Reference CS:=&quot;</span><span class="p">,</span> <span class="n">reference_cs</span><span class="p">,</span> <span class="s2">&quot;Objects:=&quot;</span><span class="p">,</span> <span class="n">input_object</span><span class="p">]</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Solution Type has not Matrix Parameter&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">assign_torque</span><span class="p">(</span>
@@ -1317,38 +1326,40 @@
 
 <span class="sd">        &gt;&gt;&gt; oModule.AssignTorque</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">input_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">torque_name</span><span class="p">:</span>
-            <span class="n">torque_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Torque&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Maxwell 3D&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">o_maxwell_parameters</span><span class="o">.</span><span class="n">AssignTorque</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">torque_name</span><span class="p">,</span>
-                    <span class="s2">&quot;Is Virtual:=&quot;</span><span class="p">,</span>
-                    <span class="n">is_virtual</span><span class="p">,</span>
-                    <span class="s2">&quot;Coordinate System:=&quot;</span><span class="p">,</span>
-                    <span class="n">reference_cs</span><span class="p">,</span>
-                    <span class="s2">&quot;Axis:=&quot;</span><span class="p">,</span>
-                    <span class="n">axis</span><span class="p">,</span>
-                    <span class="s2">&quot;Is Positive:=&quot;</span><span class="p">,</span>
-                    <span class="n">is_positive</span><span class="p">,</span>
-                    <span class="s2">&quot;Objects:=&quot;</span><span class="p">,</span>
-                    <span class="n">input_object</span><span class="p">,</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ACConduction&quot;</span><span class="p">,</span> <span class="s2">&quot;DCConduction&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">is</span> <span class="s2">&quot;Transient&quot;</span><span class="p">:</span>
+                <span class="n">is_virtual</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">input_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">input_object</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">torque_name</span><span class="p">:</span>
+                <span class="n">torque_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Torque&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Maxwell 3D&quot;</span><span class="p">:</span>
+                <span class="n">prop</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="n">torque_name</span><span class="p">,</span>
+                        <span class="s2">&quot;Is Virtual&quot;</span><span class="p">:</span> <span class="n">is_virtual</span><span class="p">,</span>
+                        <span class="s2">&quot;Coordinate System&quot;</span><span class="p">:</span> <span class="n">reference_cs</span><span class="p">,</span>
+                        <span class="s2">&quot;Axis&quot;</span><span class="p">:</span> <span class="n">axis</span><span class="p">,</span>
+                        <span class="s2">&quot;Is Positive&quot;</span><span class="p">:</span> <span class="n">is_positive</span><span class="p">,</span>
+                        <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">input_object</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prop</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="n">torque_name</span><span class="p">,</span>
+                        <span class="s2">&quot;Coordinate System&quot;</span><span class="p">:</span> <span class="n">reference_cs</span><span class="p">,</span>
+                        <span class="s2">&quot;Is Positive&quot;</span><span class="p">:</span> <span class="n">is_positive</span><span class="p">,</span>
+                        <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">input_object</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+            <span class="n">bound</span> <span class="o">=</span> <span class="n">MaxwellParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">torque_name</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="s2">&quot;Torque&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">bound</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">o_maxwell_parameters</span><span class="o">.</span><span class="n">AssignTorque</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">torque_name</span><span class="p">,</span>
-                    <span class="s2">&quot;Coordinate System:=&quot;</span><span class="p">,</span>
-                    <span class="n">reference_cs</span><span class="p">,</span>
-                    <span class="s2">&quot;Is Positive:=&quot;</span><span class="p">,</span>
-                    <span class="n">is_positive</span><span class="p">,</span>
-                    <span class="s2">&quot;Objects:=&quot;</span><span class="p">,</span>
-                    <span class="n">input_object</span><span class="p">,</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Solution Type has not Matrix Parameter&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">solve_inside</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">activate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
