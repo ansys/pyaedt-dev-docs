@@ -213,6 +213,7 @@
 <span class="sd">This module provides all layer stackup functionalities for the Circuit and HFSS 3D Layout tools.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
+
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 
 
@@ -354,6 +355,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">usp</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;si&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dtv&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">planaremSp</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ifg&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;vly&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zones</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_oeditor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -587,6 +589,167 @@
 
         <span class="k">return</span> <span class="n">val</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_get_layer_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="s2">&quot;NAME:stackup layer&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;ID:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                <span class="s2">&quot;Top Bottom:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">topbottom</span><span class="p">,</span>
+                <span class="s2">&quot;Color:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+                <span class="s2">&quot;Transparency:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span><span class="p">,</span>
+                <span class="s2">&quot;Pattern:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
+                <span class="s2">&quot;VisFlag:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visflag</span><span class="p">,</span>
+                <span class="s2">&quot;Locked:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="p">,</span>
+                <span class="s2">&quot;DrawOverride:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">drawoverride</span><span class="p">,</span>
+                <span class="s2">&quot;Zones:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zones</span><span class="p">,</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:Sublayer&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Thickness:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span><span class="p">,</span>
+                    <span class="s2">&quot;LowerElevation:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lowerelevation</span><span class="p">,</span>
+                    <span class="s2">&quot;Roughness:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roughness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
+                    <span class="s2">&quot;BotRoughness:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">botroughness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
+                    <span class="s2">&quot;SideRoughness:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toprounghenss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
+                    <span class="s2">&quot;Material:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                    <span class="s2">&quot;FillMaterial:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">fillmaterial</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;Neg:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">IsNegative</span><span class="p">,</span>
+                <span class="s2">&quot;Usp:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">usp</span><span class="p">,</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:Sp&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Sn:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;HFSS&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Sv:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;so(si=&quot;</span>
+                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span><span class="p">[</span><span class="s2">&quot;si&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="s2">&quot; , dt=&quot;</span>
+                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">])</span>
+                    <span class="o">+</span> <span class="s2">&quot;, dtv=&#39;&quot;</span>
+                    <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span><span class="p">[</span><span class="s2">&quot;dtv&quot;</span><span class="p">])</span>
+                    <span class="o">+</span> <span class="s2">&quot;&#39;)&quot;</span><span class="p">,</span>
+                <span class="p">],</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:Sp&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Sn:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;PlanarEM&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Sv:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;so(ifg=&quot;</span>
+                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">planaremSp</span><span class="p">[</span><span class="s2">&quot;ifg&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="s2">&quot;, vly=&quot;</span>
+                    <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">planaremSp</span><span class="p">[</span><span class="s2">&quot;vly&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;Etch:=&quot;</span><span class="p">,</span>
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etch</span><span class="p">),</span>
+                <span class="s2">&quot;UseEtch:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">useetch</span><span class="p">,</span>
+                <span class="s2">&quot;UseR:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
+                <span class="s2">&quot;RMdl:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">RMdl</span><span class="p">,</span>
+                <span class="s2">&quot;NR:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
+                <span class="s2">&quot;HRatio:=&quot;</span><span class="p">,</span>
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HRatio</span><span class="p">),</span>
+                <span class="s2">&quot;BRMdl:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">BRMdl</span><span class="p">,</span>
+                <span class="s2">&quot;BNR:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BNR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
+                <span class="s2">&quot;BHRatio:=&quot;</span><span class="p">,</span>
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BHRatio</span><span class="p">),</span>
+                <span class="s2">&quot;SRMdl:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">SRMdl</span><span class="p">,</span>
+                <span class="s2">&quot;SNR:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SNR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
+                <span class="s2">&quot;SHRatio:=&quot;</span><span class="p">,</span>
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SHRatio</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="s2">&quot;NAME:stackup layer&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;ID:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                <span class="s2">&quot;Top Bottom:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">topbottom</span><span class="p">,</span>
+                <span class="s2">&quot;Color:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+                <span class="s2">&quot;Transparency:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span><span class="p">,</span>
+                <span class="s2">&quot;Pattern:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
+                <span class="s2">&quot;VisFlag:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visflag</span><span class="p">,</span>
+                <span class="s2">&quot;Locked:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="p">,</span>
+                <span class="s2">&quot;DrawOverride:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">drawoverride</span><span class="p">,</span>
+                <span class="s2">&quot;Zones:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">zones</span><span class="p">,</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;NAME:Sublayer&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Thickness:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span><span class="p">,</span>
+                    <span class="s2">&quot;LowerElevation:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">lowerelevation</span><span class="p">,</span>
+                    <span class="s2">&quot;Roughness:=&quot;</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;BotRoughness:=&quot;</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;SideRoughness:=&quot;</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;Material:=&quot;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
+                <span class="p">],</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="s2">&quot;NAME:layer&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s2">&quot;ID:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+                <span class="s2">&quot;Top Bottom:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">topbottom</span><span class="p">,</span>
+                <span class="s2">&quot;Color:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+                <span class="s2">&quot;Transparency:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span><span class="p">,</span>
+                <span class="s2">&quot;Pattern:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
+                <span class="s2">&quot;VisFlag:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">visflag</span><span class="p">,</span>
+                <span class="s2">&quot;Locked:=&quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="p">,</span>
+            <span class="p">]</span>
+
 <div class="viewcode-block" id="Layer.update_stackup_layer"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.LayerStackup.Layer.update_stackup_layer.html#pyaedt.modules.LayerStackup.Layer.update_stackup_layer">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">update_stackup_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the stackup layer.</span>
@@ -605,148 +768,7 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.ChangeLayer</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">ChangeLayer</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="s2">&quot;NAME:SLayer&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                    <span class="s2">&quot;ID:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-                    <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
-                    <span class="s2">&quot;Top Bottom:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">topbottom</span><span class="p">,</span>
-                    <span class="s2">&quot;Color:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
-                    <span class="s2">&quot;Transparency:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span><span class="p">,</span>
-                    <span class="s2">&quot;Pattern:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
-                    <span class="s2">&quot;VisFlag:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">visflag</span><span class="p">,</span>
-                    <span class="s2">&quot;Locked:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="p">,</span>
-                    <span class="s2">&quot;DrawOverride:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">drawoverride</span><span class="p">,</span>
-                    <span class="s2">&quot;Zones:=&quot;</span><span class="p">,</span>
-                    <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                    <span class="p">[</span>
-                        <span class="s2">&quot;NAME:Sublayer&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;Thickness:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span><span class="p">,</span>
-                        <span class="s2">&quot;LowerElevation:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">lowerelevation</span><span class="p">,</span>
-                        <span class="s2">&quot;Roughness:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">roughness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
-                        <span class="s2">&quot;BotRoughness:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">botroughness</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
-                        <span class="s2">&quot;SideRoughness:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toprounghenss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
-                        <span class="s2">&quot;Material:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
-                        <span class="s2">&quot;FillMaterial:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">fillmaterial</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
-                    <span class="p">],</span>
-                    <span class="s2">&quot;Neg:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">IsNegative</span><span class="p">,</span>
-                    <span class="s2">&quot;Usp:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">usp</span><span class="p">,</span>
-                    <span class="p">[</span>
-                        <span class="s2">&quot;NAME:Sp&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;Sn:=&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;HFSS&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;Sv:=&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;so(si=&quot;</span>
-                        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span><span class="p">[</span><span class="s2">&quot;si&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                        <span class="o">+</span> <span class="s2">&quot; , dt=&quot;</span>
-                        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span><span class="p">[</span><span class="s2">&quot;dt&quot;</span><span class="p">])</span>
-                        <span class="o">+</span> <span class="s2">&quot;, dtv=&#39;&quot;</span>
-                        <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span><span class="p">[</span><span class="s2">&quot;dtv&quot;</span><span class="p">])</span>
-                        <span class="o">+</span> <span class="s2">&quot;&#39;)&quot;</span><span class="p">,</span>
-                    <span class="p">],</span>
-                    <span class="p">[</span>
-                        <span class="s2">&quot;NAME:Sp&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;Sn:=&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;PlanarEM&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;Sv:=&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;so(ifg=&quot;</span>
-                        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">planaremSp</span><span class="p">[</span><span class="s2">&quot;ifg&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                        <span class="o">+</span> <span class="s2">&quot;, vly=&quot;</span>
-                        <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">planaremSp</span><span class="p">[</span><span class="s2">&quot;vly&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                        <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span>
-                    <span class="p">],</span>
-                    <span class="s2">&quot;Etch:=&quot;</span><span class="p">,</span>
-                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">etch</span><span class="p">),</span>
-                    <span class="s2">&quot;UseEtch:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">useetch</span><span class="p">,</span>
-                    <span class="s2">&quot;UseR:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="p">,</span>
-                    <span class="s2">&quot;RMdl:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">RMdl</span><span class="p">,</span>
-                    <span class="s2">&quot;NR:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
-                    <span class="s2">&quot;HRatio:=&quot;</span><span class="p">,</span>
-                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HRatio</span><span class="p">),</span>
-                    <span class="s2">&quot;BRMdl:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">BRMdl</span><span class="p">,</span>
-                    <span class="s2">&quot;BNR:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BNR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
-                    <span class="s2">&quot;BHRatio:=&quot;</span><span class="p">,</span>
-                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">BHRatio</span><span class="p">),</span>
-                    <span class="s2">&quot;SRMdl:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">SRMdl</span><span class="p">,</span>
-                    <span class="s2">&quot;SNR:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SNR</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">LengthUnitRough</span><span class="p">),</span>
-                    <span class="s2">&quot;SHRatio:=&quot;</span><span class="p">,</span>
-                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SHRatio</span><span class="p">),</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">ChangeLayer</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="s2">&quot;NAME:SLayer&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                    <span class="s2">&quot;ID:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-                    <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
-                    <span class="s2">&quot;Top Bottom:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">topbottom</span><span class="p">,</span>
-                    <span class="s2">&quot;Color:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
-                    <span class="s2">&quot;Transparency:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">transparency</span><span class="p">,</span>
-                    <span class="s2">&quot;Pattern:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="p">,</span>
-                    <span class="s2">&quot;VisFlag:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">visflag</span><span class="p">,</span>
-                    <span class="s2">&quot;Locked:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">locked</span><span class="p">,</span>
-                    <span class="s2">&quot;DrawOverride:=&quot;</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">drawoverride</span><span class="p">,</span>
-                    <span class="s2">&quot;Zones:=&quot;</span><span class="p">,</span>
-                    <span class="p">[],</span>
-                    <span class="p">[</span>
-                        <span class="s2">&quot;NAME:Sublayer&quot;</span><span class="p">,</span>
-                        <span class="s2">&quot;Thickness:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span><span class="p">,</span>
-                        <span class="s2">&quot;LowerElevation:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">lowerelevation</span><span class="p">,</span>
-                        <span class="s2">&quot;Roughness:=&quot;</span><span class="p">,</span>
-                        <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;BotRoughness:=&quot;</span><span class="p">,</span>
-                        <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;SideRoughness:=&quot;</span><span class="p">,</span>
-                        <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;Material:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span>
-                    <span class="p">],</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">ChangeLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_layer_arg</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Layer.remove_stackup_layer"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.LayerStackup.Layer.remove_stackup_layer.html#pyaedt.modules.LayerStackup.Layer.remove_stackup_layer">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -909,7 +931,7 @@
 <span class="sd">        int</span>
 <span class="sd">            Number of layers in the current stackup.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">layernames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">GetStackupLayerNames</span><span class="p">()</span>
+        <span class="n">layernames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">GetAllLayerNames</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">layernames</span><span class="p">:</span>
             <span class="n">o</span> <span class="o">=</span> <span class="n">Layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;signal&quot;</span><span class="p">)</span>
             <span class="n">o</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">el</span>
@@ -931,29 +953,30 @@
                 <span class="n">o</span><span class="o">.</span><span class="n">IsVisibleShape</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;IsVisibleShape&quot;</span><span class="p">]</span>
                 <span class="n">o</span><span class="o">.</span><span class="n">IsVisibleHole</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;IsVisibleHole&quot;</span><span class="p">]</span>
             <span class="n">o</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Color&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Index&quot;</span><span class="p">])</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;LayerThickness&quot;</span><span class="p">])</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">lowerelevation</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;LowerElevation0&quot;</span><span class="p">])</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">fillmaterial</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;FillMaterial0&quot;</span><span class="p">]</span>
-            <span class="n">o</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Material0&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s2">&quot;EtchFactor&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">useetch</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">etch</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;EtchFactor&quot;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s2">&quot;Roughness0 Type&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">RMdl</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Roughness0 Type&quot;</span><span class="p">]</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">NR</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Roughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">HRatio</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Roughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s2">&quot;BottomRoughness0 Type&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">BRMdl</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;BottomRoughness0 Type&quot;</span><span class="p">]</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">BNR</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;BottomRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">BHRatio</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;BottomRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="k">if</span> <span class="s2">&quot;SideRoughness0 Type&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">SRMdl</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;SideRoughness0 Type&quot;</span><span class="p">]</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">SNR</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;SideRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">o</span><span class="o">.</span><span class="n">SHRatio</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;SideRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">,</span> <span class="s2">&quot;via&quot;</span><span class="p">]:</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Index&quot;</span><span class="p">])</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;LayerThickness&quot;</span><span class="p">])</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">lowerelevation</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;LowerElevation0&quot;</span><span class="p">])</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">fillmaterial</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;FillMaterial0&quot;</span><span class="p">]</span>
+                <span class="n">o</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Material0&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s2">&quot;EtchFactor&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">useetch</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">etch</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;EtchFactor&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;Roughness0 Type&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">RMdl</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Roughness0 Type&quot;</span><span class="p">]</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">NR</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Roughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">HRatio</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;Roughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;BottomRoughness0 Type&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">BRMdl</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;BottomRoughness0 Type&quot;</span><span class="p">]</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">BNR</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;BottomRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">BHRatio</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;BottomRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;SideRoughness0 Type&quot;</span> <span class="ow">in</span> <span class="n">infosdict</span><span class="p">:</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">SRMdl</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;SideRoughness0 Type&quot;</span><span class="p">]</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">SNR</span> <span class="o">=</span> <span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;SideRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">o</span><span class="o">.</span><span class="n">SHRatio</span> <span class="o">=</span> <span class="n">_conv_number</span><span class="p">(</span><span class="n">infosdict</span><span class="p">[</span><span class="s2">&quot;SideRoughness0&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
 
             <span class="k">if</span> <span class="n">o</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>  <span class="c1"># updating the existing one</span>
                 <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
@@ -1022,7 +1045,45 @@
         <span class="n">newlayer</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">material</span>
         <span class="n">newlayer</span><span class="o">.</span><span class="n">create_stackup_layer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">newlayer</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">newlayer</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">newlayer</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">newlayer</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Layers.change_stackup_type"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.LayerStackup.Layers.change_stackup_type.html#pyaedt.modules.LayerStackup.Layers.change_stackup_type">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">change_stackup_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;MultiZone&quot;</span><span class="p">,</span> <span class="n">number_zones</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the stackup type between Multizone, Overlap and Laminate.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mode : str, optional</span>
+<span class="sd">            Stackup type. Default is `&quot;Multizone&quot;`. Options are `&quot;Overlap&quot;` and `&quot;Laminate&quot;`.</span>
+<span class="sd">        number_zones : int, optional</span>
+<span class="sd">            Number of zones of multizone. By default all layers will be enabled in all zones.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            `True` if successful.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;multizone&quot;</span><span class="p">:</span>
+            <span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Zones&quot;</span><span class="p">,</span> <span class="s2">&quot;Primary&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_zones</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">zones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Zone</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:layers&quot;</span><span class="p">,</span> <span class="s2">&quot;Mode:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Multizone&quot;</span><span class="p">,</span> <span class="n">zones</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:pps&quot;</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;overlap&quot;</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:layers&quot;</span><span class="p">,</span> <span class="s2">&quot;Mode:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Overlap&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:pps&quot;</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;laminate&quot;</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:layers&quot;</span><span class="p">,</span> <span class="s2">&quot;Mode:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Laminate&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:pps&quot;</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stackup mode has to be Multizone, Overlap or Laminate.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">mode</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;multizone&quot;</span><span class="p">:</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">zones</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_zones</span><span class="p">)]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">v</span><span class="o">.</span><span class="n">zones</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">_get_layer_arg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span><span class="o">.</span><span class="n">ChangeLayers</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </div>
