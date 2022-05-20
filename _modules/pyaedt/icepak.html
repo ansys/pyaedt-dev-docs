@@ -1668,7 +1668,7 @@
 <span class="sd">            Name of the EM setup. The default is ``&quot;Setup1&quot;``.</span>
 <span class="sd">        sweepname : str, optional</span>
 <span class="sd">            Name of the EM sweep to use for the mapping. The default is ``&quot;LastAdaptive&quot;``.</span>
-<span class="sd">        map_frequency : optional</span>
+<span class="sd">        map_frequency : str, optional</span>
 <span class="sd">            String containing the frequency to map. The default is ``None``.</span>
 <span class="sd">            The value must be ``None`` for Eigenmode analysis.</span>
 <span class="sd">        surface_objects : list, optional</span>
@@ -1676,8 +1676,13 @@
 <span class="sd">        source_project_name : str, optional</span>
 <span class="sd">            Name of the source project. The default is ``None``, in which case the</span>
 <span class="sd">            source from the same project is used.</span>
-<span class="sd">        paramlist :list, optional</span>
-<span class="sd">            List of all parameters in the EM to map. The default is ``None``.</span>
+<span class="sd">        paramlist : list, dict, optional</span>
+<span class="sd">            List of all parameters to map from source and icepak design. The default is ``None``.</span>
+<span class="sd">            If ``None`` the variables will be set to their values (no mapping).</span>
+<span class="sd">            If it is a list, the specified variables in the icepak design will be mapped to variables</span>
+<span class="sd">            in the source design having the same name.</span>
+<span class="sd">            If it is a dictionary, it is possible to map variables to the source design having a different name.</span>
+<span class="sd">            The dict structure is {&quot;source_design_variable&quot;: &quot;icepak_variable&quot;}.</span>
 <span class="sd">        object_list : list, optional</span>
 <span class="sd">            List of objects. The default is ``None``.</span>
 
@@ -1693,8 +1698,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">surface_objects</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">surface_objects</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">paramlist</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">paramlist</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">object_list</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">object_list</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1724,8 +1727,12 @@
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_variations</span><span class="o">.</span><span class="n">nominal_w_values_dict</span><span class="p">:</span>
             <span class="n">argparam</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_variations</span><span class="o">.</span><span class="n">nominal_w_values_dict</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">paramlist</span><span class="p">:</span>
-            <span class="n">argparam</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+        <span class="k">if</span> <span class="n">paramlist</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">paramlist</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">paramlist</span><span class="p">:</span>
+                <span class="n">argparam</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">el</span>
+        <span class="k">elif</span> <span class="n">paramlist</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">paramlist</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">paramlist</span><span class="p">:</span>
+                <span class="n">argparam</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">paramlist</span><span class="p">[</span><span class="n">el</span><span class="p">]</span>
 
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
             <span class="p">{</span>
@@ -2883,7 +2890,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        ambienttemp : float, optional</span>
+<span class="sd">        ambienttemp : float, str, optional</span>
 <span class="sd">            Ambient temperature, which can be an integer or a parameter already</span>
 <span class="sd">            created in AEDT. The default is ``20``.</span>
 <span class="sd">        gravityDir : int, optional</span>
@@ -2909,10 +2916,7 @@
 <span class="sd">        &gt;&gt;&gt; oDesign.SetDesignSettings</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">AmbientTemp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ambienttemp</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;cel&quot;</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">AmbientTemp</span> <span class="o">=</span> <span class="n">ambienttemp</span>
+        <span class="n">AmbientTemp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">ambienttemp</span><span class="p">,</span> <span class="s2">&quot;cel&quot;</span><span class="p">)</span>
 
         <span class="n">IceGravity</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span>
         <span class="n">GVPos</span> <span class="o">=</span> <span class="kc">False</span>

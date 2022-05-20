@@ -885,16 +885,13 @@
         <span class="n">var_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">all_names</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">object_list</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_is_object_oriented_enabled</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">!=</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">:</span>
-                <span class="n">listvar</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">listvar</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">GetVariables</span><span class="p">())</span>
+            <span class="n">listvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_var_list_from_aedt</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">variable_name</span> <span class="ow">in</span> <span class="n">listvar</span><span class="p">:</span>
                 <span class="n">variable_expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
                 <span class="n">all_names</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable_expression</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">variable_expression</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">is_array</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">is_array</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">dependent</span><span class="p">:</span>
                         <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
                     <span class="k">elif</span> <span class="n">independent</span> <span class="ow">and</span> <span class="n">is_number</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
                         <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
@@ -1020,13 +1017,21 @@
             <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
         <span class="n">desktop_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aedt_object</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
-        <span class="n">test</span> <span class="o">=</span> <span class="n">desktop_object</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
-        <span class="n">proj_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
-        <span class="n">var_type</span> <span class="o">=</span> <span class="s2">&quot;Project&quot;</span> <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="s2">&quot;Local&quot;</span>
-        <span class="k">if</span> <span class="n">circuit_parameter</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Circuit Design&quot;</span><span class="p">]:</span>
-            <span class="n">tab_name</span> <span class="o">=</span> <span class="s2">&quot;DefinitionParameterTab&quot;</span>
+        <span class="k">if</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;$&quot;</span><span class="p">):</span>
+            <span class="n">tab_name</span> <span class="o">=</span> <span class="s2">&quot;ProjectVariableTab&quot;</span>
+            <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;ProjectVariables&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">tab_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">VariableTab&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_type</span><span class="p">)</span>
+            <span class="n">tab_name</span> <span class="o">=</span> <span class="s2">&quot;LocalVariableTab&quot;</span>
+            <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;LocalVariables&quot;</span>
+            <span class="k">if</span> <span class="n">circuit_parameter</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Twin Builder&quot;</span><span class="p">,</span>
+            <span class="p">]:</span>
+                <span class="n">tab_name</span> <span class="o">=</span> <span class="s2">&quot;DefinitionParameterTab&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">,</span> <span class="s2">&quot;Twin Builder&quot;</span><span class="p">]:</span>
+                <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;Instance:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
 
         <span class="n">prop_type</span> <span class="o">=</span> <span class="s2">&quot;VariableProp&quot;</span>
         <span class="k">if</span> <span class="n">postprocessing</span> <span class="ow">or</span> <span class="s2">&quot;post&quot;</span> <span class="ow">in</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]:</span>
@@ -1057,20 +1062,8 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unhandled input type to the design property or project variable.&quot;</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
 
         <span class="c1"># Get all design and project variables in lower case for a case-sensitive comparison</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_is_object_oriented_enabled</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">!=</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">:</span>
-            <span class="n">var_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">var_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetVariables</span><span class="p">())</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">var_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_var_list_from_aedt</span><span class="p">(</span><span class="n">desktop_object</span><span class="p">)</span>
         <span class="n">lower_case_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">]</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">]</span>
-            <span class="ow">and</span> <span class="s2">&quot;$&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">variable_name</span>
-        <span class="p">):</span>
-            <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;Instance:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Circuit Design&quot;</span> <span class="ow">and</span> <span class="n">circuit_parameter</span><span class="p">:</span>
-            <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;DefinitionParameters&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">Variables&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var_type</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lower_case_vars</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
@@ -1151,10 +1144,7 @@
                     <span class="p">],</span>
                 <span class="p">]</span>
             <span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_is_object_oriented_enabled</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">!=</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">:</span>
-            <span class="n">var_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">var_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetVariables</span><span class="p">())</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">var_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_var_list_from_aedt</span><span class="p">(</span><span class="n">desktop_object</span><span class="p">)</span>
         <span class="n">lower_case_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">variable_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lower_case_vars</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
@@ -1224,12 +1214,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">desktop_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aedt_object</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
         <span class="n">var_type</span> <span class="o">=</span> <span class="s2">&quot;Project&quot;</span> <span class="k">if</span> <span class="n">desktop_object</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span> <span class="k">else</span> <span class="s2">&quot;Local&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_is_object_oriented_enabled</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">!=</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">:</span>
-            <span class="n">var_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">var_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetVariables</span><span class="p">())</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">var_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_var_list_from_aedt</span><span class="p">(</span><span class="n">desktop_object</span><span class="p">)</span>
         <span class="n">lower_case_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">]</span>
-
         <span class="k">if</span> <span class="n">var_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">lower_case_vars</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">desktop_object</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
@@ -1245,7 +1231,16 @@
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
-        <span class="k">return</span> <span class="kc">False</span></div></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_get_var_list_from_aedt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">desktop_object</span><span class="p">):</span>
+        <span class="n">var_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_is_object_oriented_enabled</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">!=</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">:</span>
+            <span class="n">var_list</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">())</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">desktop_object</span><span class="o">.</span><span class="n">GetVariables</span><span class="p">())</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">]</span>
+        <span class="n">var_list</span> <span class="o">+=</span> <span class="n">tmp</span>
+        <span class="k">return</span> <span class="n">var_list</span></div>
 
 
 <div class="viewcode-block" id="Variable"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Variables.Variable.html#pyaedt.application.Variables.Variable">[docs]</a><span class="k">class</span> <span class="nc">Variable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
