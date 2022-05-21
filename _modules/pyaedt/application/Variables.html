@@ -233,6 +233,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SI_UNITS</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">unit_system</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_number</span><span class="p">,</span> <span class="n">is_array</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 
 
 <div class="viewcode-block" id="CSVDataset"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Variables.CSVDataset.html#pyaedt.application.Variables.CSVDataset">[docs]</a><span class="k">class</span> <span class="nc">CSVDataset</span><span class="p">:</span>
@@ -889,23 +890,13 @@
             <span class="k">for</span> <span class="n">variable_name</span> <span class="ow">in</span> <span class="n">listvar</span><span class="p">:</span>
                 <span class="n">variable_expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_expression</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
                 <span class="n">all_names</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable_expression</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">variable_expression</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">is_array</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">dependent</span><span class="p">:</span>
-                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                    <span class="k">elif</span> <span class="n">independent</span> <span class="ow">and</span> <span class="n">is_number</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
-                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                    <span class="k">elif</span> <span class="n">dependent</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                        <span class="n">float_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_evaluated_value</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
-                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span>
-                            <span class="n">variable_expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">all_names</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span>
-                        <span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">dependent</span><span class="p">:</span>
-                        <span class="n">float_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_evaluated_value</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
-                        <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Expression</span><span class="p">(</span>
-                            <span class="n">variable_expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">all_names</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span>
-                        <span class="p">)</span>
+                <span class="c1"># try:</span>
+                <span class="n">si_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_evaluated_value</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">variable_expression</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">si_value</span><span class="p">,</span> <span class="n">all_names</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">independent</span> <span class="ow">and</span> <span class="p">(</span><span class="n">is_array</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">_calculated_value</span><span class="p">)</span> <span class="ow">or</span> <span class="n">is_number</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">_calculated_value</span><span class="p">)):</span>
+                    <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">elif</span> <span class="n">dependent</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_array</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">_calculated_value</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_number</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">_calculated_value</span><span class="p">):</span>
+                    <span class="n">var_dict</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">return</span> <span class="n">var_dict</span>
 
 <div class="viewcode-block" id="VariableManager.get_expression"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Variables.VariableManager.get_expression.html#pyaedt.application.Variables.VariableManager.get_expression">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1146,7 +1137,7 @@
             <span class="p">)</span>
         <span class="n">var_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_var_list_from_aedt</span><span class="p">(</span><span class="n">desktop_object</span><span class="p">)</span>
         <span class="n">lower_case_vars</span> <span class="o">=</span> <span class="p">[</span><span class="n">var_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">var_list</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">variable_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lower_case_vars</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">variable_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lower_case_vars</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
@@ -1274,16 +1265,39 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">expression</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">si_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">full_variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">readonly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">hidden</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">postprocessing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">circuit_parameter</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">full_variables</span><span class="p">:</span>
+            <span class="n">full_variables</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span> <span class="o">=</span> <span class="n">readonly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hidden</span> <span class="o">=</span> <span class="n">hidden</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_postprocessing</span> <span class="o">=</span> <span class="n">postprocessing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_parameter</span> <span class="o">=</span> <span class="n">circuit_parameter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">=</span> <span class="n">description</span>
         <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">unit_system</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
                 <span class="n">specified_units</span> <span class="o">=</span> <span class="n">units</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">value</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">expression</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_calculated_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">full_variables</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">si_value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">si_value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculated_value</span>
         <span class="c1"># If units have been specified, check for a conflict and otherwise use the specified unit system</span>
         <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
             <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="s2">&quot;The unit specification </span><span class="si">{}</span><span class="s2"> is inconsistent with the identified units </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -1291,7 +1305,7 @@
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">specified_units</span>
 
-        <span class="k">if</span> <span class="n">is_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">si_value</span> <span class="ow">and</span> <span class="n">is_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">unit_system</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
@@ -1300,6 +1314,173 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">,</span> <span class="n">inverse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">*</span> <span class="n">scale</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_aedt_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_oproject</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_odesign</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_update_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">variable_manager</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="p">,</span>
+                <span class="n">readonly</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span><span class="p">,</span>
+                <span class="n">postprocessing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_postprocessing</span><span class="p">,</span>
+                <span class="n">circuit_parameter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_circuit_parameter</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_description</span><span class="p">,</span>
+                <span class="n">hidden</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_hidden</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Variable name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span>
+
+    <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">fallback_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_var</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="o">=</span> <span class="n">fallback_val</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;&quot;Failed to update property &quot;name&quot;.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">read_only</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Read-only flag value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span><span class="o">.</span><span class="n">Get_ReadOnly</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span><span class="o">.</span><span class="n">Get_ReadOnly</span><span class="p">()</span>
+
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span>
+
+    <span class="nd">@read_only</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">read_only</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">fallback_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_var</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span> <span class="o">=</span> <span class="n">fallback_val</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Failed to update property &quot;read_only&quot;.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hidden</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hidden flag value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span><span class="o">.</span><span class="n">Get_Hidden</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span><span class="o">.</span><span class="n">Get_Hidden</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hidden</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hidden</span>
+
+    <span class="nd">@hidden</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">hidden</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">fallback_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hidden</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hidden</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_var</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hidden</span> <span class="o">=</span> <span class="n">fallback_val</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Failed to update property &quot;hidden&quot;.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Description value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span><span class="o">.</span><span class="n">Get_Description</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">return</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span><span class="o">.</span><span class="n">Get_Description</span><span class="p">()</span>
+                    <span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_description</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_description</span>
+
+    <span class="nd">@description</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">description</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">fallback_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_var</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_description</span> <span class="o">=</span> <span class="n">fallback_val</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Failed to update property &quot;description&quot;.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">post_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Postprocessing flag value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">variable_manager</span><span class="o">.</span><span class="n">post_processing_variables</span> <span class="k">else</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">circuit_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Circuit parameter flag value.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">,</span> <span class="s2">&quot;Twin Builder&quot;</span><span class="p">]:</span>
+            <span class="n">prop_server</span> <span class="o">=</span> <span class="s2">&quot;Instance:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="kc">True</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetProperties</span><span class="p">(</span><span class="s2">&quot;DefinitionParameterTab&quot;</span><span class="p">,</span> <span class="n">prop_server</span><span class="p">)</span>
+                <span class="k">else</span> <span class="kc">False</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Expression.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="nd">@expression</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">fallback_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_var</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">fallback_val</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to update property Expression.&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">numeric_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Numeric part of the expression as a float value.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[\w+]+\[\w+].*&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">)):</span>
+                <span class="n">var_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_obj</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span>
+                <span class="n">val</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">var_obj</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;EvaluatedValue&quot;</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">val</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">is_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">is_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">unit_system</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">/</span> <span class="n">scale</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">unit_system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1315,23 +1496,6 @@
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Value.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">numeric_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Numeric part of the expression as a float value.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">is_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">is_number</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">unit_system</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">]</span>
-            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">/</span> <span class="n">scale</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">string_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1626,47 +1790,6 @@
     <span class="c1"># @pyaedt_function_handler()</span>
     <span class="c1"># def __div__(self, other):</span>
     <span class="c1">#     return self.__rtruediv__(other)</span>
-
-
-<span class="k">class</span> <span class="nc">Expression</span><span class="p">(</span><span class="n">Variable</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Provides a framework for manipulating variable expressions.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    expression :</span>
-
-<span class="sd">    float_value :</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">,</span> <span class="n">float_value</span><span class="p">,</span> <span class="n">full_variables</span><span class="o">=</span><span class="p">{},</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">app</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_expression</span> <span class="o">=</span> <span class="n">expression</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="n">float_value</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">value</span><span class="p">,</span> <span class="n">units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">full_variables</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">expression</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Expression.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_expression</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">numeric_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Numeric part of the expression as a float value.&quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[\w+]+\[\w+].*&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
-                <span class="n">var_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Variables&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable_name</span><span class="p">)</span>
-                <span class="n">val</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">var_obj</span><span class="o">.</span><span class="n">GetPropEvaluatedValue</span><span class="p">(</span><span class="s2">&quot;EvaluatedValue&quot;</span><span class="p">))</span>
-                <span class="k">return</span> <span class="n">val</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">Variable</span><span class="o">.</span><span class="n">numeric_value</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Variable</span><span class="o">.</span><span class="n">numeric_value</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="DataSet"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Variables.DataSet.html#pyaedt.application.Variables.DataSet">[docs]</a><span class="k">class</span> <span class="nc">DataSet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>

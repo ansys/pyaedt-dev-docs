@@ -268,6 +268,9 @@
 <span class="sd">        Port number of which start the oDesktop communication on already existing server.</span>
 <span class="sd">        This parameter is ignored in new server creation. It works only on 2022R2.</span>
 <span class="sd">        Remote Server must be up and running with command `&quot;ansysedt.exe -grpcsrv portnum&quot;`.</span>
+<span class="sd">    aedt_process_id : int, optional</span>
+<span class="sd">        Only used when ``new_desktop_session = False``, specifies by process ID which instance</span>
+<span class="sd">        of Electronics Desktop to point PyAEDT at.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -312,6 +315,7 @@
         <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">machine</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">aedt_process_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="n">FieldAnalysis3DLayout</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -327,6 +331,7 @@
             <span class="n">student_version</span><span class="p">,</span>
             <span class="n">machine</span><span class="p">,</span>
             <span class="n">port</span><span class="p">,</span>
+            <span class="n">aedt_process_id</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -354,7 +359,7 @@
 <span class="sd">        iscircuit : bool, optional</span>
 <span class="sd">            Whether the edge port is a circuit port. The default is ``False``.</span>
 <span class="sd">        iswave : bool, optional</span>
-<span class="sd">            Whether the edge port is a circuit port. The default is ``False``.</span>
+<span class="sd">            Whether the edge port is a wave port. The default is ``False``.</span>
 <span class="sd">        wave_horizontal_extension : float, optional</span>
 <span class="sd">            Horizontal port extension factor. Default is `5`.</span>
 <span class="sd">        wave_vertical_extension : float, optional</span>
@@ -400,12 +405,15 @@
                     <span class="n">property_value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">wave_horizontal_extension</span><span class="p">),</span>
                     <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
-                    <span class="n">property_object</span><span class="o">=</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                    <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;Vertical Extent Factor&quot;</span><span class="p">,</span>
-                    <span class="n">property_value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">wave_vertical_extension</span><span class="p">),</span>
-                    <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;Vertical Extent Factor&quot;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetProperties</span><span class="p">(</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
+                        <span class="n">property_object</span><span class="o">=</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                        <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;Vertical Extent Factor&quot;</span><span class="p">,</span>
+                        <span class="n">property_value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">wave_vertical_extension</span><span class="p">),</span>
+                        <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
                     <span class="n">property_object</span><span class="o">=</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
                     <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;PEC Launch Width&quot;</span><span class="p">,</span>
