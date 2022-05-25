@@ -543,7 +543,7 @@
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable_manager</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span><span class="o">.</span><span class="n">string_value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable_manager</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span><span class="o">.</span><span class="n">expression</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variable_value</span><span class="p">):</span>
@@ -1278,15 +1278,15 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop_install_dir</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">get_oo_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aedt_object</span><span class="p">,</span> <span class="n">object_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_oo_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aedt_object</span><span class="p">,</span> <span class="n">object_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the Object Oriented AEDT Properties names.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        aedt_object : object</span>
 <span class="sd">            AEDT Object on which search for property. It can be any oProperty (ex. oDesign).</span>
-<span class="sd">        object_name : str</span>
-<span class="sd">            Path to the object list. Example `&quot;DesginName\Boundaries&quot;`.</span>
+<span class="sd">        object_name : str, optional</span>
+<span class="sd">            Path to the object list. Example `&quot;DesignName\Boundaries&quot;`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1294,9 +1294,13 @@
 <span class="sd">            Values returned by method if any.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">aedt_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">object_name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">aedt_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">aedt_object</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()</span>
+
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="p">[]</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_oo_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aedt_object</span><span class="p">,</span> <span class="n">object_name</span><span class="p">):</span>
@@ -1338,7 +1342,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">aedt_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span><span class="o">.</span><span class="n">GetPropNames</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="p">[]</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_oo_property_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aedt_object</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">prop_name</span><span class="p">):</span>
@@ -1353,13 +1357,13 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list</span>
+<span class="sd">        str, float, bool</span>
 <span class="sd">            Values returned by method if any.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">aedt_object</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span><span class="o">.</span><span class="n">GetPropValue</span><span class="p">(</span><span class="n">prop_name</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">export_profile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">variation_string</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -3590,16 +3594,13 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">ValidateDesign</span><span class="p">()</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">get_evaluated_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_evaluated_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the evaluated value of a design property or project variable in SI units if no unit is provided.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        variable_name : str</span>
 <span class="sd">            Name of the design property or project variable.</span>
-<span class="sd">        variation : float, optional</span>
-<span class="sd">            Variation value for the evaluation. The default is ``None``,</span>
-<span class="sd">            in which case the nominal variation is used.</span>
 <span class="sd">        units : str, optional</span>
 <span class="sd">            Name of the unit to use for rescaling. The default is ``None``,</span>
 <span class="sd">            in which case SI units are applied by default.</span>
@@ -3628,35 +3629,38 @@
             <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Maxwell Circuit&quot;</span><span class="p">,</span> <span class="s2">&quot;Twin Builder&quot;</span><span class="p">]:</span>
-            <span class="n">val_units</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
-            <span class="n">val</span><span class="p">,</span> <span class="n">units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">val_units</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
-                    <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="n">unit_system</span><span class="p">(</span><span class="n">units</span><span class="p">)][</span><span class="n">units</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-                        <span class="k">return</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">val</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="n">val</span> <span class="o">*</span> <span class="n">scale</span>
-                <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">val_units</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">variation</span><span class="p">:</span>
-            <span class="n">variation_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetNominalVariation</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">variation_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_variation</span><span class="p">(</span><span class="n">variation_string</span><span class="o">=</span><span class="n">variation</span><span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">si_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetVariationVariableValue</span><span class="p">(</span><span class="n">variation_string</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="n">si_value</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
-            <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="n">unit_system</span><span class="p">(</span><span class="n">units</span><span class="p">)][</span><span class="n">units</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">si_value</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">var_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_oo_object</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;Variables/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">var_obj</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">var_obj</span><span class="o">.</span><span class="n">Get_SIValue</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">si_value</span> <span class="o">/</span> <span class="n">scale</span>
-        <span class="k">return</span> <span class="n">si_value</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">var_obj</span><span class="o">.</span><span class="n">Get_SIValue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">variation_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetNominalVariation</span><span class="p">()</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetVariationVariableValue</span><span class="p">(</span><span class="n">variation_string</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">val_units</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">GetVariableValue</span><span class="p">(</span><span class="n">variable_name</span><span class="p">)</span>
+                <span class="n">val</span><span class="p">,</span> <span class="n">original_units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">val_units</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">original_units</span><span class="p">:</span>
+                        <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="n">unit_system</span><span class="p">(</span><span class="n">original_units</span><span class="p">)][</span><span class="n">original_units</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">val</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">*</span> <span class="n">scale</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">return</span> <span class="n">val_units</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
+                <span class="n">scale</span> <span class="o">=</span> <span class="n">AEDT_UNITS</span><span class="p">[</span><span class="n">unit_system</span><span class="p">(</span><span class="n">units</span><span class="p">)][</span><span class="n">units</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">return</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">val</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">val</span> <span class="o">*</span> <span class="n">scale</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="n">val</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">evaluate_expression</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression_string</span><span class="p">):</span>

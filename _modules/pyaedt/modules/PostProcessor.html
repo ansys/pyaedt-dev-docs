@@ -2239,16 +2239,32 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_oreportsetup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetModule</span><span class="p">(</span><span class="s2">&quot;ReportSetup&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_scratch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">working_directory</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">plots</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_plot_inputs</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reports_by_category</span> <span class="o">=</span> <span class="n">Reports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span><span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_init_reports</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_oo_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_odesign</span><span class="p">,</span> <span class="s2">&quot;Reports&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_get_plot_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_oo_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="p">)</span>
+        <span class="n">plots</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">names</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
-                <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_oo_object</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">odesign</span><span class="p">,</span> <span class="s2">&quot;Reports</span><span class="se">\\</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
-                <span class="n">report_type</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Get_Type</span><span class="p">()</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">get_oo_object</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oreportsetup</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+                    <span class="n">report_type</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Get_ReportType</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">report_type</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Get_ReportType</span>
+                <span class="k">if</span> <span class="n">report_type</span> <span class="ow">in</span> <span class="n">TEMPLATES_BY_NAME</span><span class="p">:</span>
+                    <span class="n">report</span> <span class="o">=</span> <span class="n">TEMPLATES_BY_NAME</span><span class="p">[</span><span class="n">report_type</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">report</span> <span class="o">=</span> <span class="n">rt</span><span class="o">.</span><span class="n">Standard</span>
+                <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+                <span class="n">plots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_plot_name</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">plots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_is_created</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+                    <span class="n">plots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">report_type</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Get_DisplayType</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">plots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">report_type</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Get_DisplayType</span>
+        <span class="k">return</span> <span class="n">plots</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">oreportsetup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
