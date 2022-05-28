@@ -1204,9 +1204,54 @@
                 <span class="k">return</span> <span class="n">sweepdata</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_import_cad</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">cad_path</span><span class="p">,</span> <span class="n">cad_format</span><span class="o">=</span><span class="s2">&quot;gds&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xml_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;gds&quot;</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportGDSII</span>
+        <span class="k">elif</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;dxf&quot;</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportAutoCAD</span>
+        <span class="k">elif</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;gerber&quot;</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportGerber</span>
+        <span class="k">elif</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;awr&quot;</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportAWRMicrowaveOffice</span>
+        <span class="k">elif</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;brd&quot;</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportExtracta</span>
+        <span class="k">elif</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;ipc2581&quot;</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportIPC</span>
+        <span class="k">elif</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;odb++&quot;</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportODB</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">method</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">active_project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span>
+        <span class="n">path_ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">cad_path</span><span class="p">)</span>
+        <span class="n">project_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cad_path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">aedb_path</span><span class="p">:</span>
+            <span class="n">aedb_path</span> <span class="o">=</span> <span class="n">path_ext</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.aedb&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">aedb_path</span><span class="p">):</span>
+            <span class="n">old_name</span> <span class="o">=</span> <span class="n">project_name</span>
+            <span class="n">project_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
+            <span class="n">aedb_path</span> <span class="o">=</span> <span class="n">aedb_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old_name</span><span class="p">,</span> <span class="n">project_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;aedb_exists. Renaming it to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">project_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">xml_path</span><span class="p">:</span>
+            <span class="n">xml_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">cad_format</span> <span class="o">==</span> <span class="s2">&quot;gds&quot;</span><span class="p">:</span>
+            <span class="n">method</span><span class="p">(</span><span class="n">cad_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">method</span><span class="p">(</span><span class="n">cad_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">xml_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">set_as_active</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">close_active_project</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">CloseProject</span><span class="p">(</span><span class="n">active_project</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
 <div class="viewcode-block" id="Hfss3dLayout.import_gds"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_gds.html#pyaedt.Hfss3dLayout.import_gds">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">import_gds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gds_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xml_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Import grounds into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
+    <span class="k">def</span> <span class="nf">import_gds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gds_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import GDS file into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1214,7 +1259,7 @@
 <span class="sd">            Full path to the GDS file.</span>
 <span class="sd">        aedb_path : str, optional</span>
 <span class="sd">            Full path to the AEDB file.</span>
-<span class="sd">        xml_path : str, optional</span>
+<span class="sd">        control_file : str, optional</span>
 <span class="sd">            Path to the XML file with the stackup information. The default is ``None``, in</span>
 <span class="sd">            which case the stackup is not edited.</span>
 <span class="sd">        set_as_active : bool, optional</span>
@@ -1231,29 +1276,193 @@
 <span class="sd">        ----------</span>
 
 <span class="sd">        &gt;&gt;&gt; oModule.ImportGDSII</span>
-<span class="sd">        &gt;&gt;&gt; oEditor.ImportStackupXML</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">active_project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span>
-        <span class="n">project_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">gds_path</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">aedb_path</span><span class="p">:</span>
-            <span class="n">aedb_path</span> <span class="o">=</span> <span class="n">gds_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.gds&quot;</span><span class="p">,</span> <span class="s2">&quot;.aedb&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">aedb_path</span><span class="p">):</span>
-            <span class="n">old_name</span> <span class="o">=</span> <span class="n">project_name</span>
-            <span class="n">project_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
-            <span class="n">aedb_path</span> <span class="o">=</span> <span class="n">gds_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old_name</span> <span class="o">+</span> <span class="s2">&quot;.gds&quot;</span><span class="p">,</span> <span class="n">project_name</span> <span class="o">+</span> <span class="s2">&quot;.aedb&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;aedb_exists. Renaming it to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">project_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_cad</span><span class="p">(</span><span class="n">gds_path</span><span class="p">,</span> <span class="s2">&quot;gds&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">control_file</span><span class="p">,</span> <span class="n">set_as_active</span><span class="p">,</span> <span class="n">close_active_project</span><span class="p">)</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">oimport_export</span><span class="o">.</span><span class="n">ImportGDSII</span><span class="p">(</span><span class="n">gds_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetActiveProject</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
-        <span class="n">oeditor</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">GetActiveDesign</span><span class="p">()</span><span class="o">.</span><span class="n">SetActiveEditor</span><span class="p">(</span><span class="s2">&quot;Layout&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">xml_path</span><span class="p">:</span>
-            <span class="n">oeditor</span><span class="o">.</span><span class="n">ImportStackupXML</span><span class="p">(</span><span class="n">xml_path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">set_as_active</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">close_active_project</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">CloseProject</span><span class="p">(</span><span class="n">active_project</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+<div class="viewcode-block" id="Hfss3dLayout.import_dxf"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_dxf.html#pyaedt.Hfss3dLayout.import_dxf">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_dxf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dxf_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import DXf file into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        gds_path : str</span>
+<span class="sd">            Full path to the GDS file.</span>
+<span class="sd">        aedb_path : str, optional</span>
+<span class="sd">            Full path to the AEDB file.</span>
+<span class="sd">        control_file : str, optional</span>
+<span class="sd">            Path to the XML file with the stackup information. The default is ``None``, in</span>
+<span class="sd">            which case the stackup is not edited.</span>
+<span class="sd">        set_as_active : bool, optional</span>
+<span class="sd">            Whether to set the GDS file as active. The default is ``True``.</span>
+<span class="sd">        close_active_project : bool, optional</span>
+<span class="sd">            Whether to close the active project after loading the GDS file.</span>
+<span class="sd">            The default is &#39;&#39;False``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.ImportDXF</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_cad</span><span class="p">(</span><span class="n">dxf_path</span><span class="p">,</span> <span class="s2">&quot;dxf&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">control_file</span><span class="p">,</span> <span class="n">set_as_active</span><span class="p">,</span> <span class="n">close_active_project</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.import_gerber"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_gerber.html#pyaedt.Hfss3dLayout.import_gerber">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_gerber</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">gerber_path</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import Gerber zip into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        gerber_path : str</span>
+<span class="sd">            Full path to the gerber zip file.</span>
+<span class="sd">        aedb_path : str, optional</span>
+<span class="sd">            Full path to the AEDB file.</span>
+<span class="sd">        control_file : str, optional</span>
+<span class="sd">            Path to the XML file with the stackup information. The default is ``None``, in</span>
+<span class="sd">            which case the stackup is not edited.</span>
+<span class="sd">        set_as_active : bool, optional</span>
+<span class="sd">            Whether to set the GDS file as active. The default is ``True``.</span>
+<span class="sd">        close_active_project : bool, optional</span>
+<span class="sd">            Whether to close the active project after loading the GDS file.</span>
+<span class="sd">            The default is &#39;&#39;False``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.ImportGerber</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_cad</span><span class="p">(</span><span class="n">gerber_path</span><span class="p">,</span> <span class="s2">&quot;gerber&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">control_file</span><span class="p">,</span> <span class="n">set_as_active</span><span class="p">,</span> <span class="n">close_active_project</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.import_brd"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_brd.html#pyaedt.Hfss3dLayout.import_brd">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_brd</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;Import brd into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_file : str</span>
+<span class="sd">            Full path to the brd fi.</span>
+<span class="sd">        aedb_path : str, optional</span>
+<span class="sd">            Full path to the AEDB file.</span>
+<span class="sd">        set_as_active : bool, optional</span>
+<span class="sd">            Whether to set the GDS file as active. The default is ``True``.</span>
+<span class="sd">        close_active_project : bool, optional</span>
+<span class="sd">            Whether to close the active project after loading the GDS file.</span>
+<span class="sd">            The default is &#39;&#39;False``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.ImportExtracta</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_cad</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;brd&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">set_as_active</span><span class="p">,</span> <span class="n">close_active_project</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.import_awr"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_awr.html#pyaedt.Hfss3dLayout.import_awr">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_awr</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="sd">&quot;&quot;&quot;Import AWR Microwave Office file into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_file : str</span>
+<span class="sd">            Full path to the AWR xml file.</span>
+<span class="sd">        aedb_path : str, optional</span>
+<span class="sd">            Full path to the AEDB file.</span>
+<span class="sd">        control_file : str, optional</span>
+<span class="sd">            Path to the XML file with the stackup information. The default is ``None``, in</span>
+<span class="sd">            which case the stackup is not edited.</span>
+<span class="sd">        set_as_active : bool, optional</span>
+<span class="sd">            Whether to set the GDS file as active. The default is ``True``.</span>
+<span class="sd">        close_active_project : bool, optional</span>
+<span class="sd">            Whether to close the active project after loading the GDS file.</span>
+<span class="sd">            The default is &#39;&#39;False``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.ImportAWRMicrowaveOffice</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_cad</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;awr&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">control_file</span><span class="p">,</span> <span class="n">set_as_active</span><span class="p">,</span> <span class="n">close_active_project</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.import_ipc2581"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_ipc2581.html#pyaedt.Hfss3dLayout.import_ipc2581">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_ipc2581</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import IPC2581 file into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_file : str</span>
+<span class="sd">            Full path to the input xml file.</span>
+<span class="sd">        aedb_path : str, optional</span>
+<span class="sd">            Full path to the AEDB file.</span>
+<span class="sd">        control_file : str, optional</span>
+<span class="sd">            Path to the XML file with the stackup information. The default is ``None``, in</span>
+<span class="sd">            which case the stackup is not edited.</span>
+<span class="sd">        set_as_active : bool, optional</span>
+<span class="sd">            Whether to set the GDS file as active. The default is ``True``.</span>
+<span class="sd">        close_active_project : bool, optional</span>
+<span class="sd">            Whether to close the active project after loading the GDS file.</span>
+<span class="sd">            The default is &#39;&#39;False``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.ImportAWRMicrowaveOffice</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_cad</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;ipc2581&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">control_file</span><span class="p">,</span> <span class="n">set_as_active</span><span class="p">,</span> <span class="n">close_active_project</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.import_odb"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.import_odb.html#pyaedt.Hfss3dLayout.import_odb">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_odb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">control_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">set_as_active</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">close_active_project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import ODB++ file into HFSS 3D Layout and assign the stackup from an XML file if present.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_file : str</span>
+<span class="sd">            Full path to the input file.</span>
+<span class="sd">        aedb_path : str, optional</span>
+<span class="sd">            Full path to the AEDB file.</span>
+<span class="sd">        control_file : str, optional</span>
+<span class="sd">            Path to the XML file with the stackup information. The default is ``None``, in</span>
+<span class="sd">            which case the stackup is not edited.</span>
+<span class="sd">        set_as_active : bool, optional</span>
+<span class="sd">            Whether to set the GDS file as active. The default is ``True``.</span>
+<span class="sd">        close_active_project : bool, optional</span>
+<span class="sd">            Whether to close the active project after loading the GDS file.</span>
+<span class="sd">            The default is &#39;&#39;False``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.ImportAWRMicrowaveOffice</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_cad</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;odb++&quot;</span><span class="p">,</span> <span class="n">aedb_path</span><span class="p">,</span> <span class="n">control_file</span><span class="p">,</span> <span class="n">set_as_active</span><span class="p">,</span> <span class="n">close_active_project</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Hfss3dLayout.edit_cosim_options"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.edit_cosim_options.html#pyaedt.Hfss3dLayout.edit_cosim_options">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">edit_cosim_options</span><span class="p">(</span>
