@@ -210,7 +210,7 @@
                 
   <h1>Source code for pyaedt.application.Design</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module contains these classes: ``Design`` and ``DesignCache``.</span>
+<span class="sd">This module contains these classes: ``Design``.</span>
 
 <span class="sd">This module provides all functionalities for basic project information and objects.</span>
 <span class="sd">These classes are inherited in the main tool class.</span>
@@ -231,11 +231,12 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
+<span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">model_names</span>
+<span class="kn">from</span> <span class="nn">pyaedt.application.aedt_objects</span> <span class="kn">import</span> <span class="n">AedtObjects</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">DesignSolution</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">HFSSDesignSolution</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">IcepakDesignSolution</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">Maxwell2DDesignSolution</span>
-<span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">model_names</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">RmXprtDesignSolution</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.design_solutions</span> <span class="kn">import</span> <span class="n">solutions_defaults</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">DataSet</span>
@@ -261,228 +262,7 @@
     <span class="kn">import</span> <span class="nn">base64</span>
 
 
-<span class="k">def</span> <span class="nf">list_difference</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">list1</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">list2</span><span class="p">))</span>
-
-
-<div class="viewcode-block" id="DesignCache"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Design.DesignCache.html#pyaedt.DesignCache">[docs]</a><span class="k">class</span> <span class="nc">DesignCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Analyzes the differences in the state of a design between two points in time.</span>
-
-<span class="sd">    The contents of the design tracked in the message manager currently are:</span>
-
-<span class="sd">        * global-level messages</span>
-<span class="sd">        * project-level messages</span>
-<span class="sd">        * design-level messages</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    parent : str</span>
-<span class="sd">        Name of the parent object.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_local</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_global</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_snapshot</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">allowed_error_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add this error message to the ignored error messages.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_global</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_local</span>
-
-<div class="viewcode-block" id="DesignCache.ignore_error_message_local"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Design.DesignCache.ignore_error_message_local.html#pyaedt.DesignCache.ignore_error_message_local">[docs]</a>    <span class="k">def</span> <span class="nf">ignore_error_message_local</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add this error message to the ignored local error messages.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_local</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;[error] </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span></div>
-
-<div class="viewcode-block" id="DesignCache.ignore_error_message_global"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Design.DesignCache.ignore_error_message_global.html#pyaedt.DesignCache.ignore_error_message_global">[docs]</a>    <span class="k">def</span> <span class="nf">ignore_error_message_global</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add this error message to the ignored global error messages.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_global</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;[error] </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">no_change</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check if the design snapshot is unchanged since the last update.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        --------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` if the design snapshot is unchanged since the last</span>
-<span class="sd">            update, ``False`` otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_no_change</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">delta_global_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check for any new or missing global-level messages since the last update.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list of str</span>
-<span class="sd">            List of any new or missing global-level messages since the last update.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_global_messages</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">delta_project_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check for any new or missing project-level messages since the last update.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list of str</span>
-<span class="sd">            List of any new or missing project-level messages since the last update.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_global_messages</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">delta_design_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check for any new or missing design-level messages since the last update.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list of str</span>
-<span class="sd">            List of any new or missing design-level messages since the last update.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_design_messages</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">delta_error_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check for any new or missing error messages since the last update.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        list of str</span>
-<span class="sd">            List of any new or missing error messages since the last update.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_new_error_messages</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">no_new_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check for any new messages that have appeared since the last update or since the message manager was cleared.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` if new messages have appeared since the last</span>
-<span class="sd">            update or since the message manager was cleared, ``False``</span>
-<span class="sd">            otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_delta_messages</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">no_new_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check for any new error messages that have appeared since the last uodate.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` if new error messages have appeared since the</span>
-<span class="sd">            last update, ``False`` otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_new_error_messages</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">no_new_warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check for any new warning messages that have appeared since the last uodate.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` if new error messages have appeared since the</span>
-<span class="sd">            last update, ``False`` otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_new_warning_messages</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">no_change</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check if cache elements are unchanged since the last update.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` if the cache elements are unchanged since the last update,</span>
-<span class="sd">            ``Fasle`` otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">no_new_messages</span>
-
-<div class="viewcode-block" id="DesignCache.design_snapshot"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Design.DesignCache.design_snapshot.html#pyaedt.DesignCache.design_snapshot">[docs]</a>    <span class="k">def</span> <span class="nf">design_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieve the design snapshot.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        type</span>
-<span class="sd">            Snapshot object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">snapshot</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Solids:&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">solid_names</span><span class="p">,</span>
-            <span class="s2">&quot;Lines:&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">line_names</span><span class="p">,</span>
-            <span class="s2">&quot;Sheets&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">,</span>
-            <span class="s2">&quot;DesignName&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_name</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="k">return</span> <span class="n">snapshot</span></div>
-
-<div class="viewcode-block" id="DesignCache.clear"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Design.DesignCache.clear.html#pyaedt.DesignCache.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Clear cached values.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messages_global_level</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messages_project_level</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messages_design_level</span> <span class="o">=</span> <span class="p">[]</span></div>
-
-<div class="viewcode-block" id="DesignCache.update"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.application.Design.DesignCache.update.html#pyaedt.DesignCache.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update the current state.</span>
-
-<span class="sd">        Retrieve the current state values from the design and perform</span>
-<span class="sd">        a delta calculation with the cached values. Then replace the</span>
-<span class="sd">        cached values with the current values.</span>
-
-<span class="sd">        .. note::</span>
-<span class="sd">           The update is done automatically when the property</span>
-<span class="sd">           ``&quot;no_change&quot;`` is accessed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">messages</span>
-
-        <span class="c1"># Check whether the design snapshot has changed since the last update</span>
-        <span class="n">new_snapshot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_snapshot</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">new_snapshot</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_no_change</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_no_change</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot</span> <span class="o">=</span> <span class="n">new_snapshot</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_delta_global_messages</span> <span class="o">=</span> <span class="n">list_difference</span><span class="p">(</span><span class="n">messages</span><span class="o">.</span><span class="n">global_level</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_messages_global_level</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_delta_project_messages</span> <span class="o">=</span> <span class="n">list_difference</span><span class="p">(</span><span class="n">messages</span><span class="o">.</span><span class="n">project_level</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_messages_project_level</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_delta_design_messages</span> <span class="o">=</span> <span class="n">list_difference</span><span class="p">(</span><span class="n">messages</span><span class="o">.</span><span class="n">design_level</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_messages_design_level</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_delta_messages_unfiltered</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_delta_global_messages</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_project_messages</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_design_messages</span>
-        <span class="p">)</span>
-
-        <span class="c1"># filter out allowed messages</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_delta_messages</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_messages_unfiltered</span><span class="p">:</span>
-            <span class="n">mask</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">allowed_errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_local</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_global</span>
-            <span class="k">for</span> <span class="n">allowed</span> <span class="ow">in</span> <span class="n">allowed_errors</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">allowed</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">mask</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="k">break</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">mask</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_delta_messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_new_error_messages</span> <span class="o">=</span> <span class="p">[</span><span class="n">msg</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_messages</span> <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;[error]&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_new_warning_messages</span> <span class="o">=</span> <span class="p">[</span><span class="n">msg</span> <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delta_messages</span> <span class="k">if</span> <span class="n">msg</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;[warning]&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messages_global_level</span> <span class="o">=</span> <span class="n">messages</span><span class="o">.</span><span class="n">global_level</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messages_project_level</span> <span class="o">=</span> <span class="n">messages</span><span class="o">.</span><span class="n">project_level</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_messages_design_level</span> <span class="o">=</span> <span class="n">messages</span><span class="o">.</span><span class="n">design_level</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_errors_local</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="k">return</span> <span class="bp">self</span></div></div>
-
-
-<span class="k">class</span> <span class="nc">Design</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Design</span><span class="p">(</span><span class="n">AedtObjects</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Contains all functions and objects connected to the active project and design.</span>
 
 <span class="sd">    This class is inherited in the caller application and is accessible through it (for</span>
@@ -507,7 +287,7 @@
 <span class="sd">    specified_version : str, optional</span>
 <span class="sd">        Version of AEDT to use. The default is ``None``, in which case</span>
 <span class="sd">        the active version or latest installed version is used.</span>
-<span class="sd">    NG : bool, optional</span>
+<span class="sd">    non_graphical : bool, optional</span>
 <span class="sd">        Whether to run AEDT in non-graphical mode. The default</span>
 <span class="sd">        is ``False``, in which case AEDT launches in graphical mode.</span>
 <span class="sd">    new_desktop_session : bool, optional</span>
@@ -583,11 +363,12 @@
         <span class="n">aedt_process_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_variables</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_design_dictionary</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># Get Desktop from global Desktop Environment</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">project_datasets</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boundaries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_project_datasets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_design_datasets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">main_module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span> <span class="o">=</span> <span class="n">close_on_exit</span>
 
@@ -628,16 +409,51 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span> <span class="o">=</span> <span class="n">DesignSolution</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">design_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_version</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_solution_type</span> <span class="o">=</span> <span class="n">solution_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temp_solution_type</span> <span class="o">=</span> <span class="n">solution_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span> <span class="o">=</span> <span class="n">project_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span> <span class="o">=</span> <span class="n">design_name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span>
-        <span class="k">if</span> <span class="n">solution_type</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">=</span> <span class="n">solution_type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_oimport_export</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">GetTool</span><span class="p">(</span><span class="s2">&quot;ImportExport&quot;</span><span class="p">)</span>
+        <span class="n">AedtObjects</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_inherithed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_variable_manager</span> <span class="o">=</span> <span class="n">VariableManager</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">project_datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_project_datasets</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_design_datasets</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_project_datasets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_design_datasets</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">_mtime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_time_stamp</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">project_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of Project Datasets.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict[str, :class:`pyaedt.application.Variables.DataSet`]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_datasets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_project_datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_project_datasets</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_datasets</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">design_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary of Design Datasets.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict[str, :class:`pyaedt.application.Variables.DataSet`]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_datasets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_design_datasets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_design_datasets</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_datasets</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Design boundaries and excitations.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List of :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boundaries</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_boundaries_data</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boundaries</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">odesktop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -654,56 +470,19 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">oimport_export</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Import/Export Manager Module.</span>
-
-<span class="sd">        References</span>
-<span class="sd">        ----------</span>
-
-<span class="sd">        &gt;&gt;&gt; oDesktop.GetTool(&quot;ImportExport&quot;)&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oimport_export</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">odefinition_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Definition Manager Module.</span>
-
-<span class="sd">        References</span>
-<span class="sd">        ----------</span>
-
-<span class="sd">        &gt;&gt;&gt; oDefinitionManager = oProject.GetDefinitionManager()</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">GetDefinitionManager</span><span class="p">()</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">omaterial_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Material Manager Module.</span>
-
-<span class="sd">        References</span>
-<span class="sd">        ----------</span>
-
-<span class="sd">        &gt;&gt;&gt; oMaterialManager = oDefinitionManager.GetManager(&quot;Material&quot;)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odefinition_manager</span><span class="o">.</span><span class="n">GetManager</span><span class="p">(</span><span class="s2">&quot;Material&quot;</span><span class="p">)</span>
-
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Implement destructor with array name or index.&quot;&quot;&quot;</span>
         <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_manager</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_init_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_oboundary</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_oimport_export</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ooptimetrics</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ooutput_variable</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_oanalysis</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_modeler</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_post</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_materials</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_variable_manager</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parametrics</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optimizations</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">native_components</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_native_components</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
@@ -735,15 +514,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">design_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">design_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Design properties.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        design_name : str, optional</span>
-<span class="sd">            Name of the design to select. The default is ``None``, in</span>
-<span class="sd">            which case an attempt is made to get an active design. If no</span>
-<span class="sd">            designs are present, an empty design is created.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -751,17 +523,24 @@
 <span class="sd">           Dictionary of the design properties.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">design_name</span><span class="p">:</span>
-            <span class="n">design_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span>
+        <span class="c1"># if self._design_dictionary is None and os.path.exists(self.project_file):</span>
+        <span class="c1">#     try:</span>
+        <span class="c1">#         start = time.time()</span>
+        <span class="c1">#         self._design_dictionary = load_keyword_in_aedt_file(self.project_file,</span>
+        <span class="c1">#                                                             self.design_name)[self.design_name]</span>
+        <span class="c1">#         self._logger.info(&quot;aedt design load time {}&quot;.format(time.time() - start))</span>
+        <span class="c1">#     except (KeyError, TypeError):</span>
+        <span class="c1">#         self._design_dictionary = OrderedDict()</span>
+        <span class="c1"># return self._design_dictionary</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">model_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">]:</span>
                 <span class="n">designs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="n">model_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">]]</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">designs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">design</span> <span class="ow">in</span> <span class="n">designs</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">design</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">design_name</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">design</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">:</span>
                             <span class="k">return</span> <span class="n">design</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">designs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">design_name</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">designs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">:</span>
                         <span class="k">return</span> <span class="n">designs</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -1150,6 +929,54 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">solutions_defaults</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">]</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_find_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">activedes</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_oo_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">valids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                <span class="n">des</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_oo_object</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">des</span><span class="o">.</span><span class="n">GetDesignType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span>
+                        <span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Twin Builder&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;HFSS 3D Layout Design&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;EMIT&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Q3D Extractor&quot;</span><span class="p">,</span>
+                    <span class="p">]:</span>
+                        <span class="n">valids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_solution_type</span><span class="p">:</span>
+                        <span class="n">valids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_solution_type</span> <span class="ow">in</span> <span class="n">des</span><span class="o">.</span><span class="n">GetSolutionType</span><span class="p">():</span>
+                        <span class="n">valids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valids</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;No consistent unique design is present. Inserting a new design.&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">activedes</span> <span class="o">=</span> <span class="n">valids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;Active Design set to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">valids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># legacy support for version &lt; 2021.2</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_design_consistency</span><span class="p">():</span>
+                <span class="n">count_consistent_designs</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">des</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">des</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_design_consistency</span><span class="p">():</span>
+                        <span class="n">count_consistent_designs</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="n">activedes</span> <span class="o">=</span> <span class="n">des</span>
+                <span class="k">if</span> <span class="n">count_consistent_designs</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;No consistent unique design is present. Inserting a new design.&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Active Design set to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">activedes</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">activedes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;Active design is set to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;No design is present. Inserting a new design.&quot;</span>
+        <span class="k">return</span> <span class="n">activedes</span><span class="p">,</span> <span class="n">warning_msg</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">odesign</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Design.</span>
@@ -1170,36 +997,23 @@
     <span class="nd">@odesign</span><span class="o">.</span><span class="n">setter</span>
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">odesign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">des_name</span><span class="p">):</span>
-        <span class="n">warning_msg</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">activedes</span> <span class="o">=</span> <span class="n">des_name</span>
         <span class="k">if</span> <span class="n">des_name</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assert_consistent_design_type</span><span class="p">(</span><span class="n">des_name</span><span class="p">)</span> <span class="o">==</span> <span class="n">des_name</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_insert_design</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="n">des_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">GetDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_design_consistency</span><span class="p">():</span>
-                    <span class="n">count_consistent_designs</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="k">for</span> <span class="n">des</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">des</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_design_consistency</span><span class="p">():</span>
-                            <span class="n">count_consistent_designs</span> <span class="o">+=</span> <span class="mi">1</span>
-                            <span class="n">activedes</span> <span class="o">=</span> <span class="n">des</span>
-                    <span class="k">if</span> <span class="n">count_consistent_designs</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                        <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;No consistent unique design is present. Inserting a new design.&quot;</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">activedes</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Active Design set to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">activedes</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Active design is set to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">warning_msg</span> <span class="o">=</span> <span class="s2">&quot;No design is present. Inserting a new design.&quot;</span>
+            <span class="n">activedes</span><span class="p">,</span> <span class="n">warning_msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_design</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">activedes</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">SetActiveDesign</span><span class="p">(</span><span class="n">activedes</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span>
 
-            <span class="k">if</span> <span class="n">warning_msg</span><span class="p">:</span>
+            <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">warning_msg</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_insert_design</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_boundaries_data</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">_odesign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_solution_type</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_solution_type</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">oproject</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3354,8 +3168,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span> <span class="o">=</span> <span class="n">actual_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span> <span class="o">=</span> <span class="n">newname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_design</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
-
+        <span class="n">AedtObjects</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_inherithed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>

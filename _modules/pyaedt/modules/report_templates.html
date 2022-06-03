@@ -209,7 +209,10 @@
               <div>
                 
   <h1>Source code for pyaedt.modules.report_templates</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">LineStyle</span>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">LineStyle</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SymbolStyle</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">TraceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
@@ -1479,6 +1482,139 @@
             <span class="p">[</span><span class="s2">&quot;NAME:Show Design Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">show_design_name</span><span class="p">],</span>
         <span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_change_property</span><span class="p">(</span><span class="s2">&quot;Header&quot;</span><span class="p">,</span> <span class="s2">&quot;Header&quot;</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">import_traces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import report data from a file into a specified report.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file_path : str</span>
+<span class="sd">            Input file path where extension can be &quot;.csv&quot;, &quot;.tab&quot;, &quot;.dat&quot;, &quot;.rdat&quot;.</span>
+<span class="sd">        plot_name : str</span>
+<span class="sd">            Name of the plot where file data have to be imported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;File does not exist.&quot;</span>
+            <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">plot_name</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Plot name can&#39;t be None.&quot;</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">all_report_names</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Plot name provided doesn&#39;t exists in current report.&quot;</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plot_name</span> <span class="o">=</span> <span class="n">plot_name</span>
+
+        <span class="n">split_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">split_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">supported_ext</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;.tab&quot;</span><span class="p">,</span> <span class="s2">&quot;.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;.rdat&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">extension</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">supported_ext</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Extension </span><span class="si">{}</span><span class="s2"> is not supported. Use one of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">extension</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">supported_ext</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.rdat&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">ImportReportDataIntoReport</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">ImportIntoReport</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot_name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">delete_traces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plot_name</span><span class="p">,</span> <span class="n">traces_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete an existing trace or traces.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        plot_name : str</span>
+<span class="sd">            Plot name.</span>
+<span class="sd">        traces_list : list</span>
+<span class="sd">            A specific trace or list of traces that the user wishes to delete.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">plot_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">all_report_names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Plot does not exist in current project.&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">traces_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">trace</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace_info</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trace does not exist in the selected plot.&quot;</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:=&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">plot_name</span><span class="p">))</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">traces_list</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">DeleteTraces</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">add_trace_to_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a trace to a specific report.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        traces : list</span>
+<span class="sd">            List of traces to add.</span>
+<span class="sd">        setup_name : str, optional</span>
+<span class="sd">            Name of the setup.</span>
+<span class="sd">        variations : dict, optional</span>
+<span class="sd">            Dictionary of variations.</span>
+<span class="sd">        context : list, optional</span>
+<span class="sd">            Solution context.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span> <span class="o">=</span> <span class="n">traces</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">AddTraces</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_name</span><span class="p">,</span>
+                <span class="n">setup_name</span> <span class="k">if</span> <span class="n">setup_name</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span>
+                <span class="n">context</span> <span class="k">if</span> <span class="n">context</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_context</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_convert_dict_to_report_sel</span><span class="p">(</span><span class="n">variations</span> <span class="k">if</span> <span class="n">variations</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_trace_info</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span> <span class="o">=</span> <span class="n">expr</span>
+
+    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">update_trace_in_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update a trace in a specific report.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        traces : list</span>
+<span class="sd">            List of traces to add.</span>
+<span class="sd">        setup_name : str, optional</span>
+<span class="sd">            Name of the setup.</span>
+<span class="sd">        variations : dict, optional</span>
+<span class="sd">            Dictionary of variations.</span>
+<span class="sd">        context : list, optional</span>
+<span class="sd">            Solution context.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span> <span class="o">=</span> <span class="n">traces</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">oreportsetup</span><span class="o">.</span><span class="n">UpdateTraces</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plot_name</span><span class="p">,</span>
+                <span class="n">traces</span><span class="p">,</span>
+                <span class="n">setup_name</span> <span class="k">if</span> <span class="n">setup_name</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span>
+                <span class="n">context</span> <span class="k">if</span> <span class="n">context</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_context</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_convert_dict_to_report_sel</span><span class="p">(</span><span class="n">variations</span> <span class="k">if</span> <span class="n">variations</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_trace_info</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span> <span class="o">=</span> <span class="n">expr</span>
 
 
 <div class="viewcode-block" id="Standard"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.Standard.html#pyaedt.modules.report_templates.Standard">[docs]</a><span class="k">class</span> <span class="nc">Standard</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
