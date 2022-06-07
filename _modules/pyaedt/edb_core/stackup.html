@@ -216,6 +216,7 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -232,6 +233,8 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;This module requires the &quot;pythonnet&quot; package.&#39;</span><span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="EdbStackup"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.EdbStackup.html#pyaedt.edb_core.stackup.EdbStackup">[docs]</a><span class="k">class</span> <span class="nc">EdbStackup</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -943,6 +946,98 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">_angle</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">_angle</span><span class="p">)),</span> <span class="n">zero_data</span>
         <span class="p">)</span>
         <span class="n">cell_inst2</span><span class="o">.</span><span class="n">Set3DTransformation</span><span class="p">(</span><span class="n">point_loc</span><span class="p">,</span> <span class="n">point_from</span><span class="p">,</span> <span class="n">point_to</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">point3d_t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EdbStackup.place_a3dcomp_3d_placement"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.EdbStackup.place_a3dcomp_3d_placement.html#pyaedt.edb_core.stackup.EdbStackup.place_a3dcomp_3d_placement">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">place_a3dcomp_3d_placement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a3dcomp_path</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">offset_x</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">offset_y</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">place_on_top</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Place current Cell into another cell using 3d placement method.</span>
+<span class="sd">        Flip the current layer stackup of a layout if requested. Transform parameters currently not supported.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a3dcomp_path : str</span>
+<span class="sd">            Path to 3D Component file (*.a3dcomp) to place.</span>
+<span class="sd">        angle : double, optional</span>
+<span class="sd">            Clockwise rotation angle applied to the a3dcomp.</span>
+<span class="sd">        offset_x : double, optional</span>
+<span class="sd">            The x offset value.</span>
+<span class="sd">        offset_y : double, optional</span>
+<span class="sd">            The y offset value.</span>
+<span class="sd">        place_on_top : bool, optional</span>
+<span class="sd">            Whether to place the 3D Component on the top or bottom of this layout.</span>
+<span class="sd">            If False then the 3D Component will also be flipped over around its X axis.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` if successful and ``False`` if not.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; edb1 = Edb(edbpath=targetfile1,  edbversion=&quot;2021.2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; a3dcomp_path = &quot;connector.a3dcomp&quot;</span>
+<span class="sd">        &gt;&gt;&gt; edb1.core_stackup.place_a3dcomp_3d_placement(a3dcomp_path, angle=0.0, offset_x=&quot;1mm&quot;,</span>
+<span class="sd">        ...                                   offset_y=&quot;2mm&quot;, flipped_stackup=False, place_on_top=True,</span>
+<span class="sd">        ...                                   )</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">zero_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">one_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">local_origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point3DData</span><span class="p">(</span><span class="n">zero_data</span><span class="p">,</span> <span class="n">zero_data</span><span class="p">,</span> <span class="n">zero_data</span><span class="p">)</span>
+        <span class="n">rotation_axis_from</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point3DData</span><span class="p">(</span><span class="n">one_data</span><span class="p">,</span> <span class="n">zero_data</span><span class="p">,</span> <span class="n">zero_data</span><span class="p">)</span>
+        <span class="n">_angle</span> <span class="o">=</span> <span class="n">angle</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.0</span>
+        <span class="n">rotation_axis_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point3DData</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">_angle</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">_angle</span><span class="p">)),</span> <span class="n">zero_data</span>
+        <span class="p">)</span>
+
+        <span class="n">stackup_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">()</span>
+        <span class="n">sig_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">SignalLayerSet</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">stackup_target</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span><span class="n">sig_set</span><span class="p">)</span>
+            <span class="n">target_top_elevation</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">target_bottom_elevation</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_top</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_top_elevation</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">target_bottom</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">target_bottom_elevation</span> <span class="o">=</span> <span class="n">Double</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">stackup_target</span><span class="o">.</span><span class="n">GetTopBottomStackupLayers</span><span class="p">(</span>
+                <span class="n">sig_set</span><span class="p">,</span> <span class="n">target_top</span><span class="p">,</span> <span class="n">target_top_elevation</span><span class="p">,</span> <span class="n">target_bottom</span><span class="p">,</span> <span class="n">target_bottom_elevation</span>
+            <span class="p">)</span>
+
+            <span class="n">target_top_elevation</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">target_bottom_elevation</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+
+        <span class="n">flip_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="s2">&quot;0deg&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">place_on_top</span><span class="p">:</span>
+            <span class="n">elevation</span> <span class="o">=</span> <span class="n">target_top_elevation</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flip_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="s2">&quot;180deg&quot;</span><span class="p">)</span>
+            <span class="n">elevation</span> <span class="o">=</span> <span class="n">target_bottom_elevation</span>
+        <span class="n">h_stackup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">elevation</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Point3DData</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offset_x</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offset_y</span><span class="p">),</span> <span class="n">h_stackup</span>
+        <span class="p">)</span>
+
+        <span class="n">mcad_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">McadModel</span><span class="o">.</span><span class="n">Create3DComp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">a3dcomp_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mcad_model</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to create MCAD model from a3dcomp&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">cell_instance</span> <span class="o">=</span> <span class="n">mcad_model</span><span class="o">.</span><span class="n">GetCellInstance</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cell_instance</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cell instance of a3dcomp is null&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cell_instance</span><span class="o">.</span><span class="n">SetIs3DPlacement</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to set 3D placement on a3dcomp cell instance&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cell_instance</span><span class="o">.</span><span class="n">Set3DTransformation</span><span class="p">(</span>
+            <span class="n">local_origin</span><span class="p">,</span> <span class="n">rotation_axis_from</span><span class="p">,</span> <span class="n">rotation_axis_to</span><span class="p">,</span> <span class="n">flip_angle</span><span class="p">,</span> <span class="n">location</span>
+        <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to set 3D transform on a3dcomp cell instance&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbStackup.flip_design"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.EdbStackup.flip_design.html#pyaedt.edb_core.stackup.EdbStackup.flip_design">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
