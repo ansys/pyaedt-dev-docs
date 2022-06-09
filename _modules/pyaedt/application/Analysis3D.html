@@ -799,20 +799,58 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">:</span>
-            <span class="n">matobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_aedmattolibrary</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">:</span>
             <span class="n">matobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
-
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_get_aedt_case_name</span><span class="p">(</span><span class="n">mat</span><span class="p">):</span>
+            <span class="n">matobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">_aedmattolibrary</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">matobj</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Assign Material &quot;</span> <span class="o">+</span> <span class="n">mat</span> <span class="o">+</span> <span class="s2">&quot; to object &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">selections</span><span class="p">))</span>
+            <span class="n">slice_sel</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">selections</span><span class="p">))</span>
+            <span class="n">num_objects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>
+            <span class="n">remaining</span> <span class="o">=</span> <span class="n">num_objects</span>
+            <span class="n">objs_groups</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">while</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">objs</span> <span class="o">=</span> <span class="n">selections</span><span class="p">[:</span><span class="n">slice_sel</span><span class="p">]</span>
+                <span class="n">szSelections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span>
+                <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;AllowRegionDependentPartSelectionForPMLCreation:=&quot;</span><span class="p">,</span>
+                    <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;AllowRegionSelectionForPMLCreation:=&quot;</span><span class="p">,</span>
+                    <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span>
+                    <span class="n">szSelections</span><span class="p">,</span>
+                <span class="p">]</span>
+                <span class="n">vArg2</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;MaterialValue:=&quot;</span><span class="p">,</span>
+                    <span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">matobj</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                    <span class="s2">&quot;SolveInside:=&quot;</span><span class="p">,</span>
+                    <span class="n">matobj</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">(),</span>
+                    <span class="s2">&quot;ShellElement:=&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;ShellElementThickness:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;nan &quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;IsMaterialEditable:=&quot;</span><span class="p">,</span>
+                    <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;UseMaterialAppearance:=&quot;</span><span class="p">,</span>
+                    <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;IsLightweight:=&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">AssignMaterial</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
+                <span class="n">objs_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">remaining</span> <span class="o">-=</span> <span class="n">slice_sel</span>
+                <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">selections</span> <span class="o">=</span> <span class="n">selections</span><span class="p">[</span><span class="n">slice_sel</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">objs_groups</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">cleanup_objects</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs_groups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_material</span><span class="p">(</span><span class="n">objs_groups</span><span class="p">,</span> <span class="n">matobj</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="n">matobj</span><span class="o">.</span><span class="n">name</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">matobj</span><span class="o">.</span><span class="n">material_appearance</span>
-                <span class="k">if</span> <span class="n">matobj</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">():</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">matobj</span><span class="o">.</span><span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">_color</span> <span class="o">=</span> <span class="n">matobj</span><span class="o">.</span><span class="n">material_appearance</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">_solve_inside</span> <span class="o">=</span> <span class="n">matobj</span><span class="o">.</span><span class="n">is_dielectric</span><span class="p">()</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Material does not exist.&quot;</span><span class="p">)</span>
