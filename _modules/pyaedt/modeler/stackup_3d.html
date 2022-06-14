@@ -209,11 +209,23 @@
               <div>
                 
   <h1>Source code for pyaedt.modeler.stackup_3d</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">joblib</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.MaterialLib</span> <span class="kn">import</span> <span class="n">Material</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 
 <span class="n">LAYERS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="s2">&quot;signal&quot;</span><span class="p">,</span> <span class="s2">&quot;g&quot;</span><span class="p">:</span> <span class="s2">&quot;ground&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">:</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">}</span>
 
@@ -232,8 +244,6 @@
 
 <div class="viewcode-block" id="NamedVariable"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.stackup_3d.NamedVariable.html#pyaedt.modeler.stackup_3d.NamedVariable">[docs]</a><span class="k">class</span> <span class="nc">NamedVariable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Cast PyAEDT variable object to simplify getters and setters in Stackup3D.</span>
-
-<span class="sd">    The returned Polyline object exposes the methods for manipulating the polyline.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -663,6 +673,66 @@
         <span class="n">created_patch</span><span class="o">.</span><span class="n">aedt_object</span><span class="o">.</span><span class="n">group_name</span> <span class="o">=</span> <span class="s2">&quot;Layer_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">created_patch</span></div>
 
+<div class="viewcode-block" id="Layer3D.ml_patch"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.stackup_3d.Layer3D.ml_patch.html#pyaedt.modeler.stackup_3d.Layer3D.ml_patch">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">ml_patch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">frequency</span><span class="p">,</span>
+        <span class="n">patch_width</span><span class="p">,</span>
+        <span class="n">patch_position_x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">patch_position_y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">patch_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a new parametric patch using machine learning algorithm rather than analytic formulas.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        frequency : float</span>
+<span class="sd">            Frequency value for patch calculation in Hz.</span>
+<span class="sd">        patch_width : float</span>
+<span class="sd">            Patch width.</span>
+<span class="sd">        patch_length : float</span>
+<span class="sd">            Patch Length.</span>
+<span class="sd">        patch_position_x : float, optional</span>
+<span class="sd">            Patch start x position.</span>
+<span class="sd">        patch_position_y : float, optional</span>
+<span class="sd">            Patch start y position.</span>
+<span class="sd">        patch_name : str, optional</span>
+<span class="sd">            Patch name.</span>
+<span class="sd">        axis : str, optional</span>
+<span class="sd">            Line orientation axis.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.stackup_3d.Patch`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">patch_name</span><span class="p">:</span>
+            <span class="n">patch_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_patch&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">lst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stackup</span><span class="o">.</span><span class="n">_layer_name</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stackup</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">[</span><span class="n">lst</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">:</span>
+                    <span class="n">below_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stackup</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">[</span><span class="n">lst</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The layer below the selected one must be of dielectric type&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">created_patch</span> <span class="o">=</span> <span class="n">MachineLearningPatch</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">,</span>
+            <span class="n">frequency</span><span class="p">,</span>
+            <span class="n">patch_width</span><span class="p">,</span>
+            <span class="n">signal_layer</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">dielectric_layer</span><span class="o">=</span><span class="n">below_layer</span><span class="p">,</span>
+            <span class="n">patch_position_x</span><span class="o">=</span><span class="n">patch_position_x</span><span class="p">,</span>
+            <span class="n">patch_position_y</span><span class="o">=</span><span class="n">patch_position_y</span><span class="p">,</span>
+            <span class="n">patch_name</span><span class="o">=</span><span class="n">patch_name</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj_3d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">created_patch</span><span class="o">.</span><span class="n">aedt_object</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stackup</span><span class="o">.</span><span class="n">_object_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">created_patch</span><span class="p">)</span>
+        <span class="n">created_patch</span><span class="o">.</span><span class="n">aedt_object</span><span class="o">.</span><span class="n">group_name</span> <span class="o">=</span> <span class="s2">&quot;Layer_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">created_patch</span></div>
+
 <div class="viewcode-block" id="Layer3D.add_trace"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.stackup_3d.Layer3D.add_trace.html#pyaedt.modeler.stackup_3d.Layer3D.add_trace">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">add_trace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -677,7 +747,7 @@
         <span class="n">reference_system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">frequency</span><span class="o">=</span><span class="mf">1e9</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a line.</span>
+        <span class="sd">&quot;&quot;&quot;Create a trace.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1334,6 +1404,12 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Layer name.</span>
+<span class="sd">        material : str</span>
+<span class="sd">            Material name. Material will be parametrized.</span>
+<span class="sd">        thickness : float</span>
+<span class="sd">            Thickness value. Thickness will be parametrized.</span>
+<span class="sd">        fill_material : str</span>
+<span class="sd">            Fill Material name. Material will be parametrized.=</span>
 <span class="sd">        material : str, optional</span>
 <span class="sd">            Material name. Material will be parametrized. Default value is `&quot;copper&quot;`.</span>
 <span class="sd">        thickness : float, optional</span>
@@ -1469,6 +1545,30 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="s2">&quot;dielectric_y_position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">minimum_y</span> <span class="o">-</span> <span class="n">variation_y</span> <span class="o">*</span> <span class="n">percentage_offset</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;mm&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="s2">&quot;dielectric_length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">maximum_x</span> <span class="o">-</span> <span class="n">minimum_x</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">variation_x</span> <span class="o">*</span> <span class="n">percentage_offset</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;mm&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="s2">&quot;dielectric_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">maximum_y</span> <span class="o">-</span> <span class="n">minimum_y</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">variation_y</span> <span class="o">*</span> <span class="n">percentage_offset</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;mm&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Stackup3D.resize_around_element"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.stackup_3d.Stackup3D.resize_around_element.html#pyaedt.modeler.stackup_3d.Stackup3D.resize_around_element">[docs]</a>    <span class="k">def</span> <span class="nf">resize_around_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">percentage_offset</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Resize the stackup around objects and make it parametrize.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        element : :class:`pyaedt.modeler.stackup_3d.Patch</span>
+<span class="sd">            Element around which the resizing is done.</span>
+<span class="sd">        percentage_offset : float, optional</span>
+<span class="sd">            Offset of resize. Value accepted are greater than 0. O.25 by default.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="s2">&quot;dielectric_x_position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">element</span><span class="o">.</span><span class="n">position_x</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="n">element</span><span class="o">.</span><span class="n">length</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; * &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">percentage_offset</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="s2">&quot;dielectric_y_position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">element</span><span class="o">.</span><span class="n">position_y</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; * (0.5 + &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">percentage_offset</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="s2">&quot;dielectric_length&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">length</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; * (1 + &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">percentage_offset</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; * 2)&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="s2">&quot;dielectric_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; * (1 + &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">percentage_offset</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; * 2)&quot;</span>
         <span class="k">return</span> <span class="kc">True</span></div></div>
 
 
@@ -1859,7 +1959,7 @@
         <span class="c1"># &quot;c0 * 1000/(patch_frequency * sqrt(patch_eff_permittivity))&quot;</span>
         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frequency</span><span class="o">.</span><span class="n">name</span>
         <span class="n">er_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_effective_permittivity</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">patch_wave_length_formula</span> <span class="o">=</span> <span class="s2">&quot;c0 * 1000/(&quot;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s2">&quot;* sqrt(&quot;</span> <span class="o">+</span> <span class="n">er_e</span> <span class="o">+</span> <span class="s2">&quot;))&quot;</span>
+        <span class="n">patch_wave_length_formula</span> <span class="o">=</span> <span class="s2">&quot;(c0 * 1000/(&quot;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s2">&quot;* sqrt(&quot;</span> <span class="o">+</span> <span class="n">er_e</span> <span class="o">+</span> <span class="s2">&quot;)))mm&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_wave_length</span> <span class="o">=</span> <span class="n">NamedVariable</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s2">&quot;_wave_length&quot;</span><span class="p">,</span>
@@ -1931,7 +2031,57 @@
             <span class="s2">&quot;The closer the ratio between wave length and the width is to 1,&quot;</span>
             <span class="s2">&quot; the less correct the impedance calculation is&quot;</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_l_w</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_w_l</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_l_w</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_w_l</span>
+
+<div class="viewcode-block" id="Patch.create_lumped_port"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.stackup_3d.Patch.create_lumped_port.html#pyaedt.modeler.stackup_3d.Patch.create_lumped_port">[docs]</a>    <span class="k">def</span> <span class="nf">create_lumped_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">opposite_side</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">port_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axisdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a parametrized lumped port.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        reference_layer : class:`pyaedt.modeler.stackup_3d.Layer3D</span>
+<span class="sd">            The reference layer, in most cases the ground layer.</span>
+<span class="sd">        opposite_side : bool, optional</span>
+<span class="sd">            Change the side where the port is created.</span>
+<span class="sd">        port_name : str, optional</span>
+<span class="sd">            Name of the lumped port.</span>
+<span class="sd">        axisdir : int or :class:`pyaedt.application.Analysis.Analysis.AxisDir`, optional</span>
+<span class="sd">            Position of the port. It should be one of the values for ``Application.AxisDir``,</span>
+<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``.</span>
+<span class="sd">            The default is ``Application.AxisDir.XNeg``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">string_position_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_x</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">opposite_side</span><span class="p">:</span>
+            <span class="n">string_position_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_x</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; + &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">string_position_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_y</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; - &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;/2&quot;</span>
+        <span class="n">string_position_z</span> <span class="o">=</span> <span class="n">reference_layer</span><span class="o">.</span><span class="n">elevation</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">string_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">string_length</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layer</span><span class="o">.</span><span class="n">elevation</span><span class="o">.</span><span class="n">name</span>
+            <span class="o">+</span> <span class="s2">&quot; + &quot;</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layer</span><span class="o">.</span><span class="n">thickness</span><span class="o">.</span><span class="n">name</span>
+            <span class="o">+</span> <span class="s2">&quot; - &quot;</span>
+            <span class="o">+</span> <span class="n">reference_layer</span><span class="o">.</span><span class="n">elevation</span><span class="o">.</span><span class="n">name</span>
+        <span class="p">)</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">create_rectangle</span><span class="p">(</span>
+            <span class="n">csPlane</span><span class="o">=</span><span class="n">constants</span><span class="o">.</span><span class="n">PLANE</span><span class="o">.</span><span class="n">YZ</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="p">[</span><span class="n">string_position_x</span><span class="p">,</span> <span class="n">string_position_y</span><span class="p">,</span> <span class="n">string_position_z</span><span class="p">],</span>
+            <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="n">string_width</span><span class="p">,</span> <span class="n">string_length</span><span class="p">],</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_port&quot;</span><span class="p">,</span>
+            <span class="n">matname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">==</span> <span class="s2">&quot;Modal&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">axisdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">axisdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">AxisDir</span><span class="o">.</span><span class="n">ZPos</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">create_lumped_port_to_sheet</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">portname</span><span class="o">=</span><span class="n">port_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="o">=</span><span class="n">axisdir</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">==</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">create_lumped_port_to_sheet</span><span class="p">(</span>
+                <span class="n">port</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">portname</span><span class="o">=</span><span class="n">port_name</span><span class="p">,</span> <span class="n">reference_object_list</span><span class="o">=</span><span class="p">[</span><span class="n">reference_layer</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">port</span></div></div>
 
 
 <div class="viewcode-block" id="Trace"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.stackup_3d.Trace.html#pyaedt.modeler.stackup_3d.Trace">[docs]</a><span class="k">class</span> <span class="nc">Trace</span><span class="p">(</span><span class="n">CommonObject</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
@@ -2383,7 +2533,7 @@
         <span class="c1"># TODO it is currently only available for mm</span>
         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frequency</span><span class="o">.</span><span class="n">name</span>
         <span class="n">er_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_effective_permittivity</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">patch_wave_length_formula</span> <span class="o">=</span> <span class="s2">&quot;c0 * 1000/(&quot;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s2">&quot;* sqrt(&quot;</span> <span class="o">+</span> <span class="n">er_e</span> <span class="o">+</span> <span class="s2">&quot;))&quot;</span>
+        <span class="n">patch_wave_length_formula</span> <span class="o">=</span> <span class="s2">&quot;(c0 * 1000/(&quot;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s2">&quot;* sqrt(&quot;</span> <span class="o">+</span> <span class="n">er_e</span> <span class="o">+</span> <span class="s2">&quot;)))mm&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_wave_length</span> <span class="o">=</span> <span class="n">NamedVariable</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s2">&quot;_wave_length&quot;</span><span class="p">,</span>
@@ -2529,6 +2679,60 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedt_object</span><span class="o">.</span><span class="n">bounding_box</span>
         <span class="k">return</span> <span class="p">[[</span><span class="n">bb</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bb</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bb</span><span class="p">[</span><span class="mi">4</span><span class="p">]],</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">bb</span><span class="p">[</span><span class="mi">4</span><span class="p">]],</span> <span class="p">[</span><span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">bb</span><span class="p">[</span><span class="mi">1</span><span class="p">]]]</span></div>
+
+
+<span class="k">class</span> <span class="nc">MachineLearningPatch</span><span class="p">(</span><span class="n">Patch</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;MachineLearningPatch Class in Stackup3D.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">application</span><span class="p">,</span>
+        <span class="n">frequency</span><span class="p">,</span>
+        <span class="n">patch_width</span><span class="p">,</span>
+        <span class="n">signal_layer</span><span class="p">,</span>
+        <span class="n">dielectric_layer</span><span class="p">,</span>
+        <span class="n">patch_position_x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">patch_position_y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">patch_name</span><span class="o">=</span><span class="s2">&quot;patch&quot;</span><span class="p">,</span>
+        <span class="n">reference_system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">Patch</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">application</span><span class="p">,</span>
+            <span class="n">frequency</span><span class="p">,</span>
+            <span class="n">patch_width</span><span class="p">,</span>
+            <span class="n">signal_layer</span><span class="p">,</span>
+            <span class="n">dielectric_layer</span><span class="p">,</span>
+            <span class="n">patch_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">patch_position_x</span><span class="o">=</span><span class="n">patch_position_x</span><span class="p">,</span>
+            <span class="n">patch_position_y</span><span class="o">=</span><span class="n">patch_position_y</span><span class="p">,</span>
+            <span class="n">patch_name</span><span class="o">=</span><span class="n">patch_name</span><span class="p">,</span>
+            <span class="n">reference_system</span><span class="o">=</span><span class="n">reference_system</span><span class="p">,</span>
+            <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">joblib</span>
+            <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;joblib package is needed to run ML.&quot;</span><span class="p">)</span>
+            <span class="n">path_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+            <span class="n">path_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">training_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_folder</span><span class="p">,</span> <span class="s2">&quot;misc&quot;</span><span class="p">,</span> <span class="s2">&quot;patch_svr_model_100MHz_1GHz.joblib&quot;</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">training_file</span><span class="p">)</span>
+            <span class="n">list_for_array</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">frequency</span><span class="o">.</span><span class="n">numeric_value</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">.</span><span class="n">numeric_value</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_permittivity</span><span class="o">.</span><span class="n">numeric_value</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dielectric_layer</span><span class="o">.</span><span class="n">thickness</span><span class="o">.</span><span class="n">numeric_value</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">]</span>
+            <span class="n">array_for_prediction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">list_for_array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">array_for_prediction</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="o">.</span><span class="n">expression</span> <span class="o">=</span> <span class="n">application</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Machine learning algorithm aren&#39;t covered in IronPython.&quot;</span><span class="p">)</span>
 </pre></div>
 
               </div>
