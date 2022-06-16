@@ -38,6 +38,7 @@
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/clipboard.min.js"></script>
     <script src="../../../_static/copybutton.js"></script>
@@ -261,6 +262,9 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">write_csv</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">read_csv</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">read_tab</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">read_xlsx</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.LoadAEDTFile</span> <span class="kn">import</span> <span class="n">load_entire_aedt_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span><span class="p">,</span> <span class="n">MaxwellParameters</span>
@@ -946,7 +950,7 @@
             <span class="n">valids</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
                 <span class="n">des</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_oo_object</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">des</span><span class="o">.</span><span class="n">GetDesignType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">des</span><span class="p">,</span> <span class="s2">&quot;GetDesignType&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">des</span><span class="o">.</span><span class="n">GetDesignType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span><span class="p">:</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="ow">in</span> <span class="p">[</span>
                         <span class="s2">&quot;Circuit Design&quot;</span><span class="p">,</span>
                         <span class="s2">&quot;Twin Builder&quot;</span><span class="p">,</span>
@@ -2461,15 +2465,17 @@
         <span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">import_dataset3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">dsname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">import_dataset3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">dsname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8-sig&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Import a 3D dataset.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        filename : str</span>
-<span class="sd">            Full path and name for the TAB file.</span>
+<span class="sd">            Full path and name for the tab/csv/xlsx file.</span>
 <span class="sd">        dsname : str, optional</span>
 <span class="sd">            Name of the dataset. The default is the file name.</span>
+<span class="sd">        encoding : str, optional</span>
+<span class="sd">            File encoding to be provided for csv.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2480,12 +2486,45 @@
 
 <span class="sd">        &gt;&gt;&gt; oProject.AddDataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-        <span class="n">header</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">points</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">index_of_dot</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="n">file_extension</span> <span class="o">=</span> <span class="n">filename</span><span class="p">[</span><span class="n">index_of_dot</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
+        <span class="n">xlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ylist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">zlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vlist</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">header_list</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">file_extension</span> <span class="o">==</span> <span class="s2">&quot;xlsx&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;You need pandas and openpyxl library installed for reading excel files&quot;</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">read_xlsx</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">list</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+                <span class="n">header</span> <span class="o">=</span> <span class="nb">str</span><span class="p">([</span><span class="n">lines</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="o">.</span><span class="n">columns</span><span class="p">))])</span>
+                <span class="n">xlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">lines</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
+                <span class="n">ylist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">lines</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
+                <span class="n">zlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">lines</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
+                <span class="n">vlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">lines</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">array</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Pandas is not installed. Either install pandas or save the file as .csv or .tab.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">elif</span> <span class="n">file_extension</span> <span class="o">==</span> <span class="s2">&quot;csv&quot;</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">read_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">encoding</span><span class="p">)</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">xlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="n">ylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">zlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="n">vlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+
+        <span class="k">elif</span> <span class="n">file_extension</span> <span class="o">==</span> <span class="s2">&quot;tab&quot;</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">read_tab</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">xlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="n">ylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">zlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="n">vlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">]))</span>
+
+        <span class="n">header_list</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
         <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]</span>
         <span class="n">cont</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">header_list</span><span class="p">:</span>
@@ -2493,16 +2532,6 @@
             <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
                 <span class="n">units</span><span class="p">[</span><span class="n">cont</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">cont</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="n">xlist</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">ylist</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">zlist</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">vlist</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
-            <span class="n">xlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
-            <span class="n">ylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]))</span>
-            <span class="n">zlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">2</span><span class="p">]))</span>
-            <span class="n">vlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">3</span><span class="p">]))</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">dsname</span><span class="p">:</span>
             <span class="n">dsname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
@@ -3654,7 +3683,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.1.<br>
 </p>
   </div>
   
