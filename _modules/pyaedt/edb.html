@@ -453,8 +453,7 @@
         <span class="sd">&quot;&quot;&quot;Cell name container.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        list of str</span>
-<span class="sd">            List of cell names.</span>
+<span class="sd">        list of str, cell names.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">TopCircuitCells</span><span class="p">):</span>
@@ -1822,8 +1821,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleting existing ports.&quot;</span><span class="p">)</span>
             <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">port</span><span class="p">:</span> <span class="n">port</span><span class="o">.</span><span class="n">Delete</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">))</span>
             <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">pg</span><span class="p">:</span> <span class="n">pg</span><span class="o">.</span><span class="n">Delete</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">PinGroups</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating ports for signal nets.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">solver_type</span> <span class="o">==</span> <span class="n">SolverType</span><span class="o">.</span><span class="n">Hfss3dLayout</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating HFSS ports for signal nets.&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">create_port_on_component</span><span class="p">(</span>
                         <span class="n">cmp</span><span class="p">,</span>
@@ -1846,7 +1845,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">core_hfss</span><span class="o">.</span><span class="n">configure_hfss_extents</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_hfss</span><span class="o">.</span><span class="n">configure_hfss_analysis_setup</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to configure HFSS simulation setup.&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">solver_type</span> <span class="o">==</span> <span class="n">SolverType</span><span class="o">.</span><span class="n">Siwave</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">solver_type</span> <span class="o">==</span> <span class="n">SolverType</span><span class="o">.</span><span class="n">SiwaveSYZ</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">create_port_on_component</span><span class="p">(</span>
                         <span class="n">cmp</span><span class="p">,</span>
@@ -1859,8 +1858,10 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_siwave</span><span class="o">.</span><span class="n">configure_siw_analysis_setup</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to configure Siwave simulation setup.&quot;</span><span class="p">)</span>
 
-            <span class="c1"># if simulation_setup.defeature_layout:</span>
-            <span class="c1">#    self.core_hfss.layout_defeaturing(simulation_setup)</span>
+            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">solver_type</span> <span class="o">==</span> <span class="n">SolverType</span><span class="o">.</span><span class="n">SiwaveDC</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">create_source_on_component</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">sources</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_siwave</span><span class="o">.</span><span class="n">configure_siw_analysis_setup</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to configure Siwave simulation setup.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
             <span class="k">return</span> <span class="kc">False</span></div></div>
@@ -1890,7 +1891,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
 </p>
   </div>
   
