@@ -1737,9 +1737,10 @@
 <span class="sd">            The report category will be in this case &quot;Far Fields&quot;.</span>
 <span class="sd">            Depending on the setup different categories are available.</span>
 <span class="sd">            If `None` default category will be used (the first item in the Results drop down menu in AEDT).</span>
-<span class="sd">        context : str, optional</span>
+<span class="sd">        context : str, dict, optional</span>
 <span class="sd">            The default is ``None``. It can be `None`, `&quot;Differential Pairs&quot;` or</span>
 <span class="sd">            Reduce Matrix Name for Q2d/Q3d solution or Infinite Sphere name for Far Fields Plot.</span>
+<span class="sd">            If dictionary is passed, key is the report property name and value is property value.</span>
 <span class="sd">        subdesign_id : int, optional</span>
 <span class="sd">            Specify a subdesign ID to export a Touchstone file of this subdesign. Valid for Circuit Only.</span>
 <span class="sd">            The default value is ``None``.</span>
@@ -1792,6 +1793,13 @@
 <span class="sd">        ... )</span>
 <span class="sd">        &gt;&gt;&gt; data3.plot(&quot;InputCurrent(PHA)&quot;)</span>
 
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Circuit</span>
+<span class="sd">        &gt;&gt;&gt; circuit = Circuit()</span>
+<span class="sd">        &gt;&gt;&gt; context = {&quot;algorithm&quot;: &quot;FFT&quot;, &quot;max_frequency&quot;: &quot;100MHz&quot;, &quot;time_stop&quot;: &quot;2.5us&quot;, &quot;time_start&quot;: &quot;0ps&quot;}</span>
+<span class="sd">        &gt;&gt;&gt; spectralPlotData = circuit.post.get_solution_data(</span>
+<span class="sd">        ...     expressions=&quot;V(Vprobe1)&quot;, primary_sweep_variable=&quot;Spectrum&quot;, domain=&quot;Spectral&quot;,</span>
+<span class="sd">        ...     context=context</span>
+<span class="sd">        ...)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">domain</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Spectral&quot;</span><span class="p">,</span> <span class="s2">&quot;Spectrum&quot;</span><span class="p">]:</span>
             <span class="n">report_category</span> <span class="o">=</span> <span class="s2">&quot;Spectrum&quot;</span>
@@ -1828,11 +1836,17 @@
                 <span class="n">report</span><span class="o">.</span><span class="n">far_field_sphere</span> <span class="o">=</span> <span class="n">context</span>
         <span class="k">elif</span> <span class="n">report_category</span> <span class="o">==</span> <span class="s2">&quot;Near Fields&quot;</span><span class="p">:</span>
             <span class="n">report</span><span class="o">.</span><span class="n">near_field</span> <span class="o">=</span> <span class="n">context</span>
+        <span class="k">elif</span> <span class="n">context</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">context</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+                    <span class="n">report</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="n">context</span><span class="p">[</span><span class="n">attribute</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Parameter &quot;</span> <span class="o">+</span> <span class="n">attribute</span> <span class="o">+</span> <span class="s2">&quot; is not available, check syntax.&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">context</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">context</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">line_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">,</span> <span class="s2">&quot;line_names&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">context</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">line_names</span><span class="p">:</span>
                 <span class="n">report</span><span class="o">.</span><span class="n">polyline</span> <span class="o">=</span> <span class="n">context</span>
-
-        <span class="k">return</span> <span class="n">report</span><span class="o">.</span><span class="n">get_solution_data</span><span class="p">()</span>
+        <span class="n">solution_data</span> <span class="o">=</span> <span class="n">report</span><span class="o">.</span><span class="n">get_solution_data</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">solution_data</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_report_from_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">input_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solution_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
