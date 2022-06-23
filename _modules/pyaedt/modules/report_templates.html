@@ -509,7 +509,7 @@
 <span class="k">class</span> <span class="nc">CommonReport</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Provides common reports.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_post</span> <span class="o">=</span> <span class="n">app</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">report_category</span> <span class="o">=</span> <span class="n">report_category</span>
@@ -525,6 +525,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;context&quot;</span><span class="p">][</span><span class="s2">&quot;variations&quot;</span><span class="p">][</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;expressions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;plot_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">expressions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span> <span class="o">=</span> <span class="n">expressions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_created</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
@@ -583,11 +585,12 @@
 
     <span class="nd">@expressions</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">expressions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;expressions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;expressions&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;expressions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;expressions&quot;</span><span class="p">][</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="nd">@property</span>
@@ -1057,8 +1060,27 @@
     <span class="k">def</span> <span class="nf">_context</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[]</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">update_expressions_with_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantities_category</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the list of expressions by taking all the quantities from a given category.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        quantities_category : str, optional</span>
+<span class="sd">            Quantity category to use. If None, the default category for the specified report should be used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">available_report_quantities</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">report_category</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">report_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="n">quantities_category</span>
+        <span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_trace_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_expressions_with_defaults</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1186,14 +1208,16 @@
 <span class="sd">        :class:`pyaedt.modules.solutions.SolutionData`</span>
 <span class="sd">            `Solution Data object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_expressions_with_defaults</span><span class="p">()</span>
         <span class="n">solution_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">get_solution_data_per_variation</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">report_category</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_context</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">variations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No Data Available. Check inputs&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">:</span>
             <span class="n">solution_data</span><span class="o">.</span><span class="n">primary_sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">solution_data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No Data Available. Check inputs&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">solution_data</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -2003,8 +2027,8 @@
 <div class="viewcode-block" id="Standard"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.Standard.html#pyaedt.modules.report_templates.Standard">[docs]</a><span class="k">class</span> <span class="nc">Standard</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Provides a reporting class that fits most of the application&#39;s standard reports.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
-        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sub_design_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2128,8 +2152,8 @@
 <span class="k">class</span> <span class="nc">AntennaParameters</span><span class="p">(</span><span class="n">Standard</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Provides a reporting class that fits Antenna Parameters reports in HFSS plot.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">far_field_sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">Standard</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">far_field_sphere</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Standard</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_category</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">far_field_sphere</span> <span class="o">=</span> <span class="n">far_field_sphere</span>
 
     <span class="nd">@property</span>
@@ -2155,8 +2179,8 @@
 <div class="viewcode-block" id="Fields"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.Fields.html#pyaedt.modules.report_templates.Fields">[docs]</a><span class="k">class</span> <span class="nc">Fields</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;General Fields Class.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
-        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Sweep&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">polyline</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">point_number</span> <span class="o">=</span> <span class="mi">1001</span>
@@ -2187,8 +2211,8 @@
 <div class="viewcode-block" id="NearField"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.NearField.html#pyaedt.modules.report_templates.NearField">[docs]</a><span class="k">class</span> <span class="nc">NearField</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Near Field Report Class.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
-        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Sweep&quot;</span>
 
     <span class="nd">@property</span>
@@ -2213,8 +2237,8 @@
 <div class="viewcode-block" id="FarField"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.FarField.html#pyaedt.modules.report_templates.FarField">[docs]</a><span class="k">class</span> <span class="nc">FarField</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;FarField Report Class.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
-        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Sweep&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span> <span class="o">=</span> <span class="s2">&quot;Phi&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">secondary_sweep</span> <span class="o">=</span> <span class="s2">&quot;Theta&quot;</span>
@@ -2247,8 +2271,8 @@
 <div class="viewcode-block" id="EyeDiagram"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.EyeDiagram.html#pyaedt.modules.report_templates.EyeDiagram">[docs]</a><span class="k">class</span> <span class="nc">EyeDiagram</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Eye Diagram Report Class.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
-        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_start</span> <span class="o">=</span> <span class="s2">&quot;0ns&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_stop</span> <span class="o">=</span> <span class="s2">&quot;200ns&quot;</span>
@@ -2724,16 +2748,16 @@
 <div class="viewcode-block" id="Emission"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.Emission.html#pyaedt.modules.report_templates.Emission">[docs]</a><span class="k">class</span> <span class="nc">Emission</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Emission Report Class.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
-        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Sweep&quot;</span></div>
 
 
 <div class="viewcode-block" id="Spectral"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.report_templates.Spectral.html#pyaedt.modules.report_templates.Spectral">[docs]</a><span class="k">class</span> <span class="nc">Spectral</span><span class="p">(</span><span class="n">CommonReport</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Spectral Report from Transient data.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">):</span>
-        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">CommonReport</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">report_type</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">expressions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Spectrum&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span> <span class="o">=</span> <span class="s2">&quot;FFT&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time_start</span> <span class="o">=</span> <span class="s2">&quot;0ns&quot;</span>

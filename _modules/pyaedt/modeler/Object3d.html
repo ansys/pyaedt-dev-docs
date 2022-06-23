@@ -2827,7 +2827,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        area : float</span>
-<span class="sd">            Value of the area to filter.</span>
+<span class="sd">            Value of the area to filter in model units.</span>
 <span class="sd">        area_filter : str, optional</span>
 <span class="sd">            Comparer symbol.</span>
 <span class="sd">            Default value is &quot;==&quot;.</span>
@@ -3712,12 +3712,17 @@
     <span class="nd">@angle</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">angle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the part angle.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">angle</span><span class="p">:</span>
-            <span class="n">angle</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_angle</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;°&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">angle</span><span class="p">:</span>
+                <span class="n">angle</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_angle</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;°&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">angle</span> <span class="o">=</span> <span class="n">_dim_arg</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="s2">&quot;°&quot;</span><span class="p">)</span>
+            <span class="n">vMaterial</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Component Angle&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">angle</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="n">vMaterial</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">angle</span> <span class="o">=</span> <span class="n">_dim_arg</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="s2">&quot;°&quot;</span><span class="p">)</span>
-        <span class="n">vMaterial</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Component Angle&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">angle</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="n">vMaterial</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_circuit_components</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Grpc doesn&#39;t support angle settings because special characters are not supported.&quot;</span>
+            <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mirror</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
