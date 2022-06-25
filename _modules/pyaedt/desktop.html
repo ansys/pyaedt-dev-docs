@@ -347,18 +347,28 @@
 
 <span class="k">def</span> <span class="nf">_delete_objects</span><span class="p">():</span>
     <span class="n">module</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="s2">&quot;COMUtil&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">module</span><span class="o">.</span><span class="n">COMUtil</span>
-    <span class="k">if</span> <span class="s2">&quot;aedt_logger&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">module</span><span class="o">.</span><span class="n">aedt_logger</span>
-    <span class="k">if</span> <span class="s2">&quot;oDesktop&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">module</span><span class="o">.</span><span class="n">oDesktop</span>
-    <span class="k">if</span> <span class="s2">&quot;pyaedt_initialized&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
         <span class="k">del</span> <span class="n">module</span><span class="o">.</span><span class="n">pyaedt_initialized</span>
-    <span class="k">if</span> <span class="s2">&quot;_aedt_handler&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
         <span class="n">_global</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;Global&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">_aedt_handler</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">_global</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">_aedt_handler</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
     <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 
 
@@ -380,10 +390,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_main</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="s2">&quot;__main__&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="s2">&quot;oDesktop&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">_main</span><span class="p">):</span>
-        <span class="n">_delete_objects</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">else</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
         <span class="n">desktop</span> <span class="o">=</span> <span class="n">_main</span><span class="o">.</span><span class="n">oDesktop</span>
         <span class="k">if</span> <span class="n">close_projects</span><span class="p">:</span>
             <span class="n">projects</span> <span class="o">=</span> <span class="n">desktop</span><span class="o">.</span><span class="n">GetProjectList</span><span class="p">()</span>
@@ -410,7 +417,10 @@
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                 <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Something went wrong in closing AEDT.&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">_delete_objects</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
 
 <span class="k">def</span> <span class="nf">force_close_desktop</span><span class="p">():</span>

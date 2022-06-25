@@ -638,6 +638,48 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span> <span class="o">=</span> <span class="n">object3d</span><span class="o">.</span><span class="n">m_Editor</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">segment_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute segment information using the object-oriented method (from AEDT 2021 R2</span>
+<span class="sd">        with beta options). The method manages segment info for lines, circles and ellipse</span>
+<span class="sd">        providing information about all of those.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            list</span>
+<span class="sd">                Segment info if available.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="n">ll</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectsInGroup</span><span class="p">(</span><span class="s2">&quot;Lines&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateObjectFromEdges</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_object3d</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;NewPartsModelFlag:=&quot;</span><span class="p">,</span> <span class="s2">&quot;NonModel&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot;NAME:Parameters&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:BodyFromEdgeToParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;Edges:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">]]],</span>
+            <span class="p">[</span><span class="s2">&quot;CreateGroupsForNewObjects:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">new_line</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectsInGroup</span><span class="p">(</span><span class="s2">&quot;Lines&quot;</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ll</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GenerateHistory</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="n">new_line</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;NewPartsModelFlag:=&quot;</span><span class="p">,</span> <span class="s2">&quot;NonModel&quot;</span><span class="p">,</span> <span class="s2">&quot;UseCurrentCS:=&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">oo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">new_line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">segment</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">oo1</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">oo</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Segment0&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">oo1</span> <span class="o">=</span> <span class="n">oo</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">oo</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">oo1</span><span class="o">.</span><span class="n">GetPropNames</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">prop</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">oo1</span><span class="o">.</span><span class="n">GetPropValue</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;X:=&quot;</span> <span class="ow">in</span> <span class="n">val</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">val</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">val</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">segment</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_object3d</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">Undo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_object3d</span><span class="o">.</span><span class="n">_primitives</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">Undo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">segment</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vertices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Vertices list.</span>
 
@@ -696,10 +738,9 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.GetVertexPosition</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">length</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">points_distance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetEdgeLength</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+        <span class="k">except</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
