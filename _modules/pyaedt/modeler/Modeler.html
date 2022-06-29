@@ -241,6 +241,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">PropsManager</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">EdgePrimitive</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">FacePrimitive</span>
@@ -296,7 +297,7 @@
         <span class="n">OrderedDict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">BaseCoordinateSystem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">BaseCoordinateSystem</span><span class="p">(</span><span class="n">PropsManager</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base methods common to FaceCoordinateSystem and CoordinateSystem.</span>
 
 <span class="sd">    Parameters</span>
@@ -1107,7 +1108,7 @@
         <span class="k">return</span> <span class="n">coordinateSystemAttributes</span></div>
 
 
-<span class="k">class</span> <span class="nc">Lists</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Lists</span><span class="p">(</span><span class="n">PropsManager</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages Lists data and execution.</span>
 
 <span class="sd">    Parameters</span>
@@ -3869,8 +3870,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        :class:`pyaedt.modeler.Modeler.Lists`</span>
+<span class="sd">            List object when successful, ``False`` when failed.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -3878,10 +3879,10 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateEntityList</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">list_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_lists</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">list_names</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A List with the specified name already exists!&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_lists</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;A List with the specified name already exists!&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">i</span>
         <span class="n">face_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">face_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">user_list</span> <span class="o">=</span> <span class="n">Lists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">list_type</span> <span class="o">=</span> <span class="s2">&quot;Face&quot;</span>
@@ -3892,7 +3893,7 @@
                 <span class="nb">type</span><span class="o">=</span><span class="n">list_type</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">result</span>
+                <span class="k">return</span> <span class="n">user_list</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong object definition. Review object list and type&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -3913,8 +3914,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        :class:`pyaedt.modeler.Modeler.Lists`</span>
+<span class="sd">            List object when successful, ``False`` when failed.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -3922,10 +3923,10 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateEntityList</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">list_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_lists</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">list_names</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A List with the specified name already exists!&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_lists</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;A List with the specified name already exists!&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">i</span>
         <span class="n">object_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">user_list</span> <span class="o">=</span> <span class="n">Lists</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">list_type</span> <span class="o">=</span> <span class="s2">&quot;Object&quot;</span>
@@ -3936,7 +3937,7 @@
                 <span class="nb">type</span><span class="o">=</span><span class="n">list_type</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">result</span>
+                <span class="k">return</span> <span class="n">user_list</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong object definition. Review object list and type&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -4428,18 +4429,13 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.Import</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">healing</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">healing</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">healing</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">healing</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">healing</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="s2">&quot;Assigning `0` or `1` to `healing` option is deprecated. Assign `True` or `False` instead.&quot;</span><span class="p">,</span>
                 <span class="ne">DeprecationWarning</span><span class="p">,</span>
             <span class="p">)</span>
-
         <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:NativeBodyParameters&quot;</span><span class="p">]</span>
-        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;HealOption:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">healing</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;HealOption:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">healing</span><span class="p">))</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Options:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-1&quot;</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;FileType:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;UnRecognized&quot;</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;MaxStitchTol:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
