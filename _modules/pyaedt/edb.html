@@ -1249,6 +1249,47 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_objects</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
+<div class="viewcode-block" id="Edb.get_conformal_polygon_from_netlist"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.get_conformal_polygon_from_netlist.html#pyaedt.Edb.get_conformal_polygon_from_netlist">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get_conformal_polygon_from_netlist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">netlist</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return an EDB conformal polygon based on net list.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        netlist : List of net name.</span>
+<span class="sd">            list[str]</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        Edb polygon object</span>
+<span class="sd">            Edb.Cell.Primitive.Polygon object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="s2">&quot;_temp_aedb&quot;</span><span class="p">))</span>
+        <span class="n">temp_edb</span> <span class="o">=</span> <span class="n">Edb</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="s2">&quot;_temp_aedb&quot;</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">via</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">temp_edb</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">via</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">netlist</span><span class="p">:</span>
+            <span class="n">nets</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">netlist</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="n">temp_edb</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                <span class="n">nets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nets</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">temp_edb</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="s2">&quot;gnd&quot;</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+            <span class="p">)</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="n">temp_edb</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                <span class="n">nets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="p">)</span>
+            <span class="n">temp_edb</span><span class="o">.</span><span class="n">close_edb</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">_poly</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_poly</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
 <div class="viewcode-block" id="Edb.arg_with_dim"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.arg_with_dim.html#pyaedt.Edb.arg_with_dim">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">arg_with_dim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Value</span><span class="p">,</span> <span class="n">sUnits</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Format arguments with dimensions.</span>
@@ -1864,7 +1905,17 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to configure Siwave simulation setup.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span></div></div>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Edb.get_statistics"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.get_statistics.html#pyaedt.Edb.get_statistics">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compute_area</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return the EDBStatistics object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The EDBStatistics object from the loaded layout.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">get_layout_statistics</span><span class="p">(</span><span class="n">evaluate_area</span><span class="o">=</span><span class="n">compute_area</span><span class="p">,</span> <span class="n">net_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div></div>
 </pre></div>
 
               </article>
