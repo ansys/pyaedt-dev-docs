@@ -818,7 +818,7 @@
         <span class="k">return</span> <span class="n">nets_deleted</span></div>
 
 <div class="viewcode-block" id="EdbNets.find_or_create_net"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.nets.EdbNets.find_or_create_net.html#pyaedt.edb_core.nets.EdbNets.find_or_create_net">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">find_or_create_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">find_or_create_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">start_with</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">contain</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">end_with</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Find or create the net with the given name in the layout.</span>
 
 <span class="sd">        Parameters</span>
@@ -826,19 +826,71 @@
 <span class="sd">        net_name : str, optional</span>
 <span class="sd">            Name of the net to find or create. The default is ``&quot;&quot;``.</span>
 
+<span class="sd">        start_with : str, optional</span>
+<span class="sd">            All net name starting with the string. Not case-sensitive.</span>
+
+<span class="sd">        contain : str, optional</span>
+<span class="sd">            All net name containing the string. Not case-sensitive.</span>
+
+<span class="sd">        end_with : str, optional</span>
+<span class="sd">            All net name ending with the string. Not case-sensitive.</span>
+
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        object</span>
 <span class="sd">            Net Object</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">net_name</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">net_name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">start_with</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">contain</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">end_with</span><span class="p">:</span>
             <span class="n">net_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;NET_&quot;</span><span class="p">)</span>
             <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">net</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
-                <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">net</span></div>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">start_with</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">contain</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">end_with</span><span class="p">:</span>
+                <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
+                    <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">net</span>
+            <span class="k">elif</span> <span class="n">start_with</span><span class="p">:</span>
+                <span class="n">nets_found</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">start_with</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">nets_found</span>
+            <span class="k">elif</span> <span class="n">start_with</span> <span class="ow">and</span> <span class="n">end_with</span><span class="p">:</span>
+                <span class="n">nets_found</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span>
+                    <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">start_with</span><span class="p">)</span> <span class="ow">and</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">end_with</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">nets_found</span>
+            <span class="k">elif</span> <span class="n">start_with</span> <span class="ow">and</span> <span class="n">contain</span> <span class="ow">and</span> <span class="n">end_with</span><span class="p">:</span>
+                <span class="n">nets_found</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span>
+                    <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">start_with</span><span class="p">)</span> <span class="ow">and</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">end_with</span><span class="p">)</span> <span class="ow">and</span> <span class="n">contain</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">nets_found</span>
+            <span class="k">elif</span> <span class="n">start_with</span> <span class="ow">and</span> <span class="n">contain</span><span class="p">:</span>
+                <span class="n">nets_found</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span>
+                    <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">start_with</span><span class="p">)</span> <span class="ow">and</span> <span class="n">contain</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">nets_found</span>
+            <span class="k">elif</span> <span class="n">contain</span> <span class="ow">and</span> <span class="n">end_with</span><span class="p">:</span>
+                <span class="n">nets_found</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span>
+                    <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">end_with</span><span class="p">)</span> <span class="ow">and</span> <span class="n">contain</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">nets_found</span>
+            <span class="k">elif</span> <span class="n">end_with</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">start_with</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">contain</span><span class="p">:</span>
+                <span class="n">nets_found</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">end_with</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="k">return</span> <span class="n">nets_found</span>
+            <span class="k">elif</span> <span class="n">contain</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">start_with</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">end_with</span><span class="p">:</span>
+                <span class="n">nets_found</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">contain</span> <span class="ow">in</span> <span class="n">net</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
+                <span class="k">return</span> <span class="n">nets_found</span></div>
 
 <div class="viewcode-block" id="EdbNets.is_net_in_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.nets.EdbNets.is_net_in_component.html#pyaedt.edb_core.nets.EdbNets.is_net_in_component">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">is_net_in_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">net_name</span><span class="p">):</span>
