@@ -346,10 +346,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">db</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_components_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edblib</span><span class="o">.</span><span class="n">Layout</span><span class="o">.</span><span class="n">ComponentsMethods</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Component setup information.</span>
 
@@ -941,10 +937,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)),</span>
             <span class="mf">0.0</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">res</span><span class="p">,</span> <span class="n">from_layer</span><span class="p">,</span> <span class="n">to_layer</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">res</span><span class="p">,</span> <span class="n">from_layer</span><span class="p">,</span> <span class="n">to_layer</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
+
+        <span class="n">res</span><span class="p">,</span> <span class="n">from_layer</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
         <span class="n">cmp_name</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetComponent</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
         <span class="n">net_name</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
         <span class="n">pin_name</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
@@ -1021,19 +1015,14 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">component</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;component </span><span class="si">%s</span><span class="s2"> not found.&quot;</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">component_type</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span>
-            <span class="k">if</span> <span class="p">(</span>
-                <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">Other</span>
-                <span class="ow">or</span> <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IC</span>
-                <span class="ow">or</span> <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IO</span>
-            <span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Component </span><span class="si">%s</span><span class="s2"> passed to deactivate is not an RLC.&quot;</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">component</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Component </span><span class="si">%s</span><span class="s2"> passed to deactivate is not an RLC.&quot;</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">component_type</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">Other</span>
+            <span class="ow">or</span> <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IC</span>
+            <span class="ow">or</span> <span class="n">component_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentType</span><span class="o">.</span><span class="n">IO</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Component </span><span class="si">%s</span><span class="s2"> passed to deactivate is not an RLC.&quot;</span><span class="p">,</span> <span class="n">component</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">create_circuit_port</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_port_on_rlc_component</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">refdes</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -1169,13 +1158,8 @@
         <span class="n">new_cmp</span><span class="o">.</span><span class="n">SetGroup</span><span class="p">(</span><span class="n">new_group</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">:</span>
             <span class="n">pin</span><span class="o">.</span><span class="n">SetIsLayoutPin</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-                <span class="n">test</span> <span class="o">=</span> <span class="n">new_group</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_components_methods</span><span class="o">.</span><span class="n">AddPinToGroup</span><span class="p">(</span><span class="n">new_group</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                        <span class="s2">&quot;Failed to add pin </span><span class="si">{}</span><span class="s2"> to the group </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pin</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">new_group</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-                    <span class="p">)</span>
+            <span class="n">new_group</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">placement_layer</span><span class="p">:</span>
             <span class="n">new_cmp_layer_name</span> <span class="o">=</span> <span class="n">pins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetPadstackDef</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1742,10 +1726,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">clr</span><span class="o">.</span><span class="n">Reference</span><span class="p">[</span><span class="n">String</span><span class="p">]()</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">pin</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="n">response</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
         <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">name</span></div>
 
@@ -1771,13 +1755,8 @@
 <span class="sd">        &gt;&gt;&gt; edbapp.core_components.get_pin_position(pin)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">res</span><span class="p">,</span> <span class="n">pt_pos</span><span class="p">,</span> <span class="n">rot_pos</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetPositionAndRotation</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">res</span><span class="p">,</span> <span class="n">pt_pos</span><span class="p">,</span> <span class="n">rot_pos</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetPositionAndRotation</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)),</span>
-                <span class="mf">0.0</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="n">res</span><span class="p">,</span> <span class="n">pt_pos</span><span class="p">,</span> <span class="n">rot_pos</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetPositionAndRotation</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetComponent</span><span class="p">()</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
             <span class="n">transformed_pt_pos</span> <span class="o">=</span> <span class="n">pt_pos</span>
         <span class="k">else</span><span class="p">:</span>

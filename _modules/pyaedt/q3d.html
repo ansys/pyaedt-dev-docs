@@ -234,6 +234,15 @@
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">Matrix</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">decompose_variable_value</span>
 
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
 
 <span class="k">class</span> <span class="nc">QExtractor</span><span class="p">(</span><span class="n">FieldAnalysis3D</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extracts a 2D or 3D field analysis.</span>
@@ -1141,7 +1150,53 @@
                 <span class="n">sweepdata</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;LinearStep&quot;</span>
                 <span class="n">sweepdata</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">sweepdata</span>
-        <span class="k">return</span> <span class="kc">False</span></div></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Q3d.set_material_thresholds"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.set_material_thresholds.html#pyaedt.Q3d.set_material_thresholds">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">set_material_thresholds</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">insulator_threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">perfect_conductor_threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">magnetic_threshold</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set material threshold.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        insulator_threshold : float, optional</span>
+<span class="sd">            Threshold for insulator/conductor.</span>
+<span class="sd">            If &quot;None&quot; its value is set to 10000.</span>
+<span class="sd">        perfect_conductor_threshold : float, optional</span>
+<span class="sd">            Threshold that decides whether a conductor is perfectly conducting. It must be higher than</span>
+<span class="sd">            insulator threshold.</span>
+<span class="sd">            If &quot;None&quot; its value is set to 1E+030.</span>
+<span class="sd">        magnetic_threshold : float, optional</span>
+<span class="sd">            Threshold that decides whether a material is magnetic.</span>
+<span class="sd">            If &quot;None&quot; its value is set to 1.01.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">insulator_threshold</span><span class="p">:</span>
+                <span class="n">insulator_threshold</span> <span class="o">=</span> <span class="mi">10000</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">perfect_conductor_threshold</span><span class="p">:</span>
+                <span class="n">perfect_conductor_threshold</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;1E+30&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">perfect_conductor_threshold</span> <span class="o">&lt;</span> <span class="n">insulator_threshold</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Perfect conductor threshold must be higher than insulator threshold.&quot;</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">magnetic_threshold</span><span class="p">:</span>
+                <span class="n">magnetic_threshold</span> <span class="o">=</span> <span class="mf">1.01</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span><span class="p">:</span>
+                <span class="n">insulator_threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">longdouble</span><span class="p">(</span><span class="n">insulator_threshold</span><span class="p">)</span>
+                <span class="n">perfect_conductor_threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">longdouble</span><span class="p">(</span><span class="n">perfect_conductor_threshold</span><span class="p">)</span>
+                <span class="n">magnetic_threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">longdouble</span><span class="p">(</span><span class="n">magnetic_threshold</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">SetMaterialThresholds</span><span class="p">(</span><span class="n">insulator_threshold</span><span class="p">,</span> <span class="n">perfect_conductor_threshold</span><span class="p">,</span> <span class="n">magnetic_threshold</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div></div>
 
 
 <div class="viewcode-block" id="Q2d"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q2d.html#pyaedt.Q2d">[docs]</a><span class="k">class</span> <span class="nc">Q2d</span><span class="p">(</span><span class="n">QExtractor</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>

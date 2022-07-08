@@ -241,7 +241,9 @@
     <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Python.NET is needed to run PyAEDT.&quot;</span><span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;PythonNET is needed to run PyAEDT.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;EDB requires Linux Python 3.7 or later.&quot;</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core</span> <span class="kn">import</span> <span class="n">Components</span><span class="p">,</span> <span class="n">EdbNets</span><span class="p">,</span> <span class="n">EdbPadstacks</span><span class="p">,</span> <span class="n">EdbLayout</span><span class="p">,</span> <span class="n">EdbHfss</span><span class="p">,</span> <span class="n">EdbSiwave</span><span class="p">,</span> <span class="n">EdbStackup</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EdbBuilder</span><span class="p">,</span> <span class="n">SimulationConfiguration</span>
@@ -255,6 +257,7 @@
     <span class="n">is_ironpython</span><span class="p">,</span>
     <span class="n">inside_desktop</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pyaedt.misc.misc</span> <span class="kn">import</span> <span class="n">list_installed_ansysem</span>
 <span class="kn">from</span> <span class="nn">pyaedt.aedt_logger</span> <span class="kn">import</span> <span class="n">AedtLogger</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.process</span> <span class="kn">import</span> <span class="n">SiwaveSolve</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
@@ -271,7 +274,7 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;The clr is missing. Install Python.NET or use an IronPython version if you want to use the EDB module.&quot;</span>
+            <span class="s2">&quot;The clr is missing. Install PythonNET or use an IronPython version if you want to use the EDB module.&quot;</span>
         <span class="p">)</span>
         <span class="n">edb_initialized</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -326,7 +329,7 @@
         <span class="n">edbpath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">cellname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">isreadonly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">edbversion</span><span class="o">=</span><span class="s2">&quot;2021.2&quot;</span><span class="p">,</span>
+        <span class="n">edbversion</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">isaedtowned</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">oproject</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">student_version</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -359,6 +362,12 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">student_version</span> <span class="o">=</span> <span class="n">student_version</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Logger is initialized in EDB.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">edbversion</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">edbversion</span> <span class="o">=</span> <span class="s2">&quot;20</span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">list_installed_ansysem</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">3</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">list_installed_ansysem</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">:])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Edb version &quot;</span> <span class="o">+</span> <span class="n">edbversion</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No ANSYSEM_ROOTxxx is found.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">edbversion</span> <span class="o">=</span> <span class="n">edbversion</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">isaedtowned</span> <span class="o">=</span> <span class="n">isaedtowned</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_dlls</span><span class="p">()</span>
@@ -480,11 +489,16 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">base_path</span> <span class="o">=</span> <span class="n">edb_path</span>
                         <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edb_path</span><span class="p">)</span>
                         <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">env_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbversion</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_path</span>
-
-            <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;Ansys.Ansoft.Edb.dll&quot;</span><span class="p">)</span>
-            <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;Ansys.Ansoft.EdbBuilderUtils.dll&quot;</span><span class="p">)</span>
-            <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;EdbLib.dll&quot;</span><span class="p">)</span>
-            <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFileAndPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;Ansys.Ansoft.SimSetupData.dll&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;Ansys.Ansoft.Edb.dll&quot;</span><span class="p">)</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;Ansys.Ansoft.EdbBuilderUtils.dll&quot;</span><span class="p">)</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;EdbLib.dll&quot;</span><span class="p">)</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFileAndPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;Ansys.Ansoft.SimSetupData.dll&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReference</span><span class="p">(</span><span class="s2">&quot;Ansys.Ansoft.Edb&quot;</span><span class="p">)</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReference</span><span class="p">(</span><span class="s2">&quot;Ansys.Ansoft.EdbBuilderUtils&quot;</span><span class="p">)</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReference</span><span class="p">(</span><span class="s2">&quot;EdbLib&quot;</span><span class="p">)</span>
+                <span class="n">clr</span><span class="o">.</span><span class="n">AddReference</span><span class="p">(</span><span class="s2">&quot;Ansys.Ansoft.SimSetupData&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">student_version</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">base_path</span> <span class="o">=</span> <span class="n">env_path_student</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbversion</span><span class="p">)</span>
@@ -511,7 +525,7 @@
     <span class="k">def</span> <span class="nf">edblib</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;EdbLib object containing advanced EDB methods not accessible directly from Python.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edblib</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span> <span class="ow">and</span> <span class="n">is_ironpython</span><span class="p">:</span>
                 <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;EdbLib.dll&quot;</span><span class="p">)</span>
                 <span class="n">clr</span><span class="o">.</span><span class="n">AddReferenceToFile</span><span class="p">(</span><span class="s2">&quot;DataModel.dll&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -707,18 +721,26 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">working_dir</span><span class="p">:</span>
             <span class="n">working_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-            <span class="n">cmd_translator</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">))</span>
-            <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s2">&quot; -l=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="s2">&quot;Translator.log&quot;</span><span class="p">))</span>
+            <span class="n">cmd_translator</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">command</span><span class="p">,</span>
+                <span class="n">input_file</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">),</span>
+                <span class="s2">&quot;-l=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="s2">&quot;Translator.log&quot;</span><span class="p">)),</span>
+            <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">cmd_translator</span> <span class="o">=</span> <span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot; &quot;</span><span class="si">{}</span><span class="s1">&quot; &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">))</span>
-            <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s1">&#39; -l=&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="s2">&quot;Translator.log&quot;</span><span class="p">))</span>
+            <span class="n">cmd_translator</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">command</span><span class="p">,</span>
+                <span class="n">input_file</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">),</span>
+                <span class="s1">&#39;-l=&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="s2">&quot;Translator.log&quot;</span><span class="p">)),</span>
+            <span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">use_ppe</span><span class="p">:</span>
-            <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s2">&quot; -ppe=false&quot;</span>
+            <span class="n">cmd_translator</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-ppe=false&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">control_file</span> <span class="ow">and</span> <span class="n">input_file</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;brd&quot;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-                <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s2">&quot; -c=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">control_file</span><span class="p">)</span>
+                <span class="n">cmd_translator</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-c=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">control_file</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">cmd_translator</span> <span class="o">+=</span> <span class="s1">&#39; -c=&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">control_file</span><span class="p">)</span>
+                <span class="n">cmd_translator</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;-c=&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">control_file</span><span class="p">))</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd_translator</span><span class="p">)</span>
         <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">working_dir</span><span class="p">,</span> <span class="n">aedb_name</span><span class="p">)):</span>
@@ -1854,7 +1876,7 @@
                 <span class="n">old_cell_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_cutout</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">=</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">output_aedb_path</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">output_aedb</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutout processed.&quot;</span><span class="p">)</span>
-                    <span class="n">old_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">old_cell_name</span><span class="p">)</span>
+                    <span class="n">old_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">CellType</span><span class="o">.</span><span class="n">CircuitCell</span><span class="p">,</span> <span class="n">old_cell_name</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">old_cell</span><span class="p">:</span>
                         <span class="n">old_cell</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
                 <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>

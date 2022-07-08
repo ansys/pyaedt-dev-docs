@@ -248,6 +248,9 @@
 
 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span> <span class="ow">and</span> <span class="n">is_ironpython</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">subprocessdotnet</span> <span class="k">as</span> <span class="nn">subprocess</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ANS_NODEPCHECK&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
 <span class="k">else</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">subprocess</span>
 
@@ -286,7 +289,7 @@
 
         <span class="n">_com</span> <span class="o">=</span> <span class="s2">&quot;pywin32&quot;</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Error. No win32com.client or Pythonnet modules found. Install them and try again.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Error. No win32com.client or PythonNET modules found. Install them and try again.&quot;</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="n">_com</span> <span class="o">=</span> <span class="s2">&quot;pythonnet_v3&quot;</span>
 
@@ -598,8 +601,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching PyAEDT outside AEDT with IronPython.&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_ironpython</span><span class="p">(</span><span class="n">non_graphical</span><span class="p">,</span> <span class="n">new_desktop_session</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">_com</span> <span class="o">==</span> <span class="s2">&quot;pythonnet_v3&quot;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">version_key</span> <span class="o">&lt;</span> <span class="s2">&quot;2022.2&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching PyAEDT outside Electronics Desktop with CPython and Pythonnet&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">version_key</span> <span class="o">&lt;</span> <span class="s2">&quot;2022.2&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching PyAEDT outside AEDT with CPython and PythonNET.&quot;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_init_cpython</span><span class="p">(</span>
                         <span class="n">non_graphical</span><span class="p">,</span>
                         <span class="n">new_desktop_session</span><span class="p">,</span>
@@ -609,6 +612,7 @@
                         <span class="n">aedt_process_id</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
+                    <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_init_cpython_new</span><span class="p">(</span><span class="n">non_graphical</span><span class="p">,</span> <span class="n">new_desktop_session</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">student_version</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">oAnsoftApp</span> <span class="o">=</span> <span class="n">win32com</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">Dispatch</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
@@ -795,7 +799,10 @@
         <span class="n">version_key</span><span class="p">,</span>
         <span class="n">aedt_process_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+                <span class="s2">&quot;PyAEDT supports COM initialization in Windows only. To use in Linux, upgrade to AEDT 2022 R2 or later.&quot;</span>
+            <span class="p">)</span>
         <span class="n">base_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">sDesktopinstallDirectory</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">base_path</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;PythonFiles&quot;</span><span class="p">,</span> <span class="s2">&quot;DesktopPlugin&quot;</span><span class="p">))</span>
@@ -806,7 +813,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">COMUtil</span> <span class="o">=</span> <span class="n">AnsoftCOMUtil</span><span class="o">.</span><span class="n">Ansoft</span><span class="o">.</span><span class="n">CoreCOMScripting</span><span class="o">.</span><span class="n">Util</span><span class="o">.</span><span class="n">COMUtil</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">COMUtil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">COMUtil</span>
         <span class="n">StandalonePyScriptWrapper</span> <span class="o">=</span> <span class="n">AnsoftCOMUtil</span><span class="o">.</span><span class="n">Ansoft</span><span class="o">.</span><span class="n">CoreCOMScripting</span><span class="o">.</span><span class="n">COM</span><span class="o">.</span><span class="n">StandalonePyScriptWrapper</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching AEDT with module Pythonnet.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching AEDT with module PythonNET.&quot;</span><span class="p">)</span>
         <span class="n">processID</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">IsWindows</span><span class="p">:</span>
             <span class="n">processID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tasks_list_windows</span><span class="p">(</span><span class="n">student_version</span><span class="p">)</span>
@@ -859,7 +866,7 @@
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">):</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;defer&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LD_LIBARY_PATH&quot;</span><span class="p">]</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;defer&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">]</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LD_LIBRARY_PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_path</span><span class="p">,</span> <span class="s2">&quot;defer&quot;</span><span class="p">)</span>

@@ -235,17 +235,15 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SourceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SweepType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">validate_enum_class_value</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">Array</span>
     <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;The clr is missing. Install Python.NET or use an IronPython version if you want to use the EDB module.&quot;</span>
+            <span class="s2">&quot;The clr is missing. Install PythonNET or use an IronPython version if you want to use the EDB module.&quot;</span>
         <span class="p">)</span>
 
 
@@ -705,8 +703,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">init_vals</span><span class="p">()</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_stackup_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedblayers</span><span class="o">.</span><span class="n">_stackup_methods</span>
+    <span class="k">def</span> <span class="nf">_cloned_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -779,7 +777,7 @@
 <span class="sd">            Name of the material.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetMaterial</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloned_layer</span><span class="o">.</span><span class="n">GetMaterial</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material_name</span>
@@ -800,7 +798,7 @@
 <span class="sd">            Thickness value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetThicknessValue</span><span class="p">()</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloned_layer</span><span class="o">.</span><span class="n">GetThicknessValue</span><span class="p">()</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thickness</span>
@@ -824,7 +822,7 @@
             <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">ConductingLayer</span>
         <span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetFillMaterial</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloned_layer</span><span class="o">.</span><span class="n">GetFillMaterial</span><span class="p">()</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filling_material_name</span>
@@ -927,7 +925,7 @@
 <span class="sd">            Lower elevation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloned_layer</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lower_elevation</span>
@@ -948,7 +946,7 @@
 <span class="sd">            Upper elevation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_upper_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_upper_elevation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cloned_layer</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_upper_elevation</span>
@@ -967,7 +965,7 @@
             <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">ConductingLayer</span>
         <span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layer</span><span class="o">.</span><span class="n">GetEtchFactor</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cloned_layer</span><span class="o">.</span><span class="n">GetEtchFactor</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">())</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_etch_factor</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
@@ -1226,10 +1224,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="o">.</span><span class="n">_logger</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_stackup_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="o">.</span><span class="n">_stackup_methods</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="o">.</span><span class="n">_edb</span>
 
@@ -1277,7 +1271,7 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
             <span class="n">allStackuplayers</span><span class="p">,</span>
-            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">lyr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">:</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">(),</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">lyr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">:</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">(),</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -1503,7 +1497,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
                     <span class="s2">&quot;&quot;</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">newLayer</span><span class="o">.</span><span class="n">Clone</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="p">)</span>
                 <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">update_layer_vals</span><span class="p">(</span>
                     <span class="n">layerName</span><span class="p">,</span>
                     <span class="n">newLayer</span><span class="p">,</span>
@@ -1546,7 +1540,7 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
                         <span class="s2">&quot;&quot;</span><span class="p">,</span>
                     <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">newLayer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBLayer</span><span class="p">(</span><span class="n">newLayer</span><span class="o">.</span><span class="n">Clone</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbstackup</span><span class="p">)</span>
                     <span class="n">newLayer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_object</span><span class="p">[</span><span class="n">layerName</span><span class="p">]</span><span class="o">.</span><span class="n">update_layer_vals</span><span class="p">(</span>
                         <span class="n">layerName</span><span class="p">,</span>
                         <span class="n">newLayer</span><span class="p">,</span>
@@ -1697,8 +1691,11 @@
 <span class="sd">        int</span>
 <span class="sd">            Type of the geometry.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">padparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">padparams</span><span class="o">.</span><span class="n">Item1</span><span class="p">)</span>
+
+        <span class="n">padparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">padparams</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="nd">@geometry_type</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">geometry_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geom_type</span><span class="p">):</span>
@@ -1731,8 +1728,11 @@
 <span class="sd">        list</span>
 <span class="sd">            List of parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item2</span><span class="p">]</span>
+
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pad_values</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">polygon_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1744,10 +1744,10 @@
 <span class="sd">            List of parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPolygonalPadParameters</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span>
+            <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPolygonalPadParameters</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item1</span>
+            <span class="k">return</span> <span class="n">pad_values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">return</span>
 
@@ -1760,8 +1760,12 @@
 <span class="sd">        list</span>
 <span class="sd">            List of parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item2</span><span class="p">]</span>
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># pad_values = self._padstack_methods.GetPadParametersValue(self._edb_padstack, self.layer_name, self)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pad_values</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
 
     <span class="nd">@parameters</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">propertylist</span><span class="p">):</span>
@@ -1781,8 +1785,11 @@
 <span class="sd">        str</span>
 <span class="sd">            Offset for the X axis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item3</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pad_values</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
 
     <span class="nd">@offset_x</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">offset_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset_value</span><span class="p">):</span>
@@ -1798,8 +1805,11 @@
 <span class="sd">        str</span>
 <span class="sd">            Offset for the Y axis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item4</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pad_values</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
 
     <span class="nd">@offset_y</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">offset_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset_value</span><span class="p">):</span>
@@ -1815,13 +1825,31 @@
 <span class="sd">        str</span>
 <span class="sd">            Value for the rotation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_methods</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pad_values</span><span class="o">.</span><span class="n">Item5</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
+
+        <span class="n">pad_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">pad_values</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
 
     <span class="nd">@rotation</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">rotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rotation_value</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_pad_parameters_parameters</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="n">rotation_value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EDBPadProperties.int_to_pad_type"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPadProperties.int_to_pad_type.html#pyaedt.edb_core.EDB_Data.EDBPadProperties.int_to_pad_type">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">int_to_pad_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert an integer to an EDB.PadGeometryType.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        val : int</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        object</span>
+<span class="sd">            EDB.PadType enumerator value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbpadstack</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EDBPadProperties.int_to_geometry_type"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPadProperties.int_to_geometry_type.html#pyaedt.edb_core.EDB_Data.EDBPadProperties.int_to_geometry_type">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">int_to_geometry_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -1836,32 +1864,7 @@
 <span class="sd">        object</span>
 <span class="sd">            EDB.PadGeometryType enumerator value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">NoGeometry</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Circle</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Square</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Rectangle</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Oval</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Bullet</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">NSidedPolygon</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Polygon</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Round45</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Round90</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Square45</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">11</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Square90</span>
-        <span class="k">elif</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">12</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">InvalidGeometry</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedbpadstack</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">int_to_geometry_type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_update_pad_parameters_parameters</span><span class="p">(</span>
@@ -1914,13 +1917,11 @@
             <span class="n">rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">layer_name</span><span class="p">:</span>
             <span class="n">layer_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geom_type</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                <span class="n">geom_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_geometry_type</span><span class="p">(</span><span class="n">geom_type</span><span class="p">)</span>
+
         <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetPadParameters</span><span class="p">(</span>
             <span class="n">layer_name</span><span class="p">,</span>
-            <span class="n">pad_type</span><span class="p">,</span>
-            <span class="n">geom_type</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pad_type</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">int_to_geometry_type</span><span class="p">(</span><span class="n">geom_type</span><span class="p">),</span>
             <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">params</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsetx</span><span class="p">),</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsety</span><span class="p">),</span>
@@ -2014,13 +2015,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_hole_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">viaData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">viaData</span><span class="o">.</span><span class="n">GetHoleParametersValue</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">value0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="s2">&quot;0.0&quot;</span><span class="p">)</span>
-            <span class="n">ptype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Circle</span>
-            <span class="n">HoleParam</span> <span class="o">=</span> <span class="n">Array</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">value0</span><span class="p">)]([])</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">viaData</span><span class="o">.</span><span class="n">GetHoleParametersValue</span><span class="p">(</span><span class="n">ptype</span><span class="p">,</span> <span class="n">HoleParam</span><span class="p">,</span> <span class="n">value0</span><span class="p">,</span> <span class="n">value0</span><span class="p">,</span> <span class="n">value0</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">viaData</span><span class="o">.</span><span class="n">GetHoleParametersValue</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="nd">@property</span>
@@ -2063,28 +2058,21 @@
             <span class="n">hole_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_type</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="p">:</span>
             <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_parameters</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">offsetx</span><span class="p">:</span>
             <span class="n">offsetx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_offset_x</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">offsety</span><span class="p">:</span>
             <span class="n">offsety</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_offset_y</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">rotation</span><span class="p">:</span>
             <span class="n">rotation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_rotation</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetHoleParameters</span><span class="p">(</span>
-                <span class="n">hole_type</span><span class="p">,</span>
-                <span class="n">params</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsetx</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsety</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">rotation</span><span class="p">),</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetHoleParameters</span><span class="p">(</span>
-                <span class="n">hole_type</span><span class="p">,</span>
-                <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">params</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsetx</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsety</span><span class="p">),</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">rotation</span><span class="p">),</span>
-            <span class="p">)</span>
+        <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetHoleParameters</span><span class="p">(</span>
+            <span class="n">hole_type</span><span class="p">,</span>
+            <span class="n">params</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsetx</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">offsety</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">rotation</span><span class="p">),</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">newPadstackDefinitionData</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -2183,7 +2171,7 @@
 <span class="sd">        float</span>
 <span class="sd">            Percentage for the hole plating.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetHolePlatingPercentage</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDefData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">())</span><span class="o">.</span><span class="n">GetHolePlatingPercentage</span><span class="p">()</span>
 
     <span class="nd">@hole_plating_ratio</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">hole_plating_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ratio</span><span class="p">):</span>
@@ -2380,10 +2368,8 @@
 <span class="sd">            Name of the starting layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">start_layer</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">start_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -2404,10 +2390,8 @@
 <span class="sd">            Name of the stopping layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">stop_layer</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">stop_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -2461,13 +2445,8 @@
 <span class="sd">            List of ``[x, y]``` coordinates for the padstack instance position.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">point_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">(</span>
-                <span class="n">point_data</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
-            <span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
 
@@ -2492,13 +2471,8 @@
 <span class="sd">            Rotatation value for the padstack instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">point_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">(</span>
-                <span class="n">point_data</span><span class="p">,</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span>
-            <span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
 
@@ -2526,7 +2500,7 @@
     <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">SetProductProperty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">SetProductProperty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
 <div class="viewcode-block" id="EDBPadstackInstance.parametrize_position"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.EDB_Data.EDBPadstackInstance.parametrize_position.html#pyaedt.edb_core.EDB_Data.EDBPadstackInstance.parametrize_position">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">parametrize_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -2603,7 +2577,7 @@
 <span class="sd">        str</span>
 <span class="sd">            Name of the placement layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">lower_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2614,7 +2588,7 @@
 <span class="sd">        float</span>
 <span class="sd">            Lower elavation of the placement layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">upper_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2625,7 +2599,7 @@
 <span class="sd">        float</span>
 <span class="sd">           Upper elevation of the placement layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetGroup</span><span class="p">()</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">top_bottom_association</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2895,7 +2869,7 @@
         <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">cmp_type</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">componentProperty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
             <span class="n">pinpairs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">PinPairs</span>
             <span class="k">for</span> <span class="n">pinpair</span> <span class="ow">in</span> <span class="n">pinpairs</span><span class="p">:</span>
                 <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
@@ -2914,7 +2888,7 @@
         <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">cmp_type</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">componentProperty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
             <span class="n">pinpairs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">PinPairs</span>
             <span class="k">for</span> <span class="n">pinpair</span> <span class="ow">in</span> <span class="n">pinpairs</span><span class="p">:</span>
                 <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
@@ -2933,7 +2907,7 @@
         <span class="n">cmp_type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">())</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">cmp_type</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">componentProperty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentProperty</span><span class="p">()</span>
-            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">componentProperty</span><span class="o">.</span><span class="n">GetModel</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
             <span class="n">pinpairs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">PinPairs</span>
             <span class="k">for</span> <span class="n">pinpair</span> <span class="ow">in</span> <span class="n">pinpairs</span><span class="p">:</span>
                 <span class="n">pair</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">GetPinPairRlc</span><span class="p">(</span><span class="n">pinpair</span><span class="p">)</span>
@@ -3103,7 +3077,7 @@
 <span class="sd">        str</span>
 <span class="sd">           Name of the placement layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">lower_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3114,7 +3088,7 @@
 <span class="sd">        float</span>
 <span class="sd">            Lower elevation of the placement layer.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span><span class="o">.</span><span class="n">GetLowerElevation</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">upper_elevation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3126,7 +3100,7 @@
 <span class="sd">            Upper elevation of the placement layer.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetPlacementLayer</span><span class="p">()</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span><span class="o">.</span><span class="n">GetUpperElevation</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">top_bottom_association</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
