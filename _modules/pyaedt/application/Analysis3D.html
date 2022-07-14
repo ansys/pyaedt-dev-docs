@@ -584,14 +584,15 @@
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">copy_solid_bodies_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">design</span><span class="p">,</span> <span class="n">object_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">no_vacuum</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">no_pec</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_sheets</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copy a list of objects from one design to the active design.</span>
+        <span class="sd">&quot;&quot;&quot;Copy a list of objects and user defined models from one design to the active design.</span>
+<span class="sd">        If user defined models are selected, the project will be saved automatically.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        design :</span>
 <span class="sd">            Starting application object. For example, ``hfss1= HFSS3DLayout``.</span>
 <span class="sd">        object_list : list, optional</span>
-<span class="sd">            List of objects to copy. The default is ``None``.</span>
+<span class="sd">            List of objects and user defined components to copy. The default is ``None``.</span>
 <span class="sd">        no_vacuum : bool, optional</span>
 <span class="sd">            Whether to include vacuum objects for the copied objects.</span>
 <span class="sd">            The default is ``True``.</span>
@@ -613,12 +614,34 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.Paste</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">body_list</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">solid_names</span>
+        <span class="n">udc_list</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_component_names</span>
+        <span class="n">original_design_type</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">design_type</span>
+        <span class="n">dest_design_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span>
+        <span class="n">new_udc_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">include_sheets</span><span class="p">:</span>
             <span class="n">body_list</span> <span class="o">+=</span> <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">sheet_names</span>
+        <span class="k">if</span> <span class="n">udc_list</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">udc</span> <span class="ow">in</span> <span class="n">udc_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">original_design_type</span> <span class="o">!=</span> <span class="n">dest_design_type</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">udc</span><span class="p">]</span><span class="o">.</span><span class="n">is3dcomponent</span>
+                    <span class="ow">or</span> <span class="n">original_design_type</span> <span class="o">==</span> <span class="n">dest_design_type</span>
+                <span class="p">):</span>
+                    <span class="n">new_udc_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">udc</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">part_id</span> <span class="ow">in</span> <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">udc</span><span class="p">]</span><span class="o">.</span><span class="n">parts</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">udc</span><span class="p">]</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="n">part_id</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">body_list</span><span class="p">:</span>
+                        <span class="n">body_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">udc</span><span class="p">]</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="n">part_id</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
         <span class="n">selection_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">udc_selection</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">material_properties</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">objects</span>
-        <span class="k">if</span> <span class="n">object_list</span><span class="p">:</span>
-            <span class="n">selection_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">object_list</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">body_list</span><span class="p">]</span>
+        <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">object_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">selections</span><span class="p">:</span>
+            <span class="n">selection_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">selections</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">body_list</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">udc</span> <span class="ow">in</span> <span class="n">new_udc_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">udc</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+                    <span class="n">udc_selection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">udc</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">body_list</span><span class="p">:</span>
                 <span class="n">include_object</span> <span class="o">=</span> <span class="kc">True</span>
@@ -630,8 +653,14 @@
                             <span class="n">include_object</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="n">include_object</span><span class="p">:</span>
                     <span class="n">selection_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">udm</span> <span class="ow">in</span> <span class="n">new_udc_list</span><span class="p">:</span>
+                <span class="n">udc_selection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">udm</span><span class="p">)</span>
+        <span class="n">selection_list</span> <span class="o">=</span> <span class="n">selection_list</span> <span class="o">+</span> <span class="n">udc_selection</span>
         <span class="n">design</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Copy</span><span class="p">([</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">selection_list</span><span class="p">)])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Paste</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">udc_selection</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_project</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span>
 

@@ -830,8 +830,8 @@
 <span class="sd">            Coordinate system plane for orienting the rectangle.</span>
 <span class="sd">            :class:`pyaedt.constants.PLANE` Enumerator can be used as input.</span>
 <span class="sd">        position : list or Position</span>
-<span class="sd">            List of ``[x, y, z]`` coordinates for the center point of the rectangle or</span>
-<span class="sd">            the positionApplicationName.modeler.Position(x,y,z) object.</span>
+<span class="sd">            List of ``[x, y, z]`` coordinates of the lower-left corner of the rectangle or</span>
+<span class="sd">            the position ApplicationName.modeler.Position(x,y,z) object.</span>
 <span class="sd">        dimension_list : list</span>
 <span class="sd">            List of ``[width, height]`` dimensions.</span>
 <span class="sd">        name : str, optional</span>
@@ -1202,7 +1202,13 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Primitives3D.create_udm"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.create_udm.html#pyaedt.modeler.Primitives3D.Primitives3D.create_udm">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_udm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">udmfullname</span><span class="p">,</span> <span class="n">udm_params_list</span><span class="p">,</span> <span class="n">udm_library</span><span class="o">=</span><span class="s2">&quot;syslib&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_udm</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">udmfullname</span><span class="p">,</span>
+        <span class="n">udm_params_list</span><span class="p">,</span>
+        <span class="n">udm_library</span><span class="o">=</span><span class="s2">&quot;syslib&quot;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a user-defined model.</span>
 
 <span class="sd">        Parameters</span>
@@ -1212,12 +1218,14 @@
 <span class="sd">        udm_params_list :</span>
 <span class="sd">            List of user-defined object pairs for the model.</span>
 <span class="sd">        udm_library : str, optional</span>
-<span class="sd">            Name of library for the user-defined model. The default is ``&quot;syslib&quot;``.</span>
+<span class="sd">            Name of the library for the user-defined model. The default is ``&quot;syslib&quot;``.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the user-defined model. The default is ``None```.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`pyaedt.modeler.Object3d.Object3d`</span>
-<span class="sd">            3D object.</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.UserDefinedComponent`</span>
+<span class="sd">            User-defined component object.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -1230,25 +1238,25 @@
 
         <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">udm_params_list</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pair</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">name_param</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">pair</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">Name</span>
+                <span class="n">name_param</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">Name</span>
                 <span class="n">val</span> <span class="o">=</span> <span class="n">pair</span><span class="o">.</span><span class="n">Value</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="n">vArgParamVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name_param</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
                 <span class="p">)</span>
             <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="s2">&quot;0123456789&quot;</span><span class="p">:</span>
                 <span class="n">vArgParamVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+                    <span class="p">[</span><span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span> <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="n">name_param</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span> <span class="s2">&quot;PropType2:=&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;PropFlag2:=&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">vArgParamVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">[</span>
                         <span class="s2">&quot;NAME:UDMParam&quot;</span><span class="p">,</span>
                         <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
-                        <span class="n">name</span><span class="p">,</span>
+                        <span class="n">name_param</span><span class="p">,</span>
                         <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span>
                         <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span>
                         <span class="s2">&quot;DataType:=&quot;</span><span class="p">,</span>
@@ -1271,10 +1279,13 @@
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="n">oname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateUserDefinedModel</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">oname</span><span class="p">:</span>
-            <span class="n">object_lists</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetPartsForUserDefinedModel</span><span class="p">(</span><span class="n">oname</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="n">object_lists</span><span class="p">:</span>
+            <span class="n">obj_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetPartsForUserDefinedModel</span><span class="p">(</span><span class="n">oname</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="n">obj_list</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span>
+            <span class="n">udm_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_user_defined_component</span><span class="p">(</span><span class="n">oname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">udm_obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">return</span> <span class="n">udm_obj</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
@@ -1349,7 +1360,15 @@
         <span class="k">return</span> <span class="n">p1</span></div>
 
 <div class="viewcode-block" id="Primitives3D.insert_3d_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.insert_3d_component.html#pyaedt.modeler.Primitives3D.Primitives3D.insert_3d_component">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">insert_3d_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compFile</span><span class="p">,</span> <span class="n">geoParams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">szMatParams</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">szDesignParams</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">targetCS</span><span class="o">=</span><span class="s2">&quot;Global&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">insert_3d_component</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">compFile</span><span class="p">,</span>
+        <span class="n">geoParams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">szMatParams</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">szDesignParams</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">targetCS</span><span class="o">=</span><span class="s2">&quot;Global&quot;</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Insert a new 3D component.</span>
 
 <span class="sd">        Parameters</span>
@@ -1364,11 +1383,13 @@
 <span class="sd">            Design parameters. The default is ``&quot;&quot;``.</span>
 <span class="sd">        targetCS : str, optional</span>
 <span class="sd">            Target coordinate system. The default is ``&quot;Global&quot;``.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            3D component name. The default is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Name of the created 3D component.</span>
+<span class="sd">        :class:`pyaedt.modeler.Object3d.UserDefinedComponent`</span>
+<span class="sd">            User defined component object.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -1401,8 +1422,14 @@
         <span class="n">varg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">szDesignParams</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">varg2</span><span class="p">)</span>
         <span class="n">new_object_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Insert3DComponent</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
-        <span class="c1"># TODO return an object</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">new_object_name</span><span class="p">:</span>
+            <span class="n">obj_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Get3DComponentPartNames</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="n">obj_list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span>
+            <span class="n">udm_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_user_defined_component</span><span class="p">(</span><span class="n">new_object_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">udm_obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">return</span> <span class="n">udm_obj</span>
         <span class="k">return</span> <span class="n">new_object_name</span></div>
 
 <div class="viewcode-block" id="Primitives3D.get_3d_component_object_list"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3D.Primitives3D.get_3d_component_object_list.html#pyaedt.modeler.Primitives3D.Primitives3D.get_3d_component_object_list">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>

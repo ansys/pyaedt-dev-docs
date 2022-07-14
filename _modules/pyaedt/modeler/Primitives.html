@@ -223,6 +223,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
+<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -239,6 +240,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">EdgePrimitive</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">FacePrimitive</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Object3d</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">UserDefinedComponent</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.MaterialLib</span> <span class="kn">import</span> <span class="n">Material</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.object3dlayout</span> <span class="kn">import</span> <span class="n">Point</span>
 
@@ -1216,8 +1218,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">components_3d_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;List of the names of all 3d components objects.</span>
+    <span class="k">def</span> <span class="nf">user_defined_component_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of the names of all 3D component objects.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -1230,9 +1232,19 @@
             <span class="n">comps3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Get3DComponentDefinitionNames</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">comp3d</span> <span class="ow">in</span> <span class="n">comps3d</span><span class="p">:</span>
                 <span class="n">obs3d</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Get3DComponentInstanceNames</span><span class="p">(</span><span class="n">comp3d</span><span class="p">))</span>
+            <span class="n">udm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_user_defined_component_names</span><span class="p">()</span>
+            <span class="n">obs3d</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">udm</span> <span class="o">+</span> <span class="n">obs3d</span><span class="p">))</span>
+            <span class="n">new_obs3d</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">obs3d</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">:</span>
+                <span class="n">existing_components</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="n">new_obs3d</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">obs3d</span> <span class="k">if</span> <span class="n">i</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">existing_components</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_obs3d</span><span class="p">:</span>
+                        <span class="n">new_obs3d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">obs3d</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">return</span> <span class="n">obs3d</span>
+            <span class="n">new_obs3d</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">new_obs3d</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_oproject</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1310,6 +1322,18 @@
                 <span class="n">non_existent</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">report</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Missing Objects&quot;</span><span class="p">:</span> <span class="n">missing</span><span class="p">,</span> <span class="s2">&quot;Non-Existent Objects&quot;</span><span class="p">:</span> <span class="n">non_existent</span><span class="p">}</span>
         <span class="k">return</span> <span class="n">report</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_change_component_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vPropChange</span><span class="p">,</span> <span class="n">names_list</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">names_list</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">vChangedProps</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="n">vPropChange</span><span class="p">]</span>
+        <span class="n">vPropServers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">vPropServers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="n">vGeo3d</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:General&quot;</span><span class="p">,</span> <span class="n">vPropServers</span><span class="p">,</span> <span class="n">vChangedProps</span><span class="p">]</span>
+        <span class="n">vOut</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span> <span class="n">vGeo3d</span><span class="p">]</span>
+        <span class="n">_retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">,</span> <span class="n">vOut</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_change_geometry_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vPropChange</span><span class="p">,</span> <span class="n">names_list</span><span class="p">):</span>
@@ -2118,6 +2142,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_unclassified</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_currentId</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
@@ -2201,6 +2226,24 @@
                 <span class="n">added_objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">added_objects</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">add_new_user_defined_component</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add 3D components and user-defined models that have been created in the modeler by</span>
+<span class="sd">        previous operations.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of added components.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">added_component</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">comp_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_component_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">comp_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_create_user_defined_component</span><span class="p">(</span><span class="n">comp_name</span><span class="p">)</span>
+            <span class="n">added_component</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comp_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">added_component</span>
+
     <span class="c1"># TODO Eliminate this - check about import_3d_cad</span>
     <span class="c1"># Should no longer be a problem</span>
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -2208,6 +2251,7 @@
         <span class="sd">&quot;&quot;&quot;Refresh all IDs.&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">add_new_objects</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_new_user_defined_component</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cleanup_objects</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span>
@@ -3510,6 +3554,12 @@
         <span class="k">return</span> <span class="n">o</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_create_user_defined_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">UserDefinedComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">o</span>
+        <span class="k">return</span> <span class="n">o</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_create_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="n">point</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_point_names</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span>
@@ -3744,8 +3794,33 @@
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_get_user_defined_component_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get list of names for user-defined models.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">           List of names for user-defined models.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">udm_lists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">entity_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryOperations&quot;</span><span class="p">][</span>
+                    <span class="s2">&quot;UserDefinedModels&quot;</span>
+                <span class="p">]</span>
+                <span class="k">if</span> <span class="n">entity_list</span><span class="p">:</span>
+                    <span class="n">udm_entry</span> <span class="o">=</span> <span class="n">entity_list</span><span class="p">[</span><span class="s2">&quot;UserDefinedModel&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">udm_entry</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)):</span>
+                        <span class="n">udm_entry</span> <span class="o">=</span> <span class="p">[</span><span class="n">udm_entry</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">udm_entry</span><span class="p">:</span>
+                        <span class="n">udm_lists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">][</span><span class="s2">&quot;Name&quot;</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;User-defined models were not retrieved from the AEDT file.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">udm_lists</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partId</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return the object ``Object3D`` for a given object ID or object name.</span>
+        <span class="sd">&quot;&quot;&quot;Get the object ``Object3D`` for a given object ID or object name.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -3758,11 +3833,14 @@
 <span class="sd">            Returns None if the part ID or the object name is not found.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partId</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">partId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="n">partId</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partId</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">partId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="n">partId</span><span class="p">]</span>
         <span class="k">elif</span> <span class="n">partId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span><span class="p">[</span><span class="n">partId</span><span class="p">]]</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partId</span><span class="p">,</span> <span class="n">Object3d</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="n">partId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">partId</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partId</span><span class="p">,</span> <span class="n">Object3d</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partId</span><span class="p">,</span> <span class="n">UserDefinedComponent</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">partId</span>
         <span class="k">return</span> <span class="kc">None</span>
 </pre></div>
