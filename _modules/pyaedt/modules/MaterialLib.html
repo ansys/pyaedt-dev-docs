@@ -239,6 +239,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Material</span> <span class="kn">import</span> <span class="n">MatProperties</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Material</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Material</span> <span class="kn">import</span> <span class="n">SurfaceMaterial</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 
 
 <div class="viewcode-block" id="Materials"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.MaterialLib.Materials.html#pyaedt.modules.MaterialLib.Materials">[docs]</a><span class="k">class</span> <span class="nc">Materials</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -378,9 +379,14 @@
             <span class="c1"># m = load_entire_aedt_file(amat)</span>
             <span class="c1"># mats.extend(list(m.keys()))</span>
             <span class="n">mats</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_mat_list</span><span class="p">(</span><span class="n">amat</span><span class="p">))</span>
-
-        <span class="n">mats</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;$index$&quot;</span><span class="p">)</span>
-        <span class="n">mats</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;$base_index$&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mats</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;$index$&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mats</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;$base_index$&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
         <span class="n">mats</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">odefinition_manager</span><span class="o">.</span><span class="n">GetProjectMaterialNames</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">mats</span>
 
@@ -452,6 +458,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span>
         <span class="k">elif</span> <span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mat_names_aedt_lower</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedmattolibrary</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_api</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aedmattolibrary</span><span class="p">(</span><span class="n">mat</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
@@ -824,7 +832,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        :class:`pyaedt.modules.Material.Material`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">matname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">odefinition_manager</span><span class="o">.</span><span class="n">GetProjectMaterialNames</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">matname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">odefinition_manager</span><span class="o">.</span><span class="n">GetProjectMaterialNames</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_api</span><span class="p">:</span>
             <span class="n">matname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_aedt_case_name</span><span class="p">(</span><span class="n">matname</span><span class="p">)</span>
         <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">_arg2dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">_retry_ntimes</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">omaterial_manager</span><span class="o">.</span><span class="n">GetData</span><span class="p">,</span> <span class="n">matname</span><span class="p">)),</span> <span class="n">props</span><span class="p">)</span>

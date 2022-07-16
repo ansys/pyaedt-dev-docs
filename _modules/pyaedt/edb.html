@@ -1364,6 +1364,7 @@
 <span class="sd">            Units of the point list. The default is ``&quot;mm&quot;``.</span>
 <span class="sd">        output_aedb_path : str, optional</span>
 <span class="sd">            Full path and name for the new AEDB file.</span>
+<span class="sd">            The aedb folder shall not exist otherwise the method will return ``False``.</span>
 <span class="sd">        open_cutout_at_end : bool, optional</span>
 <span class="sd">            Whether to open the cutout at the end. The default is ``True``.</span>
 <span class="sd">        nets_to_include : list, optional</span>
@@ -1510,7 +1511,9 @@
         <span class="n">_dbCells</span> <span class="o">=</span> <span class="p">[</span><span class="n">_cutout</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">output_aedb_path</span><span class="p">:</span>
             <span class="n">db2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Database</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="n">output_aedb_path</span><span class="p">)</span>
-            <span class="n">_success</span> <span class="o">=</span> <span class="n">db2</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">db2</span><span class="o">.</span><span class="n">Save</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to create new Edb. Check if the path already exists and remove it.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
             <span class="n">_dbCells</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">_dbCells</span><span class="p">)</span>
             <span class="n">cell_copied</span> <span class="o">=</span> <span class="n">db2</span><span class="o">.</span><span class="n">CopyCells</span><span class="p">(</span><span class="n">_dbCells</span><span class="p">)</span>  <span class="c1"># Copies cutout cell/design to db2 project</span>
             <span class="n">cell</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">cell_copied</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
