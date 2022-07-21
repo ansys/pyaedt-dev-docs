@@ -221,6 +221,7 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBNetsData</span>
@@ -447,6 +448,12 @@
 <span class="sd">            If `False` the plot will be colored by layer. (default)</span>
 <span class="sd">        outline : list, optional</span>
 <span class="sd">            List of points of the outline to plot.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list, str</span>
+<span class="sd">            list of data to be used in plot.</span>
+<span class="sd">            In case of remote session it will be returned a string that could be converted to list</span>
+<span class="sd">             using ast.literal_eval().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
@@ -464,6 +471,8 @@
             <span class="n">nets</span> <span class="o">=</span> <span class="p">[</span><span class="n">nets</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">paths</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_void</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="n">net_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">net_name</span>
             <span class="n">layer_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">layer_name</span>
             <span class="k">if</span> <span class="n">net_name</span> <span class="ow">in</span> <span class="n">nets</span> <span class="ow">and</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
@@ -566,7 +575,10 @@
                         <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">])</span>
         <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Nets Point Generation time </span><span class="si">%s</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">end_time</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">objects_lists</span></div>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PYAEDT_SERVER_AEDT_PATH&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">objects_lists</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">objects_lists</span></div>
 
 <div class="viewcode-block" id="EdbNets.classify_nets"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.nets.EdbNets.classify_nets.html#pyaedt.edb_core.nets.EdbNets.classify_nets">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">classify_nets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_configuration_object</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
