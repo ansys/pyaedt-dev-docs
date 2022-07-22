@@ -229,6 +229,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">open_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Model2D</span> <span class="kn">import</span> <span class="n">Modeler2D</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Model3D</span> <span class="kn">import</span> <span class="n">Modeler3D</span>
@@ -492,9 +493,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">vars</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">component3dname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components3d</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">component3dname</span><span class="p">):</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">component3dname</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aedt_fh</span><span class="p">:</span>
-                    <span class="n">temp</span> <span class="o">=</span> <span class="n">aedt_fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+            <span class="n">aedt_fh</span> <span class="o">=</span> <span class="n">open_file</span><span class="p">(</span><span class="n">component3dname</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">aedt_fh</span><span class="p">:</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">aedt_fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
                 <span class="n">_all_lines</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">temp</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -505,9 +506,11 @@
                     <span class="k">if</span> <span class="s2">&quot;VariableProp(&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
                         <span class="n">line_list</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
                         <span class="nb">vars</span><span class="p">[</span><span class="n">line_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">line_list</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">line_list</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="n">aedt_fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
                 <span class="k">return</span> <span class="nb">vars</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components3d</span><span class="p">[</span><span class="n">component3dname</span><span class="p">],</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aedt_fh</span><span class="p">:</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components3d</span><span class="p">[</span><span class="n">component3dname</span><span class="p">],</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">aedt_fh</span><span class="p">:</span>
             <span class="n">temp</span> <span class="o">=</span> <span class="n">aedt_fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
         <span class="n">_all_lines</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">temp</span><span class="p">:</span>
@@ -704,9 +707,9 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.Export</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">object_list</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">object_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">object_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="n">removed_objects</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">removed_objects</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">removed_objects</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">object_list</span><span class="p">:</span>
@@ -976,7 +979,7 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.AssignMaterial</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_material</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">csv_material</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
             <span class="n">csv_input</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
             <span class="n">material_header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>
@@ -985,7 +988,7 @@
             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">material_header</span><span class="p">:</span>
                 <span class="n">material_data</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
                 <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_component</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">csv_component</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
             <span class="n">csv_input</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
             <span class="n">component_header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv_input</span><span class="p">)</span>

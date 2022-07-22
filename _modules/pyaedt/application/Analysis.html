@@ -229,10 +229,12 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.Design</span> <span class="kn">import</span> <span class="n">Design</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.JobManager</span> <span class="kn">import</span> <span class="n">update_hpc_option</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">AXIS</span>
@@ -247,6 +249,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">Plane</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">filter_tuple</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">open_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">NativeComponentObject</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.DesignXPloration</span> <span class="kn">import</span> <span class="n">OptimizationSetups</span>
@@ -1441,7 +1444,7 @@
 <span class="sd">        ...</span>
 <span class="sd">        pyaedt info: Sweep was created correctly.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">props</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="n">setuptype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1695,7 +1698,7 @@
         <span class="k">if</span> <span class="n">acf_file</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">SetRegistryFromFile</span><span class="p">(</span><span class="n">acf_file</span><span class="p">)</span>
             <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">acf_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">acf_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
                     <span class="k">if</span> <span class="s2">&quot;ConfigName&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
@@ -1710,8 +1713,16 @@
         <span class="k">elif</span> <span class="n">num_gpu</span> <span class="ow">or</span> <span class="n">num_tasks</span> <span class="ow">or</span> <span class="n">num_cores</span><span class="p">:</span>
             <span class="n">config_name</span> <span class="o">=</span> <span class="s2">&quot;pyaedt_config&quot;</span>
             <span class="n">source_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pyaedt_dir</span><span class="p">,</span> <span class="s2">&quot;misc&quot;</span><span class="p">,</span> <span class="s2">&quot;pyaedt_local_config.acf&quot;</span><span class="p">)</span>
-            <span class="n">target_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">config_name</span> <span class="o">+</span> <span class="s2">&quot;.acf&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="p">:</span>
+                <span class="n">target_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;config&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.acf&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">target_name</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">config_name</span> <span class="o">+</span> <span class="s2">&quot;.acf&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span>
+                    <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">config_name</span> <span class="o">+</span> <span class="s2">&quot;.acf&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">source_name</span><span class="p">,</span> <span class="n">target_name</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">num_cores</span><span class="p">:</span>
                 <span class="n">update_hpc_option</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="s2">&quot;NumCores&quot;</span><span class="p">,</span> <span class="n">num_cores</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">num_gpu</span><span class="p">:</span>
@@ -1723,6 +1734,16 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Icepak&quot;</span><span class="p">:</span>
                 <span class="n">use_auto_settings</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">update_hpc_option</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="s2">&quot;UseAutoSettings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span><span class="p">,</span> <span class="n">use_auto_settings</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="p">:</span>
+                <span class="n">remote_name</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">config_name</span> <span class="o">+</span> <span class="s2">&quot;.acf&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span>
+                    <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="n">config_name</span> <span class="o">+</span> <span class="s2">&quot;.acf&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="o">.</span><span class="n">filemanager</span><span class="o">.</span><span class="n">upload</span><span class="p">(</span><span class="n">target_name</span><span class="p">,</span> <span class="n">remote_name</span><span class="p">)</span>
+                <span class="n">target_name</span> <span class="o">=</span> <span class="n">remote_name</span>
+
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">SetRegistryFromFile</span><span class="p">(</span><span class="n">target_name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">set_registry_key</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Desktop/ActiveDSOConfigurations/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span><span class="p">,</span> <span class="n">config_name</span><span class="p">)</span>
@@ -1875,8 +1896,8 @@
             <span class="n">setting_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path_file</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;misc&quot;</span><span class="p">,</span> <span class="s2">&quot;Job_Settings.areg&quot;</span><span class="p">)</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">setting_file</span><span class="p">,</span> <span class="n">destination_reg</span><span class="p">)</span>
 
-        <span class="n">f1</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">destination_reg</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">setting_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="n">open_file</span><span class="p">(</span><span class="n">destination_reg</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">setting_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
                 <span class="k">if</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">	$begin&quot;</span> <span class="o">==</span> <span class="n">line</span><span class="p">[:</span><span class="mi">8</span><span class="p">]:</span>

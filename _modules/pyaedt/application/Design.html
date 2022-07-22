@@ -261,6 +261,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">open_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">read_csv</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">read_tab</span>
@@ -912,7 +913,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">toolkit_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">+</span> <span class="s2">&quot;.pyaedt&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">toolkit_directory</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="p">:</span>
+            <span class="n">toolkit_directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_path</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_name</span> <span class="o">+</span> <span class="s2">&quot;.pyaedt&quot;</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="o">.</span><span class="n">filemanager</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">toolkit_directory</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">toolkit_directory</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">toolkit_directory</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
@@ -932,7 +936,10 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">working_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toolkit_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">working_directory</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="p">:</span>
+            <span class="n">working_directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolkit_directory</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="o">.</span><span class="n">filemanager</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">working_directory</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">working_directory</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">working_directory</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
@@ -1126,7 +1133,7 @@
 <span class="sd">        aedt_object : object</span>
 <span class="sd">            AEDT Object on which search for property. It can be any oProperty (ex. oDesign).</span>
 <span class="sd">        object_name : str, optional</span>
-<span class="sd">            Path to the object list. Example `&quot;DesignName\Boundaries&quot;`.</span>
+<span class="sd">            Path to the object list. Example `&quot;DesignName\\Boundaries&quot;`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1656,7 +1663,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetRegistryFromFile</span><span class="p">(</span><span class="n">registry_file</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">make_active</span><span class="p">:</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">registry_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">registry_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
                         <span class="n">stripped_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                         <span class="k">if</span> <span class="s2">&quot;ConfigName&quot;</span> <span class="ow">in</span> <span class="n">stripped_line</span><span class="p">:</span>
@@ -2482,7 +2489,7 @@
 <span class="sd">        &gt;&gt;&gt; oProject.AddDataset</span>
 <span class="sd">        &gt;&gt;&gt; oDesign.AddDataset</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
         <span class="n">header</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
@@ -3293,7 +3300,7 @@
             <span class="c1"># is self.design_name guaranteed to be there?</span>
             <span class="n">design_info</span> <span class="o">=</span> <span class="p">[</span><span class="n">design</span> <span class="k">for</span> <span class="n">design</span> <span class="ow">in</span> <span class="n">design_info</span> <span class="k">if</span> <span class="n">design</span><span class="p">[</span><span class="s2">&quot;DesignName&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">image_data_str</span> <span class="o">=</span> <span class="n">design_info</span><span class="p">[</span><span class="s2">&quot;Image64&quot;</span><span class="p">]</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">bytestring</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">image_data_str</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;base64&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -3356,7 +3363,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">design_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span><span class="p">,</span> <span class="s2">&quot;design_data.json&quot;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">design_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fps</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">design_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fps</span><span class="p">:</span>
             <span class="n">design_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fps</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">design_data</span>
 
