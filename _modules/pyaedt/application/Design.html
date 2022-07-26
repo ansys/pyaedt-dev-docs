@@ -515,7 +515,7 @@
     <span class="c1"># but after they are never updated along the different project steps.</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">project_properies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">project_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Project properties.</span>
 
 <span class="sd">        Returns</span>
@@ -524,10 +524,12 @@
 <span class="sd">            Dictionary of the project properties.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">))</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_timestamp_changed</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span> <span class="o">=</span> <span class="n">load_entire_aedt_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_file</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">_project_properties</span>
+        <span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_timestamp_changed</span><span class="p">:</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">_project_properties</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_entire_aedt_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;aedt file load time </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">))</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project_dictionary</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">_project_properties</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">design_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -539,18 +541,10 @@
 <span class="sd">           Dictionary of the design properties.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># if self._design_dictionary is None and os.path.exists(self.project_file):</span>
-        <span class="c1">#     try:</span>
-        <span class="c1">#         start = time.time()</span>
-        <span class="c1">#         self._design_dictionary = load_keyword_in_aedt_file(self.project_file,</span>
-        <span class="c1">#                                                             self.design_name)[self.design_name]</span>
-        <span class="c1">#         self._logger.info(&quot;aedt design load time {}&quot;.format(time.time() - start))</span>
-        <span class="c1">#     except (KeyError, TypeError):</span>
-        <span class="c1">#         self._design_dictionary = OrderedDict()</span>
-        <span class="c1"># return self._design_dictionary</span>
+
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">model_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">]:</span>
-                <span class="n">designs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="n">model_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">model_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properties</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">]:</span>
+                <span class="n">designs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properties</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="n">model_names</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_design_type</span><span class="p">]]</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">designs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
                     <span class="k">for</span> <span class="n">design</span> <span class="ow">in</span> <span class="n">designs</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">design</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">:</span>
@@ -720,15 +714,15 @@
     <span class="k">def</span> <span class="nf">project_time_stamp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return Project time stamp.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">_project_time_stamp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_file</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">_project_time_stamp</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">_project_time_stamp</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">project_timestamp_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a bool if time stamp changed or not.&quot;&quot;&quot;</span>
-        <span class="n">old_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mttime</span>
+        <span class="n">old_time</span> <span class="o">=</span> <span class="n">settings</span><span class="o">.</span><span class="n">_project_time_stamp</span>
         <span class="k">return</span> <span class="n">old_time</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_time_stamp</span>
 
     <span class="nd">@property</span>
@@ -2169,8 +2163,8 @@
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">datasets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;ProjectDatasets&quot;</span><span class="p">][</span><span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">]:</span>
-                <span class="n">datas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;ProjectDatasets&quot;</span><span class="p">][</span><span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">][</span>
+            <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properties</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;ProjectDatasets&quot;</span><span class="p">][</span><span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">]:</span>
+                <span class="n">datas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properties</span><span class="p">[</span><span class="s2">&quot;AnsoftProject&quot;</span><span class="p">][</span><span class="s2">&quot;ProjectDatasets&quot;</span><span class="p">][</span><span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">][</span>
                     <span class="s2">&quot;Coordinates&quot;</span>
                 <span class="p">]</span>
                 <span class="n">datasets</span><span class="p">[</span><span class="n">ds</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ds_data</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">datas</span><span class="p">)</span>
@@ -2184,7 +2178,7 @@
         <span class="n">datasets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;DesignDatasets&quot;</span><span class="p">][</span><span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">]:</span>
-                <span class="n">datas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;DesignDatasets&quot;</span><span class="p">][</span><span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">]</span>
+                <span class="n">datas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;DesignDatasets&quot;</span><span class="p">][</span><span class="s2">&quot;DatasetDefinitions&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">][</span><span class="s2">&quot;Coordinates&quot;</span><span class="p">]</span>
                 <span class="n">datasets</span><span class="p">[</span><span class="n">ds</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_ds_data</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">datas</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span>
@@ -3294,7 +3288,7 @@
 <span class="sd">        bool</span>
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">design_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properies</span><span class="p">[</span><span class="s2">&quot;ProjectPreview&quot;</span><span class="p">][</span><span class="s2">&quot;DesignInfo&quot;</span><span class="p">]</span>
+        <span class="n">design_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_properties</span><span class="p">[</span><span class="s2">&quot;ProjectPreview&quot;</span><span class="p">][</span><span class="s2">&quot;DesignInfo&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">design_info</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="c1"># there are multiple designs, find the right one</span>
             <span class="c1"># is self.design_name guaranteed to be there?</span>
@@ -3565,10 +3559,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">var_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_oo_object</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;Variables/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable_name</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">var_obj</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">is_ironpython</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="n">var_obj</span><span class="o">.</span><span class="n">Get_SIValue</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">val</span> <span class="o">=</span> <span class="n">var_obj</span><span class="o">.</span><span class="n">Get_SIValue</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">var_obj</span><span class="o">.</span><span class="n">GetPropValue</span><span class="p">(</span><span class="s2">&quot;SIValue&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">val</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">variation_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetNominalVariation</span><span class="p">()</span>
@@ -3747,7 +3738,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.0.2.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.0.<br>
 </p>
   </div>
   
