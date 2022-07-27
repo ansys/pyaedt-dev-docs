@@ -375,6 +375,14 @@
             <span class="n">_global</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">_aedt_handler</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
     <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
         <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">module</span><span class="o">.</span><span class="n">oAnsoftApplication</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">module</span><span class="o">.</span><span class="n">desktop</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">pass</span>
     <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
 
 
@@ -887,11 +895,17 @@
         <span class="n">launch_msg</span> <span class="o">=</span> <span class="s2">&quot;AEDT installation Path </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">base_path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">launch_msg</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching AEDT with the gRPC plugin.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="n">new_aedt_session</span>
-            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">(),</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span>
+            <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">(),</span>
+            <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">settings</span><span class="o">.</span><span class="n">remote_api</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">new_aedt_session</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">:</span>
             <span class="n">sessions</span> <span class="o">=</span> <span class="n">grpc_active_sessions</span><span class="p">(</span>
                 <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="n">student_version</span><span class="p">,</span> <span class="n">non_graphical</span><span class="o">=</span><span class="n">non_graphical</span>
             <span class="p">)</span>
@@ -903,28 +917,14 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                         <span class="s2">&quot;Multiple AEDT gRPC sessions are found. Setting the active session on port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span>
                     <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">_find_free_port</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New AEDT session is starting on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">new_aedt_session</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">_find_free_port</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New AEDT session is starting on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Connecting to AEDT session on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">new_aedt_session</span><span class="p">:</span>
-            <span class="c1"># Local server running</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">_check_grpc_port</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">()</span>
-            <span class="c1"># Local Server</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">(),</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]:</span>
-                <span class="c1"># No AEDT started</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">_check_grpc_port</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-                <span class="c1"># AEDT existing</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">(),</span> <span class="n">socket</span><span class="o">.</span><span class="n">getfqdn</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]:</span>
-                <span class="n">settings</span><span class="o">.</span><span class="n">remote_api</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="n">ScriptEnv</span><span class="o">.</span><span class="n">_doInitialize</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">new_aedt_session</span><span class="p">,</span> <span class="n">non_graphical</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
 
