@@ -1153,16 +1153,19 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solid_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of all solid objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_solids</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solid_names</span> <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sheet_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of all sheet objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_sheets</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sheet_names</span> <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">line_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of all line objects.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_lines</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">line_names</span> <span class="k">if</span> <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]]</span>
 
     <span class="nd">@property</span>
@@ -1215,7 +1218,7 @@
     <span class="k">def</span> <span class="nf">object_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;List of the names of all objects.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_object_types</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unclassified</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">user_defined_component_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2221,6 +2224,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">added_objects</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">obj_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">obj_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
+                <span class="n">added_objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">obj_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unclassified_names</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">obj_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
                 <span class="n">added_objects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
@@ -3543,7 +3550,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_sheets</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_lines</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_points</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solids</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sheets</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_unclassified</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solids</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sheets</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unclassified</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_create_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>

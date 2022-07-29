@@ -619,7 +619,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching PyAEDT outside AEDT with IronPython.&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_ironpython</span><span class="p">(</span><span class="n">non_graphical</span><span class="p">,</span> <span class="n">new_desktop_session</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">_com</span> <span class="o">==</span> <span class="s2">&quot;pythonnet_v3&quot;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">version_key</span> <span class="o">&lt;</span> <span class="s2">&quot;2022.2&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">version_key</span> <span class="o">&lt;</span> <span class="s2">&quot;2022.2&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching PyAEDT outside AEDT with CPython and PythonNET.&quot;</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_init_cpython</span><span class="p">(</span>
                         <span class="n">non_graphical</span><span class="p">,</span>
@@ -639,7 +639,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_logger_file</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_desktop</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;pyaedt v</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">pyaedt_version</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Python version </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_api</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Python version </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">oDesktop</span>
         <span class="n">settings</span><span class="o">.</span><span class="n">aedt_version</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">GetVersion</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
         <span class="n">settings</span><span class="o">.</span><span class="n">machine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span>
@@ -705,7 +706,10 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">current_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Current AEDT version.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">NameError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">current_version_student</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -713,7 +717,7 @@
         <span class="k">for</span> <span class="n">version_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">version_keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="s2">&quot;SV&quot;</span> <span class="ow">in</span> <span class="n">version_key</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">version_key</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_init_desktop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">AEDTVersion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">oDesktop</span><span class="o">.</span><span class="n">GetVersion</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>

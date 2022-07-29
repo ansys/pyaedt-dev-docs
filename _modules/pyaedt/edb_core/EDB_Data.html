@@ -2195,6 +2195,18 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
 
+    <span class="nd">@hole_plating_thickness</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">hole_plating_thickness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hole plating thickness.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Thickness of the hole plating if present.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hr</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_properties</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hole_plating_ratio</span> <span class="o">=</span> <span class="n">hr</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hole_finished_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Finished hole size.</span>
@@ -3221,7 +3233,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_negative_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_amplitude</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_value</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_r</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_l</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_c</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_physical_resistor</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_config_init</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_config_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3250,11 +3266,13 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_source_type</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_value</span> <span class="o">=</span> <span class="mf">1e-6</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="mf">1e-6</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_value</span> <span class="o">=</span> <span class="mf">5e7</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="mf">5e7</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_value</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_r</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_l</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_c</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">positive_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
@@ -3299,14 +3317,50 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">impedance_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;Impedance values of the source.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_value</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span>
 
-    <span class="nd">@impedance_value</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">impedance_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="nd">@impedance</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_impedance_value</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">r_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r</span>
+
+    <span class="nd">@r_value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">r_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_r</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">l_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_l</span>
+
+    <span class="nd">@l_value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">l_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_l</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">c_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_c</span>
+
+    <span class="nd">@c_value</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">c_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_c</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">create_physical_resistor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_physical_resistor</span>
+
+    <span class="nd">@create_physical_resistor</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">create_physical_resistor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_physical_resistor</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="k">def</span> <span class="nf">_json_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="n">dict_out</span> <span class="o">=</span> <span class="p">{}</span>
@@ -4876,33 +4930,29 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">add_dc_source</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">add_voltage_source</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">source_type</span><span class="o">=</span><span class="n">SourceType</span><span class="o">.</span><span class="n">Vsource</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="n">amplitude</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-        <span class="n">phase</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
-        <span class="n">impedance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">voltage_value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">phase_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">impedance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
         <span class="n">positive_node_component</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">positive_node_net</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">negative_node_component</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">negative_node_net</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a source for the current SimulationConfiguration instance.</span>
+        <span class="sd">&quot;&quot;&quot;Add a voltage source for the current SimulationConfiguration instance.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        source_type : SourceType</span>
-<span class="sd">            Source type that is defined.</span>
-
 <span class="sd">        name : str</span>
 <span class="sd">            Source name.</span>
 
-<span class="sd">        amplitude : float</span>
+<span class="sd">        voltage_value : float</span>
 <span class="sd">            Amplitude value of the source. Either amperes for current source or volts for</span>
 <span class="sd">            voltage source.</span>
 
-<span class="sd">        phase : float</span>
+<span class="sd">        phase_value : float</span>
 <span class="sd">            Phase value of the source.</span>
 
 <span class="sd">        impedance : float</span>
@@ -4923,56 +4973,174 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when a file name is not provided.</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; edb = Edb(target_file)</span>
 <span class="sd">        &gt;&gt;&gt; sim_setup = SimulationConfiguration()</span>
-<span class="sd">        &gt;&gt;&gt; sim_setup.solver_type = SolverType.SiwaveDC</span>
-<span class="sd">        &gt;&gt;&gt; sim_setup.add_dc_source(source_type=SourceType.Vsource, positive_node_component=&quot;V1&quot;,</span>
+<span class="sd">        &gt;&gt;&gt; sim_setup.add_voltage_source(voltage_value=1.0, phase_value=0, positive_node_component=&quot;V1&quot;,</span>
 <span class="sd">        &gt;&gt;&gt; positive_node_net=&quot;HSG&quot;, negative_node_component=&quot;V1&quot;, negative_node_net=&quot;SW&quot;)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_type</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source_type</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">source_type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;v_source&quot;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">source_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;I_source&quot;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">source_type</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;R&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">amplitude</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">positive_node_component</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">positive_node_net</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">negative_node_component</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">negative_node_net</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">impedance</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;v_source&quot;</span><span class="p">)</span>
         <span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">source_type</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-            <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Vsource</span>
-        <span class="k">elif</span> <span class="n">source_type</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-            <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Isource</span>
-        <span class="k">elif</span> <span class="n">source_type</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-            <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Resistor</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Vsource</span>
         <span class="n">source</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="n">source</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="n">amplitude</span>
-        <span class="n">source</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="n">voltage_value</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase_value</span>
         <span class="n">source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">component</span> <span class="o">=</span> <span class="n">positive_node_component</span>
         <span class="n">source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">positive_node_net</span>
         <span class="n">source</span><span class="o">.</span><span class="n">negative_node</span><span class="o">.</span><span class="n">component</span> <span class="o">=</span> <span class="n">negative_node_component</span>
         <span class="n">source</span><span class="o">.</span><span class="n">negative_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">negative_node_net</span>
         <span class="n">source</span><span class="o">.</span><span class="n">impedance_value</span> <span class="o">=</span> <span class="n">impedance</span>
+        <span class="k">try</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">add_current_source</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">current_value</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">phase_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">impedance</span><span class="o">=</span><span class="mf">5e7</span><span class="p">,</span>
+        <span class="n">positive_node_component</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">positive_node_net</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">negative_node_component</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">negative_node_net</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a current source for the current SimulationConfiguration instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Source name.</span>
+
+<span class="sd">        current_value : float</span>
+<span class="sd">            Amplitude value of the source. Either amperes for current source or volts for</span>
+<span class="sd">            voltage source.</span>
+
+<span class="sd">        phase_value : float</span>
+<span class="sd">            Phase value of the source.</span>
+
+<span class="sd">        impedance : float</span>
+<span class="sd">            Impedance value of the source.</span>
+
+<span class="sd">        positive_node_component : str</span>
+<span class="sd">            Name of the component used for the positive node.</span>
+
+<span class="sd">        negative_node_component : str</span>
+<span class="sd">            Name of the component used for the negative node.</span>
+
+<span class="sd">        positive_node_net : str</span>
+<span class="sd">            Net used for the positive node.</span>
+
+<span class="sd">        negative_node_net : str</span>
+<span class="sd">            Net used for the negative node.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; edb = Edb(target_file)</span>
+<span class="sd">        &gt;&gt;&gt; sim_setup = SimulationConfiguration()</span>
+<span class="sd">        &gt;&gt;&gt; sim_setup.add_voltage_source(voltage_value=1.0, phase_value=0, positive_node_component=&quot;V1&quot;,</span>
+<span class="sd">        &gt;&gt;&gt; positive_node_net=&quot;HSG&quot;, negative_node_component=&quot;V1&quot;, negative_node_net=&quot;SW&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;I_source&quot;</span><span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">()</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Isource</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="n">current_value</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase_value</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">component</span> <span class="o">=</span> <span class="n">positive_node_component</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">positive_node_net</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">negative_node</span><span class="o">.</span><span class="n">component</span> <span class="o">=</span> <span class="n">negative_node_component</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">negative_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">negative_node_net</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">impedance_value</span> <span class="o">=</span> <span class="n">impedance</span>
+        <span class="k">try</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">add_rlc</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">r_value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">c_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">l_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">positive_node_component</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">positive_node_net</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">negative_node_component</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">negative_node_net</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">create_physical_rlc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a voltage source for the current SimulationConfiguration instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Source name.</span>
+
+<span class="sd">        r_value : float</span>
+<span class="sd">            Resistor value in Ohms.</span>
+
+<span class="sd">        l_value : float</span>
+<span class="sd">            Inductance value in Henry.</span>
+
+<span class="sd">        c_value : float</span>
+<span class="sd">            Capacitance value in Farrad.</span>
+
+<span class="sd">        positive_node_component : str</span>
+<span class="sd">            Name of the component used for the positive node.</span>
+
+<span class="sd">        negative_node_component : str</span>
+<span class="sd">            Name of the component used for the negative node.</span>
+
+<span class="sd">        positive_node_net : str</span>
+<span class="sd">            Net used for the positive node.</span>
+
+<span class="sd">        negative_node_net : str</span>
+<span class="sd">            Net used for the negative node.</span>
+
+<span class="sd">        create_physical_rlc : bool</span>
+<span class="sd">            When True create a physical Rlc component. Recommended setting to True to be compatible with Siwave.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; edb = Edb(target_file)</span>
+<span class="sd">        &gt;&gt;&gt; sim_setup = SimulationConfiguration()</span>
+<span class="sd">        &gt;&gt;&gt; sim_setup.add_voltage_source(voltage_value=1.0, phase_value=0, positive_node_component=&quot;V1&quot;,</span>
+<span class="sd">        &gt;&gt;&gt; positive_node_net=&quot;HSG&quot;, negative_node_component=&quot;V1&quot;, negative_node_net=&quot;SW&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Rlc&quot;</span><span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">()</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Rlc</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">r_value</span> <span class="o">=</span> <span class="n">r_value</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">l_value</span> <span class="o">=</span> <span class="n">l_value</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">c_value</span> <span class="o">=</span> <span class="n">c_value</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">create_physical_resistor</span> <span class="o">=</span> <span class="n">create_physical_rlc</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">component</span> <span class="o">=</span> <span class="n">positive_node_component</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">positive_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">positive_node_net</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">negative_node</span><span class="o">.</span><span class="n">component</span> <span class="o">=</span> <span class="n">negative_node_component</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">negative_node</span><span class="o">.</span><span class="n">net</span> <span class="o">=</span> <span class="n">negative_node_net</span>
         <span class="k">try</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
