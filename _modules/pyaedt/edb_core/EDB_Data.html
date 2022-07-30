@@ -1140,6 +1140,7 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">thisLC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">())</span>
+        <span class="n">layer_collection_mode</span> <span class="o">=</span> <span class="n">thisLC</span><span class="o">.</span><span class="n">GetMode</span><span class="p">()</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">thisLC</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">)))</span>
         <span class="n">layers</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
         <span class="n">newLayers</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">]()</span>
@@ -1173,8 +1174,12 @@
 
         <span class="n">lcNew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
         <span class="n">newLayers</span><span class="o">.</span><span class="n">Reverse</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">newLayers</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">lcNew</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lcNew</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">newLayers</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to set new layers when updating the stackup information.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">lcNew</span><span class="o">.</span><span class="n">SetMode</span><span class="p">(</span><span class="n">layer_collection_mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">lcNew</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to set new layer stackup mode when updating the stackup information.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pedblayers</span><span class="o">.</span><span class="n">_update_edb_objects</span><span class="p">()</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -3509,6 +3514,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_solver_type</span> <span class="o">=</span> <span class="n">SolverType</span><span class="o">.</span><span class="n">Hfss3dLayout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_output_aedb</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sources</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mesh_sizefactor</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_read_cfg</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -4603,6 +4609,17 @@
     <span class="k">def</span> <span class="nf">output_aedb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_output_aedb</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mesh_sizefactor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh_sizefactor</span>
+
+    <span class="nd">@mesh_sizefactor</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">mesh_sizefactor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh_sizefactor</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_do_lambda_refinement</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>

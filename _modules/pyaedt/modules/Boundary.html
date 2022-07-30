@@ -949,6 +949,69 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_boundary_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="k">return</span> <span class="kc">True</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_create_matrix_reduction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">red_type</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">matrix_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">join_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matrix_name</span><span class="p">:</span>
+            <span class="n">matrix_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;ReducedMatrix&quot;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">join_name</span><span class="p">:</span>
+            <span class="n">join_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Join&quot;</span> <span class="o">+</span> <span class="n">red_type</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">o_maxwell_parameters</span><span class="o">.</span><span class="n">AddReduceOp</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">matrix_name</span><span class="p">,</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">join_name</span><span class="p">,</span> <span class="s2">&quot;Type:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Join in &quot;</span> <span class="o">+</span> <span class="n">red_type</span><span class="p">,</span> <span class="s2">&quot;Sources:=&quot;</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sources</span><span class="p">)],</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">matrix_name</span><span class="p">,</span> <span class="n">join_name</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to create Matrix Reduction&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">join_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">matrix_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">join_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sources : list</span>
+<span class="sd">            Sources to be included in matrix reduction.</span>
+<span class="sd">        matrix_name :  str, optional</span>
+<span class="sd">            name of the string to create.</span>
+<span class="sd">        join_name : str, optional</span>
+<span class="sd">            Name of the Join operation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (str, str)</span>
+<span class="sd">            Matrix name and Joint name.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_matrix_reduction</span><span class="p">(</span>
+            <span class="n">red_type</span><span class="o">=</span><span class="s2">&quot;Series&quot;</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">matrix_name</span><span class="o">=</span><span class="n">matrix_name</span><span class="p">,</span> <span class="n">join_name</span><span class="o">=</span><span class="n">join_name</span>
+        <span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">join_parallel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">matrix_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">join_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sources : list</span>
+<span class="sd">            Sources to be included in matrix reduction.</span>
+<span class="sd">        matrix_name :  str, optional</span>
+<span class="sd">            name of the string to create.</span>
+<span class="sd">        join_name : str, optional</span>
+<span class="sd">            Name of the Join operation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        (str, str)</span>
+<span class="sd">            Matrix name and Joint name.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_matrix_reduction</span><span class="p">(</span>
+            <span class="n">red_type</span><span class="o">=</span><span class="s2">&quot;Parallel&quot;</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span> <span class="n">matrix_name</span><span class="o">=</span><span class="n">matrix_name</span><span class="p">,</span> <span class="n">join_name</span><span class="o">=</span><span class="n">join_name</span>
+        <span class="p">)</span>
+
 
 <span class="k">class</span> <span class="nc">FieldSetup</span><span class="p">(</span><span class="n">BoundaryCommon</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages Far Field and Near Field Component data and execution.</span>
