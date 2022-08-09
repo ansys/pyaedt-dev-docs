@@ -1311,6 +1311,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="n">propname</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">provpavlue</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">update_aedt</span><span class="p">:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">provpavlue</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="n">propname</span><span class="p">]</span> <span class="o">=</span> <span class="n">provpavlue</span>
+            <span class="k">if</span> <span class="n">update_aedt</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">provpavlue</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">propname</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;nonlinear&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">propname</span> <span class="o">==</span> <span class="s2">&quot;permeability&quot;</span><span class="p">:</span>
                 <span class="n">bh</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;DimUnits&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">]})</span>
@@ -1399,6 +1403,12 @@
                     <span class="p">)</span>
                 <span class="p">}</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;stacking_type&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stacking_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;stacking_type&quot;</span><span class="p">][</span><span class="s2">&quot;Choice&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;wire_type&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wire_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;wire_type&quot;</span><span class="p">][</span><span class="s2">&quot;Choice&quot;</span><span class="p">]</span>
+
         <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">MatProperties</span><span class="o">.</span><span class="n">aedtname</span><span class="p">:</span>
             <span class="n">tmods</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">smods</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1809,6 +1819,196 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_viscosity</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="s2">&quot;viscosity&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stacking_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Composition of the wire can either be &quot;Solid&quot;, &quot;Lamination&quot; or &quot;Litz Wire&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        string</span>
+<span class="sd">            Structure of the wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stacking_type</span>
+
+    <span class="nd">@stacking_type</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">stacking_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Solid&quot;</span><span class="p">,</span> <span class="s2">&quot;Lamination&quot;</span><span class="p">,</span> <span class="s2">&quot;Litz Wire&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Composition of the wire can either be &#39;Solid&#39;, &#39;Lamination&#39; or &#39;Litz Wire&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stacking_type</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span>
+            <span class="s2">&quot;stacking_type&quot;</span><span class="p">,</span>
+            <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;property_type&quot;</span><span class="p">:</span> <span class="s2">&quot;ChoiceProperty&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Choice&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wire_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The type of the wire can either be &quot;Round&quot;, &quot;Square&quot; or &quot;Rectangular&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        string</span>
+<span class="sd">            Type of the wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wire_type</span>
+
+    <span class="nd">@wire_type</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">wire_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Round&quot;</span><span class="p">,</span> <span class="s2">&quot;Square&quot;</span><span class="p">,</span> <span class="s2">&quot;Rectangular&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The type of the wire can either be &#39;Round&#39;, &#39;Square&#39; or &#39;Rectangular&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wire_type</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="s2">&quot;wire_type&quot;</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;property_type&quot;</span><span class="p">:</span> <span class="s2">&quot;ChoiceProperty&quot;</span><span class="p">,</span> <span class="s2">&quot;Choice&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">}))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wire_thickness_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Thickness direction of the wire can either be &quot;V(1)&quot;, &quot;V(2)&quot; or &quot;V(3)&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        string</span>
+<span class="sd">            Thickness direction of the wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wire_thickness_direction</span>
+
+    <span class="nd">@wire_thickness_direction</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">wire_thickness_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;V(1)&quot;</span><span class="p">,</span> <span class="s2">&quot;V(2)&quot;</span><span class="p">,</span> <span class="s2">&quot;V(3)&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Thickness direction of the wire can either be &#39;V(1)&#39;, &#39;V(2)&#39; or &#39;V(3)&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wire_thickness_direction</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span>
+            <span class="s2">&quot;wire_thickness_direction&quot;</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;property_type&quot;</span><span class="p">:</span> <span class="s2">&quot;ChoiceProperty&quot;</span><span class="p">,</span> <span class="s2">&quot;Choice&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wire_width_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Width direction of the wire can either be &quot;V(1)&quot;, &quot;V(2)&quot; or &quot;V(3)&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        string</span>
+<span class="sd">            Width direction of the wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wire_width_direction</span>
+
+    <span class="nd">@wire_width_direction</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">wire_width_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;V(1)&quot;</span><span class="p">,</span> <span class="s2">&quot;V(2)&quot;</span><span class="p">,</span> <span class="s2">&quot;V(3)&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Width direction of the wire can either be &#39;V(1)&#39;, &#39;V(2)&#39; or &#39;V(3)&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wire_width_direction</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="s2">&quot;wire_width_direction&quot;</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;property_type&quot;</span><span class="p">:</span> <span class="s2">&quot;ChoiceProperty&quot;</span><span class="p">,</span> <span class="s2">&quot;Choice&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">}))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">strand_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Strand number for litz wire.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Material.MatProperty`</span>
+<span class="sd">            Number of strands for the wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strand_number</span>
+
+    <span class="nd">@strand_number</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">strand_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_strand_number</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="s2">&quot;strand_number&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wire_thickness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Thickness of rectangular litz wire.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Material.MatProperty`</span>
+<span class="sd">            Thickness of the litz wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wire_thickness</span>
+
+    <span class="nd">@wire_thickness</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">wire_thickness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wire_thickness</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="s2">&quot;wire_thickness&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wire_diameter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Diameter of the round litz wire.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Material.MatProperty`</span>
+<span class="sd">            Diameter of the litz wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wire_diameter</span>
+
+    <span class="nd">@wire_diameter</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">wire_diameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wire_diameter</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="s2">&quot;wire_diameter&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">wire_width</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Width of the rectangular or square litz wire.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Material.MatProperty`</span>
+<span class="sd">            Width of the litz wire.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oDefinitionManager.EditMaterial</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wire_width</span>
+
+    <span class="nd">@wire_width</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">wire_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_wire_width</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_props</span><span class="p">(</span><span class="s2">&quot;wire_width&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
 <div class="viewcode-block" id="Material.set_magnetic_coercitivity"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.Material.Material.set_magnetic_coercitivity.html#pyaedt.modules.Material.Material.set_magnetic_coercitivity">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">set_magnetic_coercitivity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set Magnetic Coercitivity for material.</span>
@@ -1998,9 +2198,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;Frequency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">Hz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;Thickness&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">thickness</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;IsTemperatureDependent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;Point&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;BPCoordinates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;BPCoordinates&quot;</span><span class="p">][</span><span class="s2">&quot;Point&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">point_list</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;Point&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_props</span><span class="p">[</span><span class="s2">&quot;core_loss_curves&quot;</span><span class="p">][</span><span class="s2">&quot;BPCoordinates&quot;</span><span class="p">][</span><span class="s2">&quot;Point&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Material.get_curve_coreloss_type"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.Material.Material.get_curve_coreloss_type.html#pyaedt.modules.Material.Material.get_curve_coreloss_type">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
