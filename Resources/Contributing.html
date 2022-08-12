@@ -46,7 +46,7 @@
     <link rel="shortcut icon" href="../_static/favicon.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="Code guidelines" href="Code_Guidelines.html" />
+    <link rel="prev" title="window" href="../API/_autosummary/pyaedt.modules.report_templates.Spectral.window.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="docsearch:language" content="en">
   </head>
@@ -112,12 +112,6 @@
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../API/index.html">
   API documentation
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="Code_Guidelines.html">
-  Code guidelines
  </a>
 </li>
 
@@ -237,6 +231,28 @@
   <a class="reference internal nav-link" href="#adhere-to-code-style">
    Adhere to code style
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#log-errors">
+     Log errors
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#handle-exceptions">
+     Handle exceptions
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#hard-coded-values">
+     Hard-coded values
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#maximum-line-length">
+     Maximum line length
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -312,6 +328,76 @@ flake8...................................................................Passed
 codespell................................................................Passed
 </pre></div>
 </div>
+<section id="log-errors">
+<h3>Log errors<a class="headerlink" href="#log-errors" title="Permalink to this heading">#</a></h3>
+<p>PyAEDT has an internal logging tool named <code class="docutils literal notranslate"><span class="pre">Messenger</span></code>
+and a log file that is automatically generated in the project
+folder.</p>
+<p>The following examples demonstrate how <code class="docutils literal notranslate"><span class="pre">Messenger</span></code> is used to
+write both to the internal AEDT message windows and the log file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This is an error message.&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This is a warning message.&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;This is an info message.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These examples demonstrate how to write messages only to the log file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This is an error message.&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This is a warning message.&quot;</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;This is an info message.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="handle-exceptions">
+<h3>Handle exceptions<a class="headerlink" href="#handle-exceptions" title="Permalink to this heading">#</a></h3>
+<p>PyAEDT uses a specific decorator, <code class="docutils literal notranslate"><span class="pre">&#64;pyaedt_function_handler</span></code>,
+to handle exceptions caused by methods and by the AEDT API.
+This exception handler decorator makes PyAEDT fault tolerant
+to errors that can occur in any method.</p>
+<p>For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">my_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Every method can return a value of <code class="docutils literal notranslate"><span class="pre">True</span></code> when successful or
+<code class="docutils literal notranslate"><span class="pre">False</span></code> when failed. When a failure occurs, the error
+handler returns information about the error in both the console and
+log file.</p>
+<p>Here is an example of an error:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">----------------------------------------------------------------------------------</span>
+<span class="n">PyAEDT</span> <span class="n">error</span> <span class="n">on</span> <span class="n">method</span> <span class="n">create_box</span><span class="p">:</span>  <span class="n">General</span> <span class="ow">or</span> <span class="n">AEDT</span> <span class="n">error</span><span class="o">.</span> <span class="n">Check</span> <span class="n">again</span>
+<span class="n">the</span> <span class="n">arguments</span> <span class="n">provided</span><span class="p">:</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">dimensions_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">matname</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="o">----------------------------------------------------------------------------------</span>
+
+<span class="p">(</span><span class="o">-</span><span class="mi">2147352567</span><span class="p">,</span> <span class="s1">&#39;Exception occurred.&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">2147024381</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+  <span class="n">File</span> <span class="s2">&quot;C:\GIT</span><span class="se">\r</span><span class="s2">epos\AnsysAutomation\PyAEDT\Primitives.py&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1930</span><span class="p">,</span> <span class="ow">in</span> <span class="n">create_box</span>
+    <span class="n">o</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">createbox</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
+
+<span class="o">************************************************************</span>
+<span class="n">Method</span> <span class="n">Docstring</span><span class="p">:</span>
+
+<span class="n">Create</span> <span class="n">a</span> <span class="n">box</span><span class="o">.</span>
+
+<span class="n">Parameters</span>
+<span class="o">----------</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="hard-coded-values">
+<h3>Hard-coded values<a class="headerlink" href="#hard-coded-values" title="Permalink to this heading">#</a></h3>
+<p>Do not write hard-coded values to the registry. Instead, use the Configuration service.</p>
+</section>
+<section id="maximum-line-length">
+<h3>Maximum line length<a class="headerlink" href="#maximum-line-length" title="Permalink to this heading">#</a></h3>
+<p>Best practice is to keep the length at or below 120 characters for code, docstrings,
+and comments. Lines longer than this might not display properly on some terminals
+and tools or might be difficult to follow.</p>
+</section>
 </section>
 </section>
 
