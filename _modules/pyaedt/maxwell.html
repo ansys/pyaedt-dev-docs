@@ -1631,7 +1631,89 @@
             <span class="n">port</span><span class="p">,</span>
             <span class="n">aedt_process_id</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">Maxwell</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+        <span class="n">Maxwell</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Maxwell3d.assign_insulating"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell3d.assign_insulating.html#pyaedt.Maxwell3d.assign_insulating">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">assign_insulating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometry_selection</span><span class="p">,</span> <span class="n">insulation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an insulating boundary condition.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        geometry_selection : str</span>
+<span class="sd">            Objects to apply the insulating boundary to.</span>
+<span class="sd">        insulation_name : str, optional</span>
+<span class="sd">            Name of the insulation. The default is ``None`` in which case a unique name is chosen.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object if successful, ``False`` otherwise.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.AssignInsulating</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Create a box and assign insulating boundary to it.</span>
+
+<span class="sd">        &gt;&gt;&gt; insulated_box = maxwell3d_app.modeler.create_box([50, 0, 50], [294, 294, 19], name=&quot;InsulatedBox&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; insulating_assignment = maxwell3d_app.assign_insulating(insulated_box, &quot;InsulatingExample&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; type(insulating_assignment)</span>
+<span class="sd">        &lt;class &#39;pyaedt.modules.Boundary.BoundaryObject&#39;&gt;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;EddyCurrent&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;TransientAPhiFormulation&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;DCConduction&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ElectroDCConduction&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">insulation</span><span class="p">:</span>
+                <span class="n">insulation</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Insulation&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">insulation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_boundaries_name</span><span class="p">():</span>
+                <span class="n">insulation</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">insulation</span><span class="p">)</span>
+
+            <span class="n">listobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">geometry_selection</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">listobj</span><span class="p">}</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">insulation</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Insulating&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_create_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">boundary_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a boundary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the boundary.</span>
+<span class="sd">        props : list</span>
+<span class="sd">            List of properties for the boundary.</span>
+<span class="sd">        boundary_type :</span>
+<span class="sd">            Type of the boundary.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">boundary_type</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Boundary </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> has been correctly created.&quot;</span><span class="p">,</span> <span class="n">boundary_type</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bound</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error in boundary creation for </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">boundary_type</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
 
 
 <div class="viewcode-block" id="Maxwell2d"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell2d.html#pyaedt.Maxwell2d">[docs]</a><span class="k">class</span> <span class="nc">Maxwell2d</span><span class="p">(</span><span class="n">Maxwell</span><span class="p">,</span> <span class="n">FieldAnalysis3D</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
