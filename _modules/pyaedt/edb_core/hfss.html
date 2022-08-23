@@ -283,6 +283,40 @@
     <span class="k">def</span> <span class="nf">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_create_edge_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prim_id</span><span class="p">,</span> <span class="n">point_on_edge</span><span class="p">,</span> <span class="n">terminal_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_ref</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an edge terminal.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prim_id : int</span>
+<span class="sd">            Primitive ID.</span>
+<span class="sd">        point_on_edge : list</span>
+<span class="sd">            Coordinate of the point to define the edge terminal.</span>
+<span class="sd">            The point must be on the target edge but not on the two</span>
+<span class="sd">            ends of the edge.</span>
+<span class="sd">        terminal_name : str, optional</span>
+<span class="sd">            Name of the terminal. The default is ``None``, in which case the</span>
+<span class="sd">            default name is assigned.</span>
+<span class="sd">        is_ref : bool, optional</span>
+<span class="sd">            Whether it is a reference terminal. The default is ``False``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Edb.Cell.Terminal.EdgeTerminal</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">terminal_name</span><span class="p">:</span>
+            <span class="n">terminal_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Terminal_&quot;</span><span class="p">)</span>
+
+        <span class="n">point_on_edge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">point_on_edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">point_on_edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">prim</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">prim_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">primitive_object</span>
+        <span class="n">pos_edge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">PrimitiveEdge</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="n">prim</span><span class="p">,</span> <span class="n">point_on_edge</span><span class="p">)</span>
+        <span class="n">pos_edge</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pos_edge</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">Edge</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">EdgeTerminal</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+            <span class="n">prim</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">(),</span> <span class="n">prim</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span> <span class="n">terminal_name</span><span class="p">,</span> <span class="n">pos_edge</span><span class="p">,</span> <span class="n">isRef</span><span class="o">=</span><span class="n">is_ref</span>
+        <span class="p">)</span>
+
 <div class="viewcode-block" id="EdbHfss.get_trace_width_for_traces_with_ports"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.get_trace_width_for_traces_with_ports.html#pyaedt.edb_core.hfss.EdbHfss.get_trace_width_for_traces_with_ports">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_trace_width_for_traces_with_ports</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the trace width for traces with ports.</span>
@@ -761,6 +795,92 @@
                 <span class="n">ref_edge_term</span><span class="o">.</span><span class="n">SetImpedance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">port_impedance</span><span class="p">))</span>
             <span class="n">edge_term</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">ref_edge_term</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EdbHfss.create_edge_port_vertical"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_edge_port_vertical.html#pyaedt.edb_core.hfss.EdbHfss.create_edge_port_vertical">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_edge_port_vertical</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prim_id</span><span class="p">,</span>
+        <span class="n">point_on_edge</span><span class="p">,</span>
+        <span class="n">port_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">reference_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a vertical edge port.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prim_id : int</span>
+<span class="sd">            Primitive ID.</span>
+<span class="sd">        point_on_edge : list</span>
+<span class="sd">            Coordinate of the point to define the edge terminal.</span>
+<span class="sd">            The point must be on the target edge but not on the two</span>
+<span class="sd">            ends of the edge.</span>
+<span class="sd">        port_name : str, optional</span>
+<span class="sd">            Name of the port. The default is ``None``.</span>
+<span class="sd">        impedance : int, float, optional</span>
+<span class="sd">            Impedance of the port. The default value is ``50``.</span>
+<span class="sd">        reference_layer : str, optional</span>
+<span class="sd">            Reference layer of the port. The default is ``None``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Port name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pos_edge_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_edge_terminal</span><span class="p">(</span><span class="n">prim_id</span><span class="p">,</span> <span class="n">point_on_edge</span><span class="p">,</span> <span class="n">port_name</span><span class="p">)</span>
+        <span class="n">pos_edge_term</span><span class="o">.</span><span class="n">SetImpedance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">impedance</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">reference_layer</span><span class="p">:</span>
+            <span class="n">reference_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">reference_layer</span><span class="p">]</span><span class="o">.</span><span class="n">_layer</span>
+            <span class="n">pos_edge_term</span><span class="o">.</span><span class="n">SetReferenceLayer</span><span class="p">(</span><span class="n">reference_layer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pos_edge_term</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">port_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="EdbHfss.create_edge_port_horizontal"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_edge_port_horizontal.html#pyaedt.edb_core.hfss.EdbHfss.create_edge_port_horizontal">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_edge_port_horizontal</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prim_id</span><span class="p">,</span>
+        <span class="n">point_on_edge</span><span class="p">,</span>
+        <span class="n">ref_prim_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">point_on_ref_edge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">port_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a horizontal edge port.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prim_id : int</span>
+<span class="sd">            Primitive ID.</span>
+<span class="sd">        point_on_edge : list</span>
+<span class="sd">            Coordinate of the point to define the edge terminal.</span>
+<span class="sd">            The point must be on the target edge but not on the two</span>
+<span class="sd">            ends of the edge.</span>
+<span class="sd">        ref_prim_id : int, optional</span>
+<span class="sd">            Reference primitive ID. The default is ``None``.</span>
+<span class="sd">        point_on_ref_edge : list, optional</span>
+<span class="sd">            Coordinate of the point to define the reference edge</span>
+<span class="sd">            terminal. The point must be on the target edge but not</span>
+<span class="sd">            on the two ends of the edge. The default is ``None``.</span>
+<span class="sd">        port_name : str, optional</span>
+<span class="sd">            Name of the port. The default is ``None``.</span>
+<span class="sd">        impedance : int, float, optional</span>
+<span class="sd">            Impedance of the port. The default value is ``50``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the port.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pos_edge_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_edge_terminal</span><span class="p">(</span><span class="n">prim_id</span><span class="p">,</span> <span class="n">point_on_edge</span><span class="p">,</span> <span class="n">port_name</span><span class="p">)</span>
+        <span class="n">neg_edge_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_edge_terminal</span><span class="p">(</span><span class="n">ref_prim_id</span><span class="p">,</span> <span class="n">point_on_ref_edge</span><span class="p">,</span> <span class="n">port_name</span> <span class="o">+</span> <span class="s2">&quot;_ref&quot;</span><span class="p">,</span> <span class="n">is_ref</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">pos_edge_term</span><span class="o">.</span><span class="n">SetImpedance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">impedance</span><span class="p">))</span>
+        <span class="n">pos_edge_term</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_edge_term</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pos_edge_term</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">port_name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="EdbHfss.create_lumped_port_on_net"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_lumped_port_on_net.html#pyaedt.edb_core.hfss.EdbHfss.create_lumped_port_on_net">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_lumped_port_on_net</span><span class="p">(</span>

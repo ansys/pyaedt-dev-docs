@@ -348,6 +348,8 @@
         <span class="n">wave_horizontal_extension</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
         <span class="n">wave_vertical_extension</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="n">wave_launcher</span><span class="o">=</span><span class="s2">&quot;1mm&quot;</span><span class="p">,</span>
+        <span class="n">ref_primitive_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">ref_edge_number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an edge port.</span>
 
@@ -368,6 +370,11 @@
 <span class="sd">        wave_launcher : str, optional</span>
 <span class="sd">            PEC (perfect electrical conductor) launcher size with units. The</span>
 <span class="sd">            default is `&quot;1mm&quot;`.</span>
+<span class="sd">        ref_primitive_name : str, optional</span>
+<span class="sd">            Name of the reference primitive to place negative edge port terminal.</span>
+<span class="sd">            The default is ``None``.</span>
+<span class="sd">        ref_edge_number : str, int</span>
+<span class="sd">            Edge number of reference primitive. The default is ``0``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -391,8 +398,16 @@
                 <span class="mi">0</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="p">)</span>
+
         <span class="n">listnew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">port_list</span>
         <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">listnew</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">listp</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ref_primitive_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">AddRefPort</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+                <span class="p">[</span><span class="s2">&quot;NAME:Contents&quot;</span><span class="p">,</span> <span class="s2">&quot;edge:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;et:=&quot;</span><span class="p">,</span> <span class="s2">&quot;pe&quot;</span><span class="p">,</span> <span class="s2">&quot;prim:=&quot;</span><span class="p">,</span> <span class="n">ref_primitive_name</span><span class="p">,</span> <span class="s2">&quot;edge:=&quot;</span><span class="p">,</span> <span class="n">ref_edge_number</span><span class="p">]],</span>
+            <span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">iswave</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
@@ -423,6 +438,78 @@
                     <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">return</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.create_wave_port"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.create_wave_port.html#pyaedt.Hfss3dLayout.create_wave_port">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_wave_port</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">primivitive_name</span><span class="p">,</span>
+        <span class="n">edge_number</span><span class="p">,</span>
+        <span class="n">wave_horizontal_extension</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">wave_vertical_extension</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">wave_launcher</span><span class="o">=</span><span class="s2">&quot;1mm&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a single-ended wave port.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        primivitive_name : str</span>
+<span class="sd">            Name of the primitive to create the edge port on.</span>
+<span class="sd">        edge_number : int</span>
+<span class="sd">            Edge number to create the edge port on.</span>
+<span class="sd">        wave_horizontal_extension : float, optional</span>
+<span class="sd">            Horizontal port extension factor. The default is ``5``.</span>
+<span class="sd">        wave_vertical_extension : float, optional</span>
+<span class="sd">            Vertical port extension factor. The default is ``5``.</span>
+<span class="sd">        wave_launcher : str, optional</span>
+<span class="sd">            PEC (perfect electrical conductor) launcher size with units. The</span>
+<span class="sd">            default is ``&quot;1mm&quot;``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the port when successful, ``False`` when failed.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">port_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_edge_port</span><span class="p">(</span>
+            <span class="n">primivitive_name</span><span class="p">,</span>
+            <span class="n">edge_number</span><span class="p">,</span>
+            <span class="n">wave_horizontal_extension</span><span class="o">=</span><span class="n">wave_horizontal_extension</span><span class="p">,</span>
+            <span class="n">wave_vertical_extension</span><span class="o">=</span><span class="n">wave_vertical_extension</span><span class="p">,</span>
+            <span class="n">wave_launcher</span><span class="o">=</span><span class="n">wave_launcher</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">port_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
+                <span class="n">property_object</span><span class="o">=</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port_name</span><span class="p">),</span>
+                <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;HFSS Type&quot;</span><span class="p">,</span>
+                <span class="n">property_value</span><span class="o">=</span><span class="s2">&quot;Wave&quot;</span><span class="p">,</span>
+                <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
+                <span class="n">property_object</span><span class="o">=</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port_name</span><span class="p">),</span>
+                <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;Horizontal Extent Factor&quot;</span><span class="p">,</span>
+                <span class="n">property_value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">wave_horizontal_extension</span><span class="p">),</span>
+                <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;Vertical Extent Factor&quot;</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetProperties</span><span class="p">(</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port_name</span><span class="p">))</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
+                    <span class="n">property_object</span><span class="o">=</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port_name</span><span class="p">),</span>
+                    <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;Vertical Extent Factor&quot;</span><span class="p">,</span>
+                    <span class="n">property_value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">wave_vertical_extension</span><span class="p">),</span>
+                    <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
+                <span class="n">property_object</span><span class="o">=</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port_name</span><span class="p">),</span>
+                <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;PEC Launch Width&quot;</span><span class="p">,</span>
+                <span class="n">property_value</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">wave_launcher</span><span class="p">),</span>
+                <span class="n">property_tab</span><span class="o">=</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">port_name</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
