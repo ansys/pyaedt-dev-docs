@@ -210,6 +210,7 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
@@ -221,6 +222,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">MATRIXOPERATIONSQ3D</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span> <span class="k">as</span> <span class="n">go</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">Matrix</span>
 
@@ -575,6 +577,345 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">osolution</span><span class="o">.</span><span class="n">EditSources</span><span class="p">(</span><span class="n">setting_CG</span><span class="p">,</span> <span class="n">setting_AC</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">export_matrix_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">file_name</span><span class="p">,</span>
+        <span class="n">problem_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">variations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sweep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">reduce_matrix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">r_unit</span><span class="o">=</span><span class="s2">&quot;ohm&quot;</span><span class="p">,</span>
+        <span class="n">l_unit</span><span class="o">=</span><span class="s2">&quot;nH&quot;</span><span class="p">,</span>
+        <span class="n">c_unit</span><span class="o">=</span><span class="s2">&quot;pF&quot;</span><span class="p">,</span>
+        <span class="n">g_unit</span><span class="o">=</span><span class="s2">&quot;mho&quot;</span><span class="p">,</span>
+        <span class="n">freq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">freq_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">matrix_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">export_AC_DC_res</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">field_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_sci_notation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">length_setting</span><span class="o">=</span><span class="s2">&quot;Distributed&quot;</span><span class="p">,</span>
+        <span class="n">length</span><span class="o">=</span><span class="s2">&quot;1meter&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export matrix data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file_name : str</span>
+<span class="sd">            Full path to save the matrix data to.</span>
+<span class="sd">            Options for file extensions are: *.m, *.lvl, *.csv, *.txt.</span>
+<span class="sd">        problem_type : str, optional</span>
+<span class="sd">            Problem type. The default value is ``None``, in which case ``&quot;C&quot;``</span>
+<span class="sd">            is used. Options are ``&quot;C&quot;``, ``&quot;AC RL&quot;``, and ``&quot;DC RL&quot;``.</span>
+<span class="sd">        variations : str, optional</span>
+<span class="sd">            Design variation. The default is ``None``, in which case the</span>
+<span class="sd">            current nominal variation is used.</span>
+<span class="sd">        setup_name : str, optional</span>
+<span class="sd">            Setup name. The default value is ``None``, in which case the first</span>
+<span class="sd">            analysis setup is used.</span>
+<span class="sd">        sweep : str, optional</span>
+<span class="sd">            Solution frequency. The default is ``None``, in which case</span>
+<span class="sd">            the default adaptive is used.</span>
+<span class="sd">        reduce_matrix : str, optional</span>
+<span class="sd">            Name of the matrix to display.</span>
+<span class="sd">            Default value is ``&quot;Original&quot;``.</span>
+<span class="sd">        r_unit : str, optional</span>
+<span class="sd">            Resistance unit value.</span>
+<span class="sd">            The default value is ``&quot;ohm&quot;``.</span>
+<span class="sd">        l_unit : str, optional</span>
+<span class="sd">            Inductance unit value.</span>
+<span class="sd">            The default value is ``&quot;nH&quot;``.</span>
+<span class="sd">        c_unit : str, optional</span>
+<span class="sd">            Capacitance unit value.</span>
+<span class="sd">            Default value is ``&quot;pF&quot;``.</span>
+<span class="sd">        g_unit : str, optional</span>
+<span class="sd">            Conductance unit value.</span>
+<span class="sd">            The default value is ``&quot;mho&quot;``.</span>
+<span class="sd">        freq : str, optional</span>
+<span class="sd">            Selected frequency.</span>
+<span class="sd">            The default value is ``&quot;0Hz&quot;``.</span>
+<span class="sd">        freq_unit : str, optional</span>
+<span class="sd">            Frequency unit. The default value is ``None``, in which case the</span>
+<span class="sd">            default unit is used.</span>
+<span class="sd">        matrix_type : str, optional</span>
+<span class="sd">            Matrix Type.</span>
+<span class="sd">            Possible Values are &quot;Maxwell&quot;, &quot;Spice&quot; and &quot;Couple&quot;.</span>
+<span class="sd">            Default value is &quot;Maxwell, Spice, Couple&quot;.</span>
+<span class="sd">        export_AC_DC_res : bool, optional</span>
+<span class="sd">            Whether to add the AC and DC res.</span>
+<span class="sd">            Default value is ``False``.</span>
+<span class="sd">        precision : int, optional</span>
+<span class="sd">            Precision format.</span>
+<span class="sd">            Default value is ``15``.</span>
+<span class="sd">        field_width : int, optional</span>
+<span class="sd">            Field Width.</span>
+<span class="sd">            The default value is ``20``.</span>
+<span class="sd">        use_sci_notation : bool, optional</span>
+<span class="sd">            Use sci notation.</span>
+<span class="sd">            Whether to use scientific notation.</span>
+<span class="sd">            The default value is ``True``.  When ``False``, the display format is used.</span>
+<span class="sd">        length_setting : str, optional</span>
+<span class="sd">            Length setting if the design si 2D.</span>
+<span class="sd">            The default value is ``&quot;Distributed&quot;``.</span>
+<span class="sd">        length : str, optional</span>
+<span class="sd">            Length.</span>
+<span class="sd">            The default value is ``&quot;1meter&quot;``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file_name</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.m&quot;</span><span class="p">,</span> <span class="s2">&quot;.lvl&quot;</span><span class="p">,</span> <span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;.txt&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Extension is invalid. Possible extensions are *.m, *.lvl, *.csv, and *.txt.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_is3d</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">problem_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">problem_type</span> <span class="o">=</span> <span class="s2">&quot;CG&quot;</span>
+                <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">matrix_type</span> <span class="o">=</span> <span class="s2">&quot;Maxwell, Spice, Couple&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">matrix_type_array</span> <span class="o">=</span> <span class="n">matrix_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">matrix_type_array</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Maxwell&quot;</span><span class="p">,</span> <span class="s2">&quot;Spice&quot;</span><span class="p">,</span> <span class="s2">&quot;Couple&quot;</span><span class="p">]]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid input matrix type. Possible values are Maxwell, Spice, and Couple.&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">problem_type_array</span> <span class="o">=</span> <span class="n">problem_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">problem_type_array</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;CG&quot;</span><span class="p">,</span> <span class="s2">&quot;RL&quot;</span><span class="p">]]:</span>
+                    <span class="k">if</span> <span class="s2">&quot;CG&quot;</span> <span class="ow">in</span> <span class="n">problem_type_array</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">matrix_type</span> <span class="o">=</span> <span class="s2">&quot;Maxwell, Spice, Couple&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">matrix_type</span> <span class="o">=</span> <span class="s2">&quot;Maxwell, Couple&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">matrix_type_array</span> <span class="o">=</span> <span class="n">matrix_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">matrix_type_array</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Spice&quot;</span><span class="p">]:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Spice can&#39;t be a matrix type if problem type is RL.&quot;</span><span class="p">)</span>
+                                <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid problem type. Possible values are CG and RL.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">problem_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">problem_type</span> <span class="o">=</span> <span class="s2">&quot;C&quot;</span>
+                <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">matrix_type</span> <span class="o">=</span> <span class="s2">&quot;Maxwell, Spice, Couple&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">matrix_type_array</span> <span class="o">=</span> <span class="n">matrix_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">matrix_type_array</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Maxwell&quot;</span><span class="p">,</span> <span class="s2">&quot;Spice&quot;</span><span class="p">,</span> <span class="s2">&quot;Couple&quot;</span><span class="p">]]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid input matrix type. Possible values are Maxwell, Spice, and Couple.&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">problem_type_array</span> <span class="o">=</span> <span class="n">problem_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">problem_type_array</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="s2">&quot;AC RL&quot;</span><span class="p">,</span> <span class="s2">&quot;DC RL&quot;</span><span class="p">]]:</span>
+                    <span class="k">if</span> <span class="s2">&quot;C&quot;</span> <span class="ow">in</span> <span class="n">problem_type_array</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">matrix_type</span> <span class="o">=</span> <span class="s2">&quot;Maxwell, Spice, Couple&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">matrix_type</span> <span class="o">=</span> <span class="s2">&quot;Maxwell, Couple&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">matrix_type_array</span> <span class="o">=</span> <span class="n">matrix_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">matrix_type_array</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;Spice&quot;</span><span class="p">]:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Spice can&#39;t be a matrix type if problem type is AC RL or DC RL.&quot;</span><span class="p">)</span>
+                                <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid problem type. Possible values are C, AC RL, and DC RL.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">variations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">available_variations</span><span class="o">.</span><span class="n">nominal_w_values_dict</span><span class="p">:</span>
+                <span class="n">variations</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">variations_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">available_variations</span><span class="o">.</span><span class="n">nominal_w_values_dict</span><span class="p">)):</span>
+                    <span class="n">variation</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">=&#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">available_variations</span><span class="o">.</span><span class="n">nominal_w_values_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">x</span><span class="p">],</span>
+                        <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">available_variations</span><span class="o">.</span><span class="n">nominal_w_values_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="n">x</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="n">variations_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variation</span><span class="p">)</span>
+                <span class="n">variations</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">variations_list</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">setup_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">setup_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analysis_setup</span>
+        <span class="k">elif</span> <span class="n">setup_name</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">analysis_setup</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Setup named: </span><span class="si">%s</span><span class="s2"> is invalid. Provide a valid analysis setup name.&quot;</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">sweep</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_solutions</span><span class="o">.</span><span class="n">default_adaptive</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sweep_array</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;: &quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_analysis_sweeps</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">sweep</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sweep_array</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Sweep is invalid. Provide a valid sweep.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">analysis_setup</span> <span class="o">=</span> <span class="n">setup_name</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">sweep</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">reduce_matrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">reduce_matrix</span> <span class="o">=</span> <span class="s2">&quot;Original&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrices</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">[</span><span class="n">matrix</span> <span class="k">for</span> <span class="n">matrix</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrices</span> <span class="k">if</span> <span class="n">matrix</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">reduce_matrix</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Matrix doesn&#39;t exist. Provide an existing matrix.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;List of matrix parameters is empty. Cannot export a valid matrix.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">r_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">r_unit</span> <span class="o">=</span> <span class="s2">&quot;ohm&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">r_unit</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;ohm&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Provide a valid unit for resistor.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">l_unit</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Provide a valid unit for inductor.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">c_unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;fF&quot;</span><span class="p">,</span> <span class="s2">&quot;pF&quot;</span><span class="p">,</span> <span class="s2">&quot;nF&quot;</span><span class="p">,</span> <span class="s2">&quot;uF&quot;</span><span class="p">,</span> <span class="s2">&quot;mF&quot;</span><span class="p">,</span> <span class="s2">&quot;farad&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Provide a valid unit for capacitance.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">g_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">g_unit</span> <span class="o">=</span> <span class="s2">&quot;mho&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">g_unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;fSie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;pSie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;nSie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;uSie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;mSie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Sie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;kSie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;megSie&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;mho&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;perohm&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;apV&quot;</span><span class="p">,</span>
+            <span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Provide a valid unit for conductance.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\d+)\s*(\w+)&quot;</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">match</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Analysis&quot;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="n">setup_name</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">GetPropValue</span><span class="p">(</span><span class="s2">&quot;Adaptive Freq&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">freq_unit</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">GetDefaultUnit</span><span class="p">(</span><span class="s2">&quot;Frequency&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">freq_unit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">freq</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">parse_dim_arg</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">freq_unit</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">GetDefaultUnit</span><span class="p">(</span><span class="s2">&quot;Frequency&quot;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">export_AC_DC_res</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">export_AC_DC_res</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="mi">15</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">precision</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Precision type must be integer.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">field_width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">field_width</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field_width</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Field width type must be integer.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">use_sci_notation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">use_sci_notation</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">use_sci_notation</span><span class="p">:</span>
+                <span class="n">use_sci_notation</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">use_sci_notation</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_is3d</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">length_setting</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Distributed&quot;</span><span class="p">,</span> <span class="s2">&quot;Lumped&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Length setting is invalid.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">length</span> <span class="o">=</span> <span class="s2">&quot;1meter&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\d+)\s*(\w+)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">length</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
+                    <span class="s2">&quot;fm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;pm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;nm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;um&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;cm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;dm&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;meter&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;km&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;copper_oz&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;ft&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;in&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;mil&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;mile&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;mileNaut&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;mileTerr&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;uin&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;yd&quot;</span><span class="p">,</span>
+                <span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unit length is invalid.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ExportMatrixData</span><span class="p">(</span>
+                    <span class="n">file_name</span><span class="p">,</span>
+                    <span class="n">problem_type</span><span class="p">,</span>
+                    <span class="n">variations</span><span class="p">,</span>
+                    <span class="n">analysis_setup</span><span class="p">,</span>
+                    <span class="n">reduce_matrix</span><span class="p">,</span>
+                    <span class="n">r_unit</span><span class="p">,</span>
+                    <span class="n">l_unit</span><span class="p">,</span>
+                    <span class="n">c_unit</span><span class="p">,</span>
+                    <span class="n">g_unit</span><span class="p">,</span>
+                    <span class="n">freq</span><span class="p">,</span>
+                    <span class="n">length_setting</span><span class="p">,</span>
+                    <span class="n">length</span><span class="p">,</span>
+                    <span class="n">matrix_type</span><span class="p">,</span>
+                    <span class="n">export_AC_DC_res</span><span class="p">,</span>
+                    <span class="n">precision</span><span class="p">,</span>
+                    <span class="n">field_width</span><span class="p">,</span>
+                    <span class="n">use_sci_notation</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Export of matrix data was unsuccessful.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ExportMatrixData</span><span class="p">(</span>
+                    <span class="n">file_name</span><span class="p">,</span>
+                    <span class="n">problem_type</span><span class="p">,</span>
+                    <span class="n">variations</span><span class="p">,</span>
+                    <span class="n">analysis_setup</span><span class="p">,</span>
+                    <span class="n">reduce_matrix</span><span class="p">,</span>
+                    <span class="n">r_unit</span><span class="p">,</span>
+                    <span class="n">l_unit</span><span class="p">,</span>
+                    <span class="n">c_unit</span><span class="p">,</span>
+                    <span class="n">g_unit</span><span class="p">,</span>
+                    <span class="n">freq</span><span class="p">,</span>
+                    <span class="n">matrix_type</span><span class="p">,</span>
+                    <span class="n">export_AC_DC_res</span><span class="p">,</span>
+                    <span class="n">precision</span><span class="p">,</span>
+                    <span class="n">field_width</span><span class="p">,</span>
+                    <span class="n">use_sci_notation</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Export of matrix data was unsuccessful.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
 
 
 <div class="viewcode-block" id="Q3d"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.html#pyaedt.Q3d">[docs]</a><span class="k">class</span> <span class="nc">Q3d</span><span class="p">(</span><span class="n">QExtractor</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>

@@ -208,6 +208,7 @@
   <h1>Source code for pyaedt.modeler.Primitives3DLayout</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
@@ -944,7 +945,7 @@
         <span class="k">return</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.create_circle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_circle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_circle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a circle on a layer.</span>
 
 <span class="sd">        Parameters</span>
@@ -960,7 +961,7 @@
 <span class="sd">        name : str, optional</span>
 <span class="sd">            Name of the circle. The default is ``None``, in which case the</span>
 <span class="sd">            default name is assigned.</span>
-<span class="sd">        netname : str, optional</span>
+<span class="sd">        net_name : str, optional</span>
 <span class="sd">            Name of the net. The default is ``None``, in which case the</span>
 <span class="sd">            default name is assigned.</span>
 
@@ -974,6 +975,12 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateCircle</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;netname&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`netname` is deprecated. Use `net_name` instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">net_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;netname&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">_uname</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -991,11 +998,18 @@
         <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;r:=&quot;</span><span class="p">),</span> <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">radius</span><span class="p">))</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vArg2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateCircle</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Circle3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">primitive</span> <span class="o">=</span> <span class="n">Circle3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_circles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">primitive</span>
+
+        <span class="k">if</span> <span class="n">net_name</span><span class="p">:</span>
+            <span class="n">primitive</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="n">property_val</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;NAME:Net&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">net_name</span><span class="p">])</span>
+
         <span class="k">return</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.create_rectangle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_rectangle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_rectangle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_rectangle</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">corner_radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a rectangle on a layer.</span>
 
 <span class="sd">        Parameters</span>
@@ -1003,16 +1017,16 @@
 <span class="sd">        layername : str</span>
 <span class="sd">            Name of the layer.</span>
 <span class="sd">        origin : list</span>
-<span class="sd">            Origin of the coordinate system in a list of ``[x, y, z]`` coordinates.</span>
+<span class="sd">            Origin of the coordinate system in a list of ``[x, y]`` coordinates.</span>
 <span class="sd">        dimensions : list</span>
-<span class="sd">            Dimensions for the box in a list of ``[x, y, z]`` coordinates.</span>
+<span class="sd">            Dimensions for the box in a list of ``[x, y]`` coordinates.</span>
 <span class="sd">        corner_radius : float, optional</span>
 <span class="sd">        angle : float, optional</span>
 <span class="sd">            Angle rotation in degrees. The default is ``0``.</span>
 <span class="sd">        name : str, optional</span>
 <span class="sd">            Name of the rectangle. The default is ``None``, in which case the</span>
 <span class="sd">            default name is assigned.</span>
-<span class="sd">        netname : str, optional</span>
+<span class="sd">        net_name : str, optional</span>
 <span class="sd">            Name of the net. The default is ``None``, in which case the</span>
 <span class="sd">            default name is assigned.</span>
 
@@ -1026,7 +1040,12 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateRectangle</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
+        <span class="k">if</span> <span class="s2">&quot;netname&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`netname` is deprecated. Use `net_name` instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">net_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;netname&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">_uname</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1047,11 +1066,18 @@
         <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ang=&quot;</span><span class="p">),</span> <span class="n">vArg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vArg2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateRectangle</span><span class="p">(</span><span class="n">vArg1</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rect3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">primitive</span> <span class="o">=</span> <span class="n">Rect3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rectangles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">primitive</span>
+
+        <span class="k">if</span> <span class="n">net_name</span><span class="p">:</span>
+            <span class="n">primitive</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="n">property_val</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;NAME:Net&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">net_name</span><span class="p">])</span>
+
         <span class="k">return</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.create_line"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_line">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">center_line_list</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">start_style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end_style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_line</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">center_line_list</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">start_style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">end_style</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a line based on a list of points.</span>
 
 <span class="sd">        Parameters</span>
@@ -1059,7 +1085,7 @@
 <span class="sd">        layername : str</span>
 <span class="sd">            Name of the layer to create the line on.</span>
 <span class="sd">        center_line_list : list</span>
-<span class="sd">            List of centerline coordinates in the form of ``[x, y, z]``.</span>
+<span class="sd">            List of centerline coordinates in the form of ``[x, y]``.</span>
 <span class="sd">        lw : float, optional</span>
 <span class="sd">            Line width. The default is ``1``.</span>
 <span class="sd">        start_style :</span>
@@ -1076,7 +1102,7 @@
 <span class="sd">        name : str, optional</span>
 <span class="sd">            Name  of the line. The default is ``None``, in which case the</span>
 <span class="sd">            default name is assigned.</span>
-<span class="sd">        netname : str, optional</span>
+<span class="sd">        net_name : str, optional</span>
 <span class="sd">            Name of the net. The default is ``None``, in which case the</span>
 <span class="sd">            default name is assigned.</span>
 
@@ -1090,6 +1116,12 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.CreateLine</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;netname&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`netname` is deprecated. Use `net_name` instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">net_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;netname&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">_uname</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1120,7 +1152,12 @@
             <span class="n">arg2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateLine</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Line3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">primitive</span> <span class="o">=</span> <span class="n">Line3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">primitive</span>
+
+        <span class="k">if</span> <span class="n">net_name</span><span class="p">:</span>
+            <span class="n">primitive</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="n">property_val</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;NAME:Net&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">net_name</span><span class="p">])</span>
+
         <span class="k">return</span> <span class="n">name</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.arg_with_dim"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.arg_with_dim">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
