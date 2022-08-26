@@ -1628,7 +1628,7 @@
         <span class="n">Maxwell</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Maxwell3d.assign_insulating"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell3d.assign_insulating.html#pyaedt.Maxwell3d.assign_insulating">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">assign_insulating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometry_selection</span><span class="p">,</span> <span class="n">insulation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">assign_insulating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometry_selection</span><span class="p">,</span> <span class="n">insulation_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an insulating boundary condition.</span>
 
 <span class="sd">        Parameters</span>
@@ -1668,15 +1668,93 @@
             <span class="s2">&quot;ElectroDCConduction&quot;</span><span class="p">,</span>
         <span class="p">]:</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">insulation</span><span class="p">:</span>
-                <span class="n">insulation</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Insulation&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">insulation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_boundaries_name</span><span class="p">():</span>
-                <span class="n">insulation</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">insulation</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">insulation_name</span><span class="p">:</span>
+                <span class="n">insulation_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Insulation&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">insulation_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_boundaries_name</span><span class="p">():</span>
+                <span class="n">insulation_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">insulation_name</span><span class="p">)</span>
 
             <span class="n">listobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">geometry_selection</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
             <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">listobj</span><span class="p">}</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">insulation</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Insulating&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">insulation_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Insulating&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Maxwell3d.assign_impedance"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell3d.assign_impedance.html#pyaedt.Maxwell3d.assign_impedance">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">assign_impedance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">geometry_selection</span><span class="p">,</span>
+        <span class="n">material_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">permeability</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">conductivity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">non_linear_permeability</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">impedance_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an impedance boundary condition.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        geometry_selection : str</span>
+<span class="sd">            Objects to apply the impedance boundary to.</span>
+<span class="sd">        material_name : str, optional</span>
+<span class="sd">            If it is different from ``None``, then material properties values will be extracted from</span>
+<span class="sd">            the named material in the list of materials available. The default value is ``None``.</span>
+<span class="sd">        permeability : float, optional</span>
+<span class="sd">            Permeability of the material.The default value is ``0.0``.</span>
+<span class="sd">        conductivity : float, optional</span>
+<span class="sd">            Conductivity of the material. The default value is ``None``.</span>
+<span class="sd">        non_linear_permeability : bool, optional</span>
+<span class="sd">            If the option ``material_name`` is activated, the permeability can either be linear or not.</span>
+<span class="sd">            The default value is ``False``.</span>
+<span class="sd">        impedance_name : str, optional</span>
+<span class="sd">            Name of the impedance. The default is ``None`` in which case a unique name is chosen.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object if successful, ``False`` otherwise.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.AssignImpedance</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        Create a box and assign impedance boundary to it.</span>
+
+<span class="sd">        &gt;&gt;&gt; impedance_box = self.aedtapp.modeler.create_box([-50, -50, -50], [294, 294, 19], name=&quot;impedance_box&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; impedance_assignment = self.aedtapp.assign_impedance(impedance_box.name, &quot;InsulatingExample&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; type(impedance_assignment)</span>
+<span class="sd">        &lt;class &#39;pyaedt.modules.Boundary.BoundaryObject&#39;&gt;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;EddyCurrent&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Transient&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">impedance_name</span><span class="p">:</span>
+                <span class="n">impedance_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Impedance&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">impedance_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_boundaries_name</span><span class="p">():</span>
+                <span class="n">impedance_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">impedance_name</span><span class="p">)</span>
+
+            <span class="n">listobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">geometry_selection</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">props</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">listobj</span><span class="p">}</span>
+
+            <span class="k">if</span> <span class="n">material_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseMaterial&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;MaterialName&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">material_name</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;IsPermeabilityNonlinear&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">non_linear_permeability</span>
+                <span class="k">if</span> <span class="n">conductivity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Conductivity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conductivity</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseMaterial&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Permeability&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">permeability</span>
+                <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Conductivity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conductivity</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">impedance_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Impedance&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>

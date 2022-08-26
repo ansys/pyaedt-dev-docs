@@ -1066,7 +1066,7 @@
         <span class="k">assert</span> <span class="n">segment_index</span> <span class="o">&lt;</span> <span class="n">num_vertices</span><span class="p">,</span> <span class="s2">&quot;Vertex for the insert is not found.&quot;</span>
         <span class="nb">type</span> <span class="o">=</span> <span class="n">segment</span><span class="o">.</span><span class="n">type</span>
 
-        <span class="n">varg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Insert Polyline Segment=&quot;</span><span class="p">]</span>
+        <span class="n">varg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Insert Polyline Segment&quot;</span><span class="p">]</span>
         <span class="n">varg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Selections:=&quot;</span><span class="p">)</span>
         <span class="n">varg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_m_name</span> <span class="o">+</span> <span class="s2">&quot;:CreatePolyline:1&quot;</span><span class="p">)</span>
         <span class="n">varg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Segment Indices:=&quot;</span><span class="p">)</span>
@@ -2349,6 +2349,13 @@
         <span class="n">is_parallel</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">edge_start_list</span><span class="p">:</span>
             <span class="n">vertices_i</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">vertices</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">vertices_i</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">start_obj</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">edges_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">edges</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">edges_ids</span><span class="p">:</span>
+                            <span class="n">vertices_i</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+                            <span class="k">break</span>
             <span class="n">vertex1_i</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">vertex2_i</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices_i</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># normal segment edge</span>
@@ -2356,12 +2363,21 @@
                 <span class="n">vertex2_i</span> <span class="o">=</span> <span class="n">vertices_i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
                 <span class="n">start_midpoint</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">midpoint</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices_i</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="c1"># TODO why do we need this ?</span>
-                <span class="n">start_midpoint</span> <span class="o">=</span> <span class="n">vertices_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vertices_i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">start_midpoint</span> <span class="o">=</span> <span class="n">vertices_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">start_midpoint</span> <span class="o">=</span> <span class="n">vertices_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">for</span> <span class="n">el1</span> <span class="ow">in</span> <span class="n">edge_stop_list</span><span class="p">:</span>
                 <span class="n">vertices_j</span> <span class="o">=</span> <span class="n">el1</span><span class="o">.</span><span class="n">vertices</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">vertices_j</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">end_obj</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">edges_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">edges</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="n">el1</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">edges_ids</span><span class="p">:</span>
+                                <span class="n">vertices_j</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">center</span><span class="p">)</span>
+                                <span class="k">break</span>
                 <span class="n">vertex1_j</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">vertex2_j</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices_j</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># normal segment edge</span>
@@ -2369,7 +2385,10 @@
                     <span class="n">vertex2_j</span> <span class="o">=</span> <span class="n">vertices_j</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
                     <span class="n">end_midpoint</span> <span class="o">=</span> <span class="n">el1</span><span class="o">.</span><span class="n">midpoint</span>
                 <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices_j</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">end_midpoint</span> <span class="o">=</span> <span class="n">vertices_j</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vertices_j</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                        <span class="n">end_midpoint</span> <span class="o">=</span> <span class="n">vertices_j</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">end_midpoint</span> <span class="o">=</span> <span class="n">vertices_j</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">continue</span>
 
@@ -2857,7 +2876,7 @@
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">vertices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_vertex_position</span><span class="p">(</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">return</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_bodynames_from_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

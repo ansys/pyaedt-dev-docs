@@ -1163,7 +1163,7 @@
 <span class="sd">        reference_list : list, optional</span>
 <span class="sd">            List of references to add. The default is ``[&quot;GND&quot;]``.</span>
 <span class="sd">        extent_type : str, optional</span>
-<span class="sd">            Type of the extension. Options are ``&quot;Conforming&quot;`` and</span>
+<span class="sd">            Type of the extension. Options are ``&quot;Conforming&quot;``, ``&quot;ConvexHull&quot;``, and</span>
 <span class="sd">            ``&quot;Bounding&quot;``. The default is ``&quot;Conforming&quot;``.</span>
 <span class="sd">        expansion_size : float, str, optional</span>
 <span class="sd">            Expansion size ratio in meters. The default is ``0.002``.</span>
@@ -1206,10 +1206,16 @@
             <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
                 <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
             <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">extent_type</span> <span class="o">==</span> <span class="s2">&quot;Bounding&quot;</span><span class="p">:</span>
             <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
                 <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
             <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="p">)</span>
+            <span class="n">_poly_list</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">_poly</span><span class="p">])</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">GetConvexHullOfPolygons</span><span class="p">(</span><span class="n">_poly_list</span><span class="p">)</span>
 
         <span class="c1"># Create new cutout cell/design</span>
         <span class="n">included_nets</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
@@ -1286,8 +1292,9 @@
 <span class="sd">            Edb.Cell.Primitive.Polygon object</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="s2">&quot;_temp_aedb&quot;</span><span class="p">))</span>
-        <span class="n">temp_edb</span> <span class="o">=</span> <span class="n">Edb</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="s2">&quot;_temp_aedb&quot;</span><span class="p">))</span>
+        <span class="n">temp_edb_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">[:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_temp_aedb.aedb&quot;</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span><span class="p">,</span> <span class="n">temp_edb_path</span><span class="p">)</span>
+        <span class="n">temp_edb</span> <span class="o">=</span> <span class="n">Edb</span><span class="p">(</span><span class="n">temp_edb_path</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">via</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">temp_edb</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
             <span class="n">via</span><span class="o">.</span><span class="n">pin</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">netlist</span><span class="p">:</span>
