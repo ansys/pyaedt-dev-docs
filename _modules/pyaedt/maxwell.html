@@ -213,6 +213,7 @@
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.application.Analysis3D</span> <span class="kn">import</span> <span class="n">FieldAnalysis3D</span>
@@ -1507,6 +1508,141 @@
         <span class="k">except</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">assign_current_density</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">entities</span><span class="p">,</span>
+        <span class="n">current_density_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">phase</span><span class="o">=</span><span class="s2">&quot;0deg&quot;</span><span class="p">,</span>
+        <span class="n">current_density_x</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+        <span class="n">current_density_y</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+        <span class="n">current_density_z</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+        <span class="n">current_density_2d</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
+        <span class="n">coordinate_system_name</span><span class="o">=</span><span class="s2">&quot;Global&quot;</span><span class="p">,</span>
+        <span class="n">coordinate_system_cartesian</span><span class="o">=</span><span class="s2">&quot;Cartesian&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign current density to a single or list of entities.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        entities : list</span>
+<span class="sd">            Objects to assign the current to.</span>
+<span class="sd">        current_density_name : str, optional</span>
+<span class="sd">            Current density name.</span>
+<span class="sd">            If no name is provided a random name is generated.</span>
+<span class="sd">        phase : str, optional</span>
+<span class="sd">            Current density phase.</span>
+<span class="sd">            Available units are &#39;deg&#39;, &#39;degmin&#39;, &#39;degsec&#39; and &#39;rad&#39;.</span>
+<span class="sd">            Default value is 0deg.</span>
+<span class="sd">        current_density_x : str, optional</span>
+<span class="sd">            Current density X coordinate value.</span>
+<span class="sd">            Default value is 0 A/m2.</span>
+<span class="sd">        current_density_y : str, optional</span>
+<span class="sd">            Current density Y coordinate value.</span>
+<span class="sd">            Default value is 0 A/m2.</span>
+<span class="sd">        current_density_z : str, optional</span>
+<span class="sd">            Current density Z coordinate value.</span>
+<span class="sd">            Default value is 0 A/m2.</span>
+<span class="sd">        current_density_2d : str, optional</span>
+<span class="sd">            Current density 2D value.</span>
+<span class="sd">            Default value is 0 A/m2.</span>
+<span class="sd">        coordinate_system_name : str, optional</span>
+<span class="sd">            Coordinate system name.</span>
+<span class="sd">            Default value is &#39;Global&#39;.</span>
+<span class="sd">        coordinate_system_cartesian : str, optional</span>
+<span class="sd">            Coordinate system cartesian.</span>
+<span class="sd">            Possible values can be ``&quot;Cartesian&quot;``, ``&quot;Cylindrical&quot;``, and ``&quot;Spherical&quot;``.</span>
+<span class="sd">            Default value is ``&quot;Cartesian&quot;``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;EddyCurrent&quot;</span><span class="p">,</span> <span class="s2">&quot;Magnetostatic&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">current_density_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">current_density_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;CurrentDensity&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\d+)\s*(\w+)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;deg&quot;</span><span class="p">,</span> <span class="s2">&quot;degmin&quot;</span><span class="p">,</span> <span class="s2">&quot;degsec&quot;</span><span class="p">,</span> <span class="s2">&quot;rad&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid phase unit.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">coordinate_system_cartesian</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Cartesian&quot;</span><span class="p">,</span> <span class="s2">&quot;Cylindrical&quot;</span><span class="p">,</span> <span class="s2">&quot;Spherical&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid coordinate system.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="n">objects_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">entities</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_is3d</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">current_density_group_names</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects_list</span><span class="p">)):</span>
+                            <span class="n">current_density_group_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_density_name</span> <span class="o">+</span> <span class="s2">&quot;_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+                        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+                        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;items&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_density_group_names</span>
+                        <span class="n">props</span><span class="p">[</span><span class="n">current_density_group_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                            <span class="p">{</span>
+                                <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects_list</span><span class="p">,</span>
+                                <span class="s2">&quot;Phase&quot;</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
+                                <span class="s2">&quot;CurrentDensityX&quot;</span><span class="p">:</span> <span class="n">current_density_x</span><span class="p">,</span>
+                                <span class="s2">&quot;CurrentDensityY&quot;</span><span class="p">:</span> <span class="n">current_density_y</span><span class="p">,</span>
+                                <span class="s2">&quot;CurrentDensityZ&quot;</span><span class="p">:</span> <span class="n">current_density_z</span><span class="p">,</span>
+                                <span class="s2">&quot;CoordinateSystem Name&quot;</span><span class="p">:</span> <span class="n">coordinate_system_name</span><span class="p">,</span>
+                                <span class="s2">&quot;CoordinateSystem Type&quot;</span><span class="p">:</span> <span class="n">coordinate_system_cartesian</span><span class="p">,</span>
+                            <span class="p">}</span>
+                        <span class="p">)</span>
+                        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_density_group_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CurrentDensityGroup&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                            <span class="p">{</span>
+                                <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects_list</span><span class="p">,</span>
+                                <span class="s2">&quot;Phase&quot;</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
+                                <span class="s2">&quot;CurrentDensityX&quot;</span><span class="p">:</span> <span class="n">current_density_x</span><span class="p">,</span>
+                                <span class="s2">&quot;CurrentDensityY&quot;</span><span class="p">:</span> <span class="n">current_density_y</span><span class="p">,</span>
+                                <span class="s2">&quot;CurrentDensityZ&quot;</span><span class="p">:</span> <span class="n">current_density_z</span><span class="p">,</span>
+                                <span class="s2">&quot;CoordinateSystem Name&quot;</span><span class="p">:</span> <span class="n">coordinate_system_name</span><span class="p">,</span>
+                                <span class="s2">&quot;CoordinateSystem Type&quot;</span><span class="p">:</span> <span class="n">coordinate_system_cartesian</span><span class="p">,</span>
+                            <span class="p">}</span>
+                        <span class="p">)</span>
+                        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_density_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CurrentDensity&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">current_density_group_names</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects_list</span><span class="p">)):</span>
+                            <span class="n">current_density_group_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_density_name</span> <span class="o">+</span> <span class="s2">&quot;_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+                        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+                        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;items&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_density_group_names</span>
+                        <span class="n">props</span><span class="p">[</span><span class="n">current_density_group_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                            <span class="p">{</span>
+                                <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects_list</span><span class="p">,</span>
+                                <span class="s2">&quot;Phase&quot;</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
+                                <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">current_density_2d</span><span class="p">,</span>
+                                <span class="s2">&quot;CoordinateSystem&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                            <span class="p">}</span>
+                        <span class="p">)</span>
+                        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_density_group_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CurrentDensityGroup&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                            <span class="p">{</span>
+                                <span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects_list</span><span class="p">,</span>
+                                <span class="s2">&quot;Phase&quot;</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
+                                <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="n">current_density_2d</span><span class="p">,</span>
+                                <span class="s2">&quot;CoordinateSystem&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                            <span class="p">}</span>
+                        <span class="p">)</span>
+                        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_density_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CurrentDensity&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">bound</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t assign current density to desired list of objects.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Current density can only be applied to Eddy current or magnetostatic solution types.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span>
 
@@ -1756,6 +1892,57 @@
 
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_boundary</span><span class="p">(</span><span class="n">impedance_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Impedance&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Maxwell3d.assign_current_density_terminal"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell3d.assign_current_density_terminal.html#pyaedt.Maxwell3d.assign_current_density_terminal">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">assign_current_density_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entities</span><span class="p">,</span> <span class="n">current_density_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign current density terminal to a single or list of entities.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        entities : list</span>
+<span class="sd">            Objects to assign the current to.</span>
+<span class="sd">        current_density_name : str, optional</span>
+<span class="sd">            Current density name.</span>
+<span class="sd">            If no name is provided a random name is generated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;EddyCurrent&quot;</span><span class="p">,</span> <span class="s2">&quot;Magnetostatic&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">current_density_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">current_density_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;CurrentDensity&quot;</span><span class="p">)</span>
+
+            <span class="n">objects_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">entities</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">existing_2d_objects_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">object_list</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">is3d</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">objects_list</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">existing_2d_objects_list</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Entity provided not a planar entity.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">current_density_group_names</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects_list</span><span class="p">)):</span>
+                        <span class="n">current_density_group_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_density_name</span> <span class="o">+</span> <span class="s2">&quot;_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+                    <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
+                    <span class="n">props</span><span class="p">[</span><span class="s2">&quot;items&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_density_group_names</span>
+                    <span class="n">props</span><span class="p">[</span><span class="n">current_density_group_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects_list</span><span class="p">})</span>
+                    <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_density_group_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CurrentDensityTerminalGroup&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">objects_list</span><span class="p">})</span>
+                    <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_density_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;CurrentDensityTerminal&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">bound</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Current density can only be applied to Eddy current or magnetostatic solution types.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_create_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">boundary_type</span><span class="p">):</span>
