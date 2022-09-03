@@ -1215,7 +1215,7 @@
         <span class="k">return</span> <span class="n">new_cmp</span></div>
 
 <div class="viewcode-block" id="Components.create_component_from_pins"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.create_component_from_pins.html#pyaedt.edb_core.components.Components.create_component_from_pins">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_component_from_pins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pins</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">placement_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_component_from_pins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pins</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">placement_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">component_part_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a component from pins.</span>
 
 <span class="sd">        Parameters</span>
@@ -1224,8 +1224,10 @@
 <span class="sd">            List of EDB core pins.</span>
 <span class="sd">        component_name : str</span>
 <span class="sd">            Name of the reference designator for the component.</span>
-<span class="sd">        placement_layer : str</span>
+<span class="sd">        placement_layer : str, optional</span>
 <span class="sd">            Name of the layer used for placing the component.</span>
+<span class="sd">        component_part_name : str, optional</span>
+<span class="sd">            Part name of the component.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1241,12 +1243,16 @@
 <span class="sd">        &gt;&gt;&gt; edbapp.core_components.create_component_from_pins(pins, &quot;A1New&quot;)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># try:</span>
-        <span class="n">compdef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getComponentDefinition</span><span class="p">(</span><span class="n">component_name</span><span class="p">,</span> <span class="n">pins</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">component_part_name</span><span class="p">:</span>
+            <span class="n">compdef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getComponentDefinition</span><span class="p">(</span><span class="n">component_part_name</span><span class="p">,</span> <span class="n">pins</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">compdef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getComponentDefinition</span><span class="p">(</span><span class="n">component_name</span><span class="p">,</span> <span class="n">pins</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">compdef</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="n">new_cmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Component</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">component_name</span><span class="p">,</span> <span class="n">compdef</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
 
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">EDBPadstackInstance</span><span class="p">):</span>
+            <span class="n">pins</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">_edb_padstackinstance</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">:</span>
             <span class="n">pin</span><span class="o">.</span><span class="n">SetIsLayoutPin</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">new_cmp</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">pin</span><span class="p">)</span>
