@@ -227,6 +227,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
 <span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">Dictionary</span>
     <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
@@ -3755,6 +3756,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_dc_per_pin_use_pin_format</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dc_use_loop_res_for_per_pin</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dc_via_report_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dc_source_terms_to_ground</span> <span class="o">=</span> <span class="n">Dictionary</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layers_properties</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coplanar_instances</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_signal_layer_etching_instances</span> <span class="o">=</span> <span class="p">[]</span>
@@ -5126,6 +5128,25 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_dc_via_report_path</span> <span class="o">=</span> <span class="n">value</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dc_source_terms_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the dictionary of grounded terminals</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            Dictionary</span>
+<span class="sd">            {str, int}, keys is source name, value int 0 unspecified, 1 negative node, 2 positive one.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dc_source_terms_to_ground</span>
+
+    <span class="nd">@dc_source_terms_to_ground</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">dc_source_terms_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">)])</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">([</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">)])</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_dc_source_terms_to_ground</span> <span class="o">=</span> <span class="n">value</span>
+
     <span class="nd">@signal_layers_properties</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">signal_layers_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -5374,6 +5395,23 @@
                 <span class="n">prop_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
             <span class="k">return</span> <span class="n">prop_values</span>
 
+    <span class="k">def</span> <span class="nf">add_dc_ground_source_term</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node_to_ground</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a dc ground source terminal for Siwave.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+
+<span class="sd">        source_name = str</span>
+<span class="sd">            The source name to assign the reference node</span>
+
+<span class="sd">        node_to_ground = int</span>
+<span class="sd">            Value must be 0: unspecified, 1: negative node, 2: positive node.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">source_name</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">node_to_ground</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dc_source_terms_to_ground</span><span class="p">[</span><span class="n">source_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_to_ground</span>
+
     <span class="k">def</span> <span class="nf">_parse_signal_layer_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal_properties</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="n">signal_properties</span><span class="p">:</span>
             <span class="n">lp</span> <span class="o">=</span> <span class="n">lay</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
@@ -5618,6 +5656,11 @@
                 <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;_sources&quot;</span><span class="p">:</span>
                     <span class="n">sources_out</span> <span class="o">=</span> <span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">_json_format</span><span class="p">()</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
                     <span class="n">dict_out</span><span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">sources_out</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;_dc_source_terms_to_ground&quot;</span><span class="p">:</span>
+                    <span class="n">dc_term_gnd</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">k2</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Keys</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                        <span class="n">dc_term_gnd</span><span class="p">[</span><span class="n">k2</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">k2</span><span class="p">]</span>
+                    <span class="n">dict_out</span><span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">dc_term_gnd</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">dict_out</span><span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span> <span class="o">=</span> <span class="n">v</span>
             <span class="k">else</span><span class="p">:</span>
@@ -5657,6 +5700,11 @@
                         <span class="n">source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">()</span>
                         <span class="n">source</span><span class="o">.</span><span class="n">_read_json</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;dc_source_terms_to_ground&quot;</span><span class="p">:</span>
+                    <span class="n">dc_term_gnd</span> <span class="o">=</span> <span class="n">Dictionary</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]()</span>
+                    <span class="k">for</span> <span class="n">k1</span><span class="p">,</span> <span class="n">v1</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]:</span>  <span class="c1"># pragma: no cover</span>
+                        <span class="n">dc_term_gnd</span><span class="p">[</span><span class="n">k1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dc_source_terms_to_ground</span> <span class="o">=</span> <span class="n">dc_term_gnd</span>
                 <span class="bp">self</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">input_file</span>
             <span class="k">return</span> <span class="kc">True</span>
