@@ -1201,6 +1201,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">taper</span> <span class="o">=</span> <span class="n">taper</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ffd</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phase_offset</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_port_names</span><span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_init_ffd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1250,6 +1251,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">Ay</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Bx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">By</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lattice_vectors</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_phase_offset</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_port_names</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">beamform</span><span class="p">()</span>
 
     <span class="nd">@property</span>
@@ -1268,6 +1270,27 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_frequency</span> <span class="o">=</span> <span class="n">val</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ffd_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_solutions</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">val</span><span class="p">)]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_ffd</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phase_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Additional phase offset in degrees on each port. Useful when element has more than one port.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase_offset</span>
+
+    <span class="nd">@phase_offset</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">phase_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phases</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_port_names</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Number of phases must be equal to number of ports&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">phases_to_rad</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+                <span class="n">phases_to_rad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">phase</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phase_offset</span> <span class="o">=</span> <span class="n">phases_to_rad</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">beamform</span><span class="p">()</span>
 
 <div class="viewcode-block" id="FfdSolutionData.get_array_index"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.FfdSolutionData.get_array_index.html#pyaedt.modules.solutions.FfdSolutionData.get_array_index">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1529,16 +1552,18 @@
         <span class="n">w_dict_ang</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">w_dict_mag</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">array_positions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">port_cont</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">port_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_port_names</span><span class="p">:</span>
             <span class="n">index_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_array_index</span><span class="p">(</span><span class="n">port_name</span><span class="p">)</span>
             <span class="n">a</span> <span class="o">=</span> <span class="n">index_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
             <span class="n">b</span> <span class="o">=</span> <span class="n">index_str</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
             <span class="n">w_mag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">assign_weight</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">taper</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">taper</span><span class="p">)),</span> <span class="mi">3</span><span class="p">)</span>
-            <span class="n">w_ang</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">phase_shift_A_rad</span> <span class="o">+</span> <span class="n">b</span> <span class="o">*</span> <span class="n">phase_shift_B_rad</span>
+            <span class="n">w_ang</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_offset</span><span class="p">[</span><span class="n">port_cont</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">phase_shift_A_rad</span> <span class="o">+</span> <span class="n">b</span> <span class="o">*</span> <span class="n">phase_shift_B_rad</span><span class="p">)</span>
             <span class="n">w_dict</span><span class="p">[</span><span class="n">port_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">w_mag</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">w_ang</span><span class="p">)</span>
             <span class="n">w_dict_ang</span><span class="p">[</span><span class="n">port_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">w_ang</span>
             <span class="n">w_dict_mag</span><span class="p">[</span><span class="n">port_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">w_mag</span>
             <span class="n">array_positions</span><span class="p">[</span><span class="n">port_name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element_location</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+            <span class="n">port_cont</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="n">length_of_ff_data</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">all_port_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="s2">&quot;rETheta&quot;</span><span class="p">])</span>
 

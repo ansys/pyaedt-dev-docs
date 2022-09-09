@@ -3417,9 +3417,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        sheet_name : str</span>
 <span class="sd">            Name of the sheet.</span>
-<span class="sd">        axisdir : int or :class:`pyaedt.application.Analysis.Analysis.AxisDir`, optional</span>
-<span class="sd">            Position of the port. It should be one of the values for ``Application.AxisDir``,</span>
-<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``.</span>
+<span class="sd">        axisdir : int, :class:`pyaedt.application.Analysis.Analysis.AxisDir` or list, optional</span>
+<span class="sd">            Direction of the integration line. It should be one of the values for ``Application.AxisDir``,</span>
+<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``. It also accepts the list</span>
+<span class="sd">            of the start point and end point with the format [[xstart, ystart, zstart], [xend, yend, zend]].</span>
 <span class="sd">            The default is ``Application.AxisDir.XNeg``.</span>
 <span class="sd">        impedance : float, optional</span>
 <span class="sd">            Port impedance. The default is ``50``.</span>
@@ -3452,11 +3453,21 @@
 <span class="sd">        ...                                                      matname=&quot;copper&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; h1 = hfss.create_lumped_port_to_sheet(rectangle.name, hfss.AxisDir.XNeg, 50,</span>
 <span class="sd">        ...                                  &quot;LumpedPortFromSheet&quot;, True, False)</span>
+<span class="sd">        &gt;&gt;&gt; h2 = hfss.create_lumped_port_to_sheet(rectangle.name, [rectangle.bottom_edge_x.midpoint,</span>
+<span class="sd">        ...                                     rectangle.bottom_edge_y.midpoint], 50, &quot;LumpedPortFromSheet&quot;, True,</span>
+<span class="sd">        ...                                     False)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sheet_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient Network&quot;</span><span class="p">]:</span>
-            <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axisdir</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;List of coordinates is not set correctly&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="n">point0</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">point1</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
 
             <span class="n">portname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique_source_name</span><span class="p">(</span><span class="n">portname</span><span class="p">,</span> <span class="s2">&quot;Port&quot;</span><span class="p">)</span>
 
@@ -3518,9 +3529,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        sheet_name : str</span>
 <span class="sd">            Name of the sheet to apply the boundary to.</span>
-<span class="sd">        axisdir : int or :class:`pyaedt.application.Analysis.Analysis.AxisDir`, optional</span>
-<span class="sd">            Position of the port. It should be one of the values for ``Application.AxisDir``,</span>
-<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``.</span>
+<span class="sd">        axisdir : int, :class:`pyaedt.application.Analysis.Analysis.AxisDir` or list, optional</span>
+<span class="sd">            Direction of the integration line. It should be one of the values for ``Application.AxisDir``,</span>
+<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``. It also accepts the list</span>
+<span class="sd">            of the start point and end point with the format [[xstart, ystart, zstart], [xend, yend, zend]]</span>
 <span class="sd">            The default is ``Application.AxisDir.XNeg``.</span>
 <span class="sd">        sourcename : str, optional</span>
 <span class="sd">            Name of the source. The default is ``None``.</span>
@@ -3544,11 +3556,21 @@
 <span class="sd">        ...                                                  [0, 0, -70], [10, 2], name=&quot;VoltageSheet&quot;,</span>
 <span class="sd">        ...                                                  matname=&quot;copper&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; v1 = hfss.assign_voltage_source_to_sheet(sheet.name, hfss.AxisDir.XNeg, &quot;VoltageSheetExample&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; v2 = hfss.assign_voltage_source_to_sheet(sheet.name, [sheet.bottom_edge_x.midpoint,</span>
+<span class="sd">        ...                                     sheet.bottom_edge_y.midpoint], 50, &quot;LumpedPortFromSheet&quot;, True,</span>
+<span class="sd">        ...                                     False)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient Network&quot;</span><span class="p">]:</span>
-            <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axisdir</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;List of coordinates is not set correctly&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="n">point0</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">point1</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
             <span class="n">sourcename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique_source_name</span><span class="p">(</span><span class="n">sourcename</span><span class="p">,</span> <span class="s2">&quot;Voltage&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_source_excitation</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">sourcename</span><span class="p">,</span> <span class="n">sourcetype</span><span class="o">=</span><span class="s2">&quot;Voltage&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
@@ -3561,9 +3583,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        sheet_name : str</span>
 <span class="sd">            Name of the sheet to apply the boundary to.</span>
-<span class="sd">        axisdir : int or :class:`pyaedt.application.Analysis.Analysis.AxisDir`, optional</span>
-<span class="sd">            Position of the port. It should be one of the values for ``Application.AxisDir``,</span>
-<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``.</span>
+<span class="sd">        axisdir : int, :class:`pyaedt.application.Analysis.Analysis.AxisDir` or list, optional</span>
+<span class="sd">            Direction of the integration line. It should be one of the values for ``Application.AxisDir``,</span>
+<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``. It also accepts the list</span>
+<span class="sd">            of the start point and end point with the format [[xstart, ystart, zstart], [xend, yend, zend]]</span>
 <span class="sd">            The default is ``Application.AxisDir.XNeg``.</span>
 <span class="sd">        sourcename : str, optional</span>
 <span class="sd">            Name of the source. The default is ``None``.</span>
@@ -3587,11 +3610,20 @@
 <span class="sd">        ...                                                  [5, 1], name=&quot;CurrentSheet&quot;, matname=&quot;copper&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; hfss.assign_current_source_to_sheet(sheet.name, hfss.AxisDir.XNeg, &quot;CurrentSheetExample&quot;)</span>
 <span class="sd">        &#39;CurrentSheetExample&#39;</span>
+<span class="sd">        &gt;&gt;&gt; c1 = hfss.assign_current_source_to_sheet(sheet.name, [sheet.bottom_edge_x.midpoint,</span>
+<span class="sd">        ...                                     sheet.bottom_edge_y.midpoint])</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient Network&quot;</span><span class="p">]:</span>
-            <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axisdir</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;List of coordinates is not set correctly&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="n">point0</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">point1</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
             <span class="n">sourcename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_unique_source_name</span><span class="p">(</span><span class="n">sourcename</span><span class="p">,</span> <span class="s2">&quot;Current&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_source_excitation</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span><span class="p">,</span> <span class="n">sourcename</span><span class="p">,</span> <span class="n">sourcetype</span><span class="o">=</span><span class="s2">&quot;Current&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
@@ -3693,9 +3725,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        sheet_name : str</span>
 <span class="sd">            Name of the sheet to apply the boundary to.</span>
-<span class="sd">        axisdir : int or :class:`pyaedt.application.Analysis.Analysis.AxisDir`, optional</span>
-<span class="sd">            Position of the port. It should be one of the values for ``Application.AxisDir``,</span>
-<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``.</span>
+<span class="sd">        axisdir : int, :class:`pyaedt.application.Analysis.Analysis.AxisDir` or list, optional</span>
+<span class="sd">            Direction of the integration line. It should be one of the values for ``Application.AxisDir``,</span>
+<span class="sd">            which are: ``XNeg``, ``YNeg``, ``ZNeg``, ``XPos``, ``YPos``, and ``ZPos``. It also accepts the list</span>
+<span class="sd">            of the start point and end point with the format [[xstart, ystart, zstart], [xend, yend, zend]]</span>
 <span class="sd">            The default is ``Application.AxisDir.XNeg``.</span>
 <span class="sd">        sourcename : str, optional</span>
 <span class="sd">            Lumped RLC name. The default is ``None``.</span>
@@ -3734,13 +3767,22 @@
 <span class="sd">        ...                                                       Cvalue=1e-6)</span>
 <span class="sd">        &gt;&gt;&gt; type(lumped_rlc_to_sheet)</span>
 <span class="sd">        &lt;class &#39;pyaedt.modules.Boundary.BoundaryObject&#39;&gt;</span>
+<span class="sd">        &gt;&gt;&gt; h2 = hfss.assign_lumped_rlc_to_sheet(sheet.name, [sheet.bottom_edge_x.midpoint,</span>
+<span class="sd">        ...                                     sheet.bottom_edge_y.midpoint], Rvalue=50, Lvalue=1e-9, Cvalue=1e-6)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Eigenmode&quot;</span><span class="p">,</span> <span class="s2">&quot;Modal&quot;</span><span class="p">,</span> <span class="s2">&quot;Terminal&quot;</span><span class="p">,</span> <span class="s2">&quot;Transient Network&quot;</span><span class="p">,</span> <span class="s2">&quot;SBR+&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="p">(</span>
             <span class="n">Rvalue</span> <span class="ow">or</span> <span class="n">Lvalue</span> <span class="ow">or</span> <span class="n">Cvalue</span>
         <span class="p">):</span>
-            <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axisdir</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;List of coordinates is not set correctly&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="n">point0</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">point1</span> <span class="o">=</span> <span class="n">axisdir</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">point0</span><span class="p">,</span> <span class="n">point1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_mid_points_on_dir</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">,</span> <span class="n">axisdir</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sourcename</span><span class="p">:</span>
                 <span class="n">sourcename</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Lump&quot;</span><span class="p">)</span>

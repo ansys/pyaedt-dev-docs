@@ -214,6 +214,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
+<span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">string</span>
@@ -222,6 +223,8 @@
 
 <span class="kn">import</span> <span class="nn">pyaedt.modules.report_templates</span> <span class="k">as</span> <span class="nn">rt</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">decompose_variable_value</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">unit_converter</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">json_to_dict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">check_and_download_file</span>
@@ -3340,6 +3343,289 @@
             <span class="n">plot</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">file_to_add</span>
         <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="PostProcessor.power_budget"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.AdvancedPostProcessing.PostProcessor.power_budget.html#pyaedt.modules.AdvancedPostProcessing.PostProcessor.power_budget">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">power_budget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">22</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Power budget calculation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        units : str</span>
+<span class="sd">            Output power units.</span>
+<span class="sd">        temperature : float</span>
+<span class="sd">            Temperature to calculate the power.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict, float</span>
+<span class="sd">            Dictionary with the power introduced on each boundary and total power.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.ChangeProperty</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">available_bcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">boundaries</span>
+        <span class="n">power_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">def</span> <span class="nf">multiplier_from_dataset</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">valuein</span><span class="p">):</span>
+            <span class="n">multiplier</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">expression</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">:</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">expression</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">project_datasets</span><span class="p">:</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">multiplier</span>
+            <span class="k">if</span> <span class="n">valuein</span> <span class="o">&gt;=</span> <span class="nb">max</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x</span><span class="p">):</span>
+                <span class="n">multiplier</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">valuein</span> <span class="o">&lt;=</span> <span class="nb">min</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x</span><span class="p">):</span>
+                <span class="n">multiplier</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">start_x</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">start_y</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">end_x</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">end_y</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="n">valuein</span><span class="p">:</span>
+                        <span class="n">start_x</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="n">start_y</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="n">end_x</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">end_y</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">end_x</span> <span class="o">-</span> <span class="n">start_x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">multiplier</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">multiplier</span> <span class="o">=</span> <span class="n">start_y</span> <span class="o">+</span> <span class="p">(</span><span class="n">valuein</span> <span class="o">-</span> <span class="n">start_x</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">end_y</span> <span class="o">-</span> <span class="n">start_y</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">end_x</span> <span class="o">-</span> <span class="n">start_x</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">multiplier</span>
+
+        <span class="k">def</span> <span class="nf">extract_dataset_info</span><span class="p">(</span><span class="n">boundary_obj</span><span class="p">,</span> <span class="n">units_input</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">boundary</span> <span class="o">==</span> <span class="s2">&quot;Power&quot;</span><span class="p">:</span>
+                <span class="n">prop</span> <span class="o">=</span> <span class="s2">&quot;Total Power Variation Data&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prop</span> <span class="o">=</span> <span class="s2">&quot;Surface Heat Variation Data&quot;</span>
+                <span class="n">units_input</span> <span class="o">=</span> <span class="s2">&quot;irrad_W_per_m2&quot;</span>
+            <span class="n">value_bound</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">boundary_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="n">prop</span><span class="p">][</span><span class="s2">&quot;Variation Value&quot;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">boundary_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="n">prop</span><span class="p">][</span><span class="s2">&quot;Variation Value&quot;</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">value_bound</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">new_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">new_value</span><span class="p">))</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">unit_system</span><span class="o">=</span><span class="n">boundary</span><span class="p">,</span>
+                <span class="n">input_units</span><span class="o">=</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">output_units</span><span class="o">=</span><span class="n">units_input</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">expression</span> <span class="o">=</span> <span class="n">expression</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;(&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">value</span><span class="p">,</span> <span class="n">expression</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">available_bcs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No boundaries defined&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">bc_obj</span> <span class="ow">in</span> <span class="n">available_bcs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Block&quot;</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Objects&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;Total Power Variation Data&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                    <span class="n">mult</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Total Power&quot;</span><span class="p">]))</span>
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                        <span class="n">power_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">power_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span>
+                    <span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">power_value</span><span class="p">,</span> <span class="n">exp</span> <span class="o">=</span> <span class="n">extract_dataset_info</span><span class="p">(</span><span class="n">bc_obj</span><span class="p">,</span> <span class="n">units_input</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">)</span>
+                    <span class="n">mult</span> <span class="o">=</span> <span class="n">multiplier_from_dataset</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">temperature</span><span class="p">)</span>
+
+                <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="n">mult</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Source&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Thermal Condition&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Total Power&quot;</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="s2">&quot;Faces&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="s2">&quot;Objects&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Objects&quot;</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="s2">&quot;Total Power Variation Data&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="n">mult</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">power_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Total Power&quot;</span><span class="p">]))</span>
+                        <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                            <span class="n">power_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">power_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">power_value</span><span class="p">,</span> <span class="n">exp</span> <span class="o">=</span> <span class="n">extract_dataset_info</span><span class="p">(</span><span class="n">bc_obj</span><span class="p">,</span> <span class="n">units_input</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">)</span>
+                        <span class="n">mult</span> <span class="o">=</span> <span class="n">multiplier_from_dataset</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">temperature</span><span class="p">)</span>
+
+                    <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="n">mult</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Thermal Condition&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Surface Flux&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;Surface Heat Variation Data&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="n">mult</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">heat_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Surface Heat&quot;</span><span class="p">]))</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">heat_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                            <span class="n">new_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">[</span><span class="n">heat_value</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                            <span class="n">heat_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">new_value</span><span class="p">))</span>
+                        <span class="n">heat_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                            <span class="n">heat_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;SurfaceHeat&quot;</span><span class="p">,</span>
+                            <span class="n">input_units</span><span class="o">=</span><span class="n">heat_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;irrad_W_per_m2&quot;</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">mult</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="k">if</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Surface Heat Variation Data&quot;</span><span class="p">][</span><span class="s2">&quot;Variation Type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Temp Dep&quot;</span><span class="p">:</span>
+                            <span class="n">heat_value</span><span class="p">,</span> <span class="n">exp</span> <span class="o">=</span> <span class="n">extract_dataset_info</span><span class="p">(</span><span class="n">bc_obj</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;SurfaceHeat&quot;</span><span class="p">)</span>
+                            <span class="n">mult</span> <span class="o">=</span> <span class="n">multiplier_from_dataset</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">temperature</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">heat_value</span> <span class="o">=</span> <span class="mi">0</span>
+
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="k">if</span> <span class="s2">&quot;Faces&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">]:</span>
+                            <span class="n">area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_face_area</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+                            <span class="n">area</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                                <span class="n">area</span><span class="p">,</span>
+                                <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Area&quot;</span><span class="p">,</span>
+                                <span class="n">input_units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span> <span class="o">+</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+                                <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;m2&quot;</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="n">power_value</span> <span class="o">+=</span> <span class="n">heat_value</span> <span class="o">*</span> <span class="n">area</span> <span class="o">*</span> <span class="n">mult</span>
+                    <span class="k">if</span> <span class="s2">&quot;Objects&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Objects&quot;</span><span class="p">]:</span>
+                            <span class="n">object_assigned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">component</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">object_assigned</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+                                <span class="n">area</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                                    <span class="n">f</span><span class="o">.</span><span class="n">area</span><span class="p">,</span>
+                                    <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Area&quot;</span><span class="p">,</span>
+                                    <span class="n">input_units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span> <span class="o">+</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+                                    <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;m2&quot;</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="n">power_value</span> <span class="o">+=</span> <span class="n">heat_value</span> <span class="o">*</span> <span class="n">area</span> <span class="o">*</span> <span class="n">mult</span>
+
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span><span class="n">power_value</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+                    <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Network&quot;</span><span class="p">:</span>
+                <span class="n">nodes</span> <span class="o">=</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Nodes&quot;</span><span class="p">]</span>
+                <span class="n">power_value</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">&quot;Power&quot;</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">]:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="s2">&quot;Power&quot;</span><span class="p">]</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+                        <span class="n">power_value</span> <span class="o">+=</span> <span class="n">value</span>
+                <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Conducting Plate&quot;</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="s2">&quot;Faces&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;Objects&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Objects&quot;</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="s2">&quot;Total Power Variation Data&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                    <span class="n">mult</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Total Power&quot;</span><span class="p">]))</span>
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                        <span class="n">power_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">power_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span>
+                    <span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">power_value</span><span class="p">,</span> <span class="n">exp</span> <span class="o">=</span> <span class="n">extract_dataset_info</span><span class="p">(</span><span class="n">bc_obj</span><span class="p">,</span> <span class="n">units_input</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">)</span>
+                    <span class="n">mult</span> <span class="o">=</span> <span class="n">multiplier_from_dataset</span><span class="p">(</span><span class="n">exp</span><span class="p">,</span> <span class="n">temperature</span><span class="p">)</span>
+
+                <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="n">mult</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Stationary Wall&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;External Condition&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Heat Flux&quot;</span><span class="p">:</span>
+                    <span class="n">mult</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">heat_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Heat Flux&quot;</span><span class="p">]))</span>
+                    <span class="n">heat_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                        <span class="n">heat_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;SurfaceHeat&quot;</span><span class="p">,</span>
+                        <span class="n">input_units</span><span class="o">=</span><span class="n">heat_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;irrad_W_per_m2&quot;</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="mf">0.0</span>
+                    <span class="k">if</span> <span class="s2">&quot;Faces&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Faces&quot;</span><span class="p">]:</span>
+                            <span class="n">area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_face_area</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+                            <span class="n">area</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                                <span class="n">area</span><span class="p">,</span>
+                                <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Area&quot;</span><span class="p">,</span>
+                                <span class="n">input_units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span> <span class="o">+</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+                                <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;m2&quot;</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="n">power_value</span> <span class="o">+=</span> <span class="n">heat_value</span> <span class="o">*</span> <span class="n">area</span> <span class="o">*</span> <span class="n">mult</span>
+                    <span class="k">if</span> <span class="s2">&quot;Objects&quot;</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Objects&quot;</span><span class="p">]:</span>
+                            <span class="n">object_assigned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">component</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">object_assigned</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+                                <span class="n">area</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                                    <span class="n">f</span><span class="o">.</span><span class="n">area</span><span class="p">,</span>
+                                    <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Area&quot;</span><span class="p">,</span>
+                                    <span class="n">input_units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span> <span class="o">+</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+                                    <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;m2&quot;</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="n">power_value</span> <span class="o">+=</span> <span class="n">heat_value</span> <span class="o">*</span> <span class="n">area</span> <span class="o">*</span> <span class="n">mult</span>
+
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span><span class="n">power_value</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+                    <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Resistance&quot;</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Objects&quot;</span><span class="p">])</span>
+                <span class="n">mult</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">power_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Thermal Power&quot;</span><span class="p">]))</span>
+                <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                    <span class="n">power_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">power_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span>
+                <span class="p">)</span>
+
+                <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="n">mult</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">bc_obj</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Blower&quot;</span><span class="p">:</span>
+                <span class="n">power_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Blower Power&quot;</span><span class="p">]))</span>
+                <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                    <span class="n">power_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">power_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span>
+                <span class="p">)</span>
+
+                <span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">bc_obj</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">units</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">native_comps</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">native_comps</span><span class="p">],</span> <span class="s2">&quot;native_properties&quot;</span><span class="p">):</span>
+                <span class="n">native_key</span> <span class="o">=</span> <span class="s2">&quot;NativeComponentDefinitionProvider&quot;</span>
+                <span class="n">power_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_components</span><span class="p">[</span><span class="n">native_comps</span><span class="p">]</span><span class="o">.</span><span class="n">native_properties</span><span class="p">[</span><span class="n">native_key</span><span class="p">]</span>
+                <span class="n">power_value</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="s2">&quot;Power&quot;</span> <span class="ow">in</span> <span class="n">power_key</span><span class="p">:</span>
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">power_key</span><span class="p">[</span><span class="s2">&quot;Power&quot;</span><span class="p">]))</span>
+                <span class="k">elif</span> <span class="s2">&quot;HubPower&quot;</span> <span class="ow">in</span> <span class="n">power_key</span><span class="p">:</span>
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">power_key</span><span class="p">[</span><span class="s2">&quot;HubPower&quot;</span><span class="p">]))</span>
+
+                <span class="k">if</span> <span class="n">power_value</span><span class="p">:</span>
+                    <span class="n">power_value</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
+                        <span class="n">power_value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">power_value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="n">units</span>
+                    <span class="p">)</span>
+
+                    <span class="n">power_dict</span><span class="p">[</span><span class="n">native_comps</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_value</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;The power of </span><span class="si">{}</span><span class="s2"> is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">native_comps</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">power_dict</span><span class="p">[</span><span class="n">native_comps</span><span class="p">]),</span> <span class="n">units</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The total power is </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">power_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())),</span> <span class="n">units</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">power_dict</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">power_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
 
 <span class="k">class</span> <span class="nc">CircuitPostProcessor</span><span class="p">(</span><span class="n">PostProcessorCommon</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
