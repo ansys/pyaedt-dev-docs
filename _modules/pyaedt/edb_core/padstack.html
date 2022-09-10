@@ -678,6 +678,55 @@
         <span class="n">rot</span> <span class="o">=</span> <span class="n">padparams</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">geom_type</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">,</span> <span class="n">offset_y</span><span class="p">,</span> <span class="n">rot</span></div>
 
+<div class="viewcode-block" id="EdbPadstacks.set_all_antipad_value"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.set_all_antipad_value.html#pyaedt.edb_core.padstack.EdbPadstacks.set_all_antipad_value">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">set_all_antipad_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set all anti-pads from all pad-stack definition to the given value.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        value : float, str</span>
+<span class="sd">            anti-pad value</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when all succeed. ``False`` if one of anti-pads value failed to be assigned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">padstack</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+                <span class="n">cloned_padstack_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDefData</span><span class="p">(</span><span class="n">padstack</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">())</span>
+                <span class="n">layers_name</span> <span class="o">=</span> <span class="n">cloned_padstack_data</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">()</span>
+                <span class="n">all_succeed</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers_name</span><span class="p">:</span>
+                    <span class="n">geom_type</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">,</span> <span class="n">offset_y</span><span class="p">,</span> <span class="n">rot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pad_parameters</span><span class="p">(</span>
+                        <span class="n">padstack</span><span class="o">.</span><span class="n">edb_padstack</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="mi">1</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># pragma no cover</span>
+                        <span class="n">params</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
+                            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+                        <span class="p">)</span>  <span class="c1"># pragma no cover</span>
+                        <span class="n">geom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadGeometryType</span><span class="o">.</span><span class="n">Circle</span>
+                        <span class="n">offset_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">offset_x</span><span class="p">)</span>
+                        <span class="n">offset_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">offset_y</span><span class="p">)</span>
+                        <span class="n">rot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
+                        <span class="n">antipad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadType</span><span class="o">.</span><span class="n">AntiPad</span>
+                        <span class="k">if</span> <span class="n">cloned_padstack_data</span><span class="o">.</span><span class="n">SetPadParameters</span><span class="p">(</span>
+                            <span class="n">layer</span><span class="p">,</span> <span class="n">antipad</span><span class="p">,</span> <span class="n">geom</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">offset_x</span><span class="p">,</span> <span class="n">offset_y</span><span class="p">,</span> <span class="n">rot</span>
+                        <span class="p">):</span>  <span class="c1"># pragma no cover</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                <span class="s2">&quot;Pad-stack definition </span><span class="si">{}</span><span class="s2">, anti-pad on layer </span><span class="si">{}</span><span class="s2">, has been set to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                    <span class="n">padstack</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">layer</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma no cover</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                                <span class="s2">&quot;Failed to reassign anti-pad value </span><span class="si">{}</span><span class="s2"> on Pads-stack definition </span><span class="si">{}</span><span class="s2">,&quot;</span>
+                                <span class="s2">&quot; layer</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">padstack</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">layer</span><span class="p">)</span>
+                            <span class="p">)</span>
+                            <span class="n">all_succeed</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">padstack</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">cloned_padstack_data</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">all_succeed</span></div>
+
 <div class="viewcode-block" id="EdbPadstacks.get_via_instance_from_net"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.get_via_instance_from_net.html#pyaedt.edb_core.padstack.EdbPadstacks.get_via_instance_from_net">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_via_instance_from_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the list for Edb vias from net name list.</span>
