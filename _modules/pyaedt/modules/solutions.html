@@ -231,20 +231,30 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.plot</span> <span class="kn">import</span> <span class="n">plot_polar_chart</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">FacePrimitive</span>
 
+<span class="n">pd</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">np</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">pv</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;The NumPy module is required to run some functionalities of PostProcess.</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install numpy</span><span class="se">\n\n</span><span class="s2">Requires CPython.&quot;</span>
+            <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install numpy</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;The Pandas module is required to run some functionalities of PostProcess.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install pandas</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;The pyvista module is required to run some functionalities of PostProcess.</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install pyvista</span><span class="se">\n\n</span><span class="s2">Requires CPython.&quot;</span>
+            <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install pyvista</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
 
@@ -254,6 +264,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">aedtdata</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span> <span class="o">=</span> <span class="n">aedtdata</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">number_of_variations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aedtdata</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enable_pandas_output</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">enable_pandas_output</span> <span class="ow">and</span> <span class="n">pd</span> <span class="k">else</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_variation</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_variation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_original_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -264,7 +275,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">active_intrinsic</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({})</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">active_intrinsic</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_primary_sweep</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intrinsics</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_primary_sweep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sweeps_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -275,8 +286,26 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span><span class="p">[</span><span class="n">intrinsic</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetSweepUnits</span><span class="p">(</span><span class="n">intrinsic</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">units_sweeps</span><span class="p">[</span><span class="n">intrinsic</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_solutions_data</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_solutions_data</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ifft</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">enable_pandas_output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set/Get a flag to use Pandas to export dict and lists. This applies to Solution data output.</span>
+<span class="sd">        If ``True`` the property or method will return a pandas object in CPython environment.</span>
+<span class="sd">        Default is ``False``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_pandas_output</span> <span class="ow">and</span> <span class="n">pd</span> <span class="k">else</span> <span class="kc">False</span>
+
+    <span class="nd">@enable_pandas_output</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">enable_pandas_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enable_pandas_output</span> <span class="ow">and</span> <span class="n">pd</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_enable_pandas_output</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_solutions_data</span><span class="p">()</span>
 
 <div class="viewcode-block" id="SolutionData.set_active_variation"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.set_active_variation.html#pyaedt.modules.solutions.SolutionData.set_active_variation">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">set_active_variation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -374,21 +403,6 @@
         <span class="n">mydata</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nominal_variation</span><span class="o">.</span><span class="n">GetDataExpressions</span><span class="p">()]</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">mydata</span><span class="p">))</span>
 
-    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_init_solutions_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution_data_real</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution_data_imag</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetDataUnits</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span>
-                    <span class="nb">complex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
-                <span class="p">)</span>
-
 <div class="viewcode-block" id="SolutionData.update_sweeps"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.update_sweeps.html#pyaedt.modules.solutions.SolutionData.update_sweeps">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">update_sweeps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update sweeps.</span>
@@ -426,8 +440,38 @@
                 <span class="k">return</span> <span class="n">el</span>
         <span class="k">return</span> <span class="kc">None</span>
 
+<div class="viewcode-block" id="SolutionData.init_solutions_data"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.init_solutions_data.html#pyaedt.modules.solutions.SolutionData.init_solutions_data">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">init_solutions_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s2">&quot;Initialize the database and store info in variables.&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_solution_data_real</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_solution_data_imag</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_solutions_mag</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_solution_data_phase</span><span class="p">()</span></div>
+
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_solution_data_real</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init_solutions_mag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_solutions_mag</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
+            <span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nominal_variation</span><span class="o">.</span><span class="n">GetDataUnits</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+                <span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span>
+                    <span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">])</span>
+                    <span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span><span class="o">.</span><span class="n">mul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">]))</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">]:</span>
+                    <span class="n">_solutions_mag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">complex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">_solutions_mag</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_solutions_mag</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_init_solution_data_real</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">sols_data</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -446,10 +490,13 @@
                     <span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">sols_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution_Data</span>
-        <span class="k">return</span> <span class="n">sols_data</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">sols_data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sols_data</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_solution_data_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init_solution_data_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="n">sols_data</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -470,7 +517,47 @@
                     <span class="n">solution_Data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))]</span> <span class="o">=</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">sols_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution_Data</span>
-        <span class="k">return</span> <span class="n">sols_data</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">sols_data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sols_data</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_init_solution_data_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">data_phase</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">:</span>
+            <span class="n">data_phase</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+                <span class="n">data_phase</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">]:</span>
+                    <span class="n">data_phase</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">expr</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data_phase</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data_phase</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">full_matrix_real_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the full available solution data in Real and Imaginary parts.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of dicts</span>
+<span class="sd">            (Real Dict, Imag Dict)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">full_matrix_mag_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the full available solution data magnitude and phase in radians.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of dicts</span>
+<span class="sd">            (Mag Dict, Phase Dict).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_mag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_phase</span>
 
 <div class="viewcode-block" id="SolutionData.to_degrees"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.to_degrees.html#pyaedt.modules.solutions.SolutionData.to_degrees">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -488,7 +575,10 @@
 <span class="sd">            List of inputs in degrees.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">360</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">360</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">input_list</span> <span class="o">*</span> <span class="mi">360</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SolutionData.to_radians"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.to_radians.html#pyaedt.modules.solutions.SolutionData.to_radians">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -506,7 +596,10 @@
 <span class="sd">            List of inputs in radians.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">360</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_list</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">360</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">input_list</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">input_list</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">360</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_variation_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -556,6 +649,8 @@
             <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_list_to_SI</span><span class="p">(</span>
                 <span class="n">sol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sol</span></div>
 
     <span class="nd">@staticmethod</span>
@@ -607,7 +702,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">))</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">db10</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">)]</span></div>
 
 <div class="viewcode-block" id="SolutionData.data_db10"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.data_db10.html#pyaedt.modules.solutions.SolutionData.data_db10">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -631,7 +727,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">))</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">db10</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">)]</span></div>
 
 <div class="viewcode-block" id="SolutionData.data_db20"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.data_db20.html#pyaedt.modules.solutions.SolutionData.data_db20">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -655,7 +752,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">))</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">db20</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_magnitude</span><span class="p">(</span><span class="n">expression</span><span class="p">,</span> <span class="n">convert_to_SI</span><span class="p">)]</span></div>
 
 <div class="viewcode-block" id="SolutionData.data_phase"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.data_phase.html#pyaedt.modules.solutions.SolutionData.data_phase">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -682,7 +780,9 @@
         <span class="n">coefficient</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">radians</span><span class="p">:</span>
             <span class="n">coefficient</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">coefficient</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">atan</span><span class="p">(</span><span class="n">k</span> <span class="o">/</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_real</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_imag</span><span class="p">(</span><span class="n">expression</span><span class="p">))]</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">coefficient</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_imag</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_real</span><span class="p">(</span><span class="n">expression</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">coefficient</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_real</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_imag</span><span class="p">(</span><span class="n">expression</span><span class="p">))]</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">primary_sweep_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -694,6 +794,8 @@
 <span class="sd">            List of the primary sweep valid points for the expression.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variation_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variation_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">primary_sweep</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -724,6 +826,8 @@
                 <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sol_dict</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">sol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sol</span>
 
 <div class="viewcode-block" id="SolutionData.data_real"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.data_real.html#pyaedt.modules.solutions.SolutionData.data_real">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -764,6 +868,8 @@
             <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_list_to_SI</span><span class="p">(</span>
                 <span class="n">sol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sol</span></div>
 
 <div class="viewcode-block" id="SolutionData.data_imag"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.data_imag.html#pyaedt.modules.solutions.SolutionData.data_imag">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -802,6 +908,8 @@
             <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_list_to_SI</span><span class="p">(</span>
                 <span class="n">sol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_quantity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units_data</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sol</span></div>
 
 <div class="viewcode-block" id="SolutionData.is_real_only"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.solutions.SolutionData.is_real_only.html#pyaedt.modules.solutions.SolutionData.is_real_only">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -821,6 +929,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">expression</span><span class="p">:</span>
             <span class="n">expression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_expression</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">expression</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
             <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -1050,19 +1160,27 @@
         <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variation_values</span><span class="p">(</span><span class="n">v_axis</span><span class="p">)</span>
 
         <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variation_values</span><span class="p">(</span><span class="s2">&quot;Freq&quot;</span><span class="p">)</span>
-        <span class="n">vals_real_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_imag_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_real_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_imag_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_real_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
-        <span class="n">vals_imag_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
+            <span class="n">E_realx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_imagx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_realy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_imagy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_realz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_imagz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vals_real_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">vals_imag_Ex</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">vals_real_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">vals_imag_Ey</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">vals_real_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_real</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+            <span class="n">vals_imag_Ez</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solutions_imag</span><span class="p">[</span><span class="n">curve_header</span> <span class="o">+</span> <span class="s2">&quot;Z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
 
-        <span class="n">E_realx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
-        <span class="n">E_imagx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
-        <span class="n">E_realy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
-        <span class="n">E_imagy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
-        <span class="n">E_realz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ez</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
-        <span class="n">E_imagz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ez</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_realx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_imagx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ex</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_realy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_imagy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ey</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_realz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_real_Ez</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
+            <span class="n">E_imagz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vals_imag_Ez</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">u</span><span class="p">)))</span>
 
         <span class="n">Temp_E_compx</span> <span class="o">=</span> <span class="n">E_realx</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">E_imagx</span>  <span class="c1"># Here is the complex FD data matrix, ready for transforming</span>
         <span class="n">Temp_E_compy</span> <span class="o">=</span> <span class="n">E_realy</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">E_imagy</span>
