@@ -213,6 +213,41 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.LoadAEDTFile</span> <span class="kn">import</span> <span class="n">load_entire_aedt_file</span>
 
+
+<span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">identify_setup</span><span class="p">(</span><span class="n">props</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Identify if a setup props is time or frequency domain.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    props : dict</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        `True` if domain is Time. `False` for Frequency and Sweeps.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Transient&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;TimeStep&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Data/InitialStep&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;TransientData&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;QuickEyeAnalysis&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;VerifEyeAnalysis&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;AMIAnalysis&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;HSPICETransientData&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SystemFDAnalysis&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Start Time:=&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">key</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">props</span> <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">props</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">props</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
 <span class="n">meshlink</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;ImportMesh&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)]</span>
 <span class="n">autosweep</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;RangeType&quot;</span><span class="p">,</span> <span class="s2">&quot;LinearStep&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;RangeStart&quot;</span><span class="p">,</span> <span class="s2">&quot;1GHz&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;RangeEnd&quot;</span><span class="p">,</span> <span class="s2">&quot;10GHz&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;RangeStep&quot;</span><span class="p">,</span> <span class="s2">&quot;1GHz&quot;</span><span class="p">)]</span>
 <span class="n">autosweeps</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;Sweep&quot;</span><span class="p">,</span> <span class="n">autosweep</span><span class="p">)]</span>
@@ -1558,6 +1593,8 @@
 <span class="sd">            `True` if solutions are available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">reports_by_category</span><span class="o">.</span><span class="n">standard</span><span class="p">(</span><span class="n">setup_name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setupname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">identify_setup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">):</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span>
         <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">get_solution_data</span><span class="p">()</span> <span class="k">else</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
@@ -1837,7 +1874,12 @@
 <span class="sd">        bool</span>
 <span class="sd">            `True` if solutions are available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">reports_by_category</span><span class="o">.</span><span class="n">standard</span><span class="p">(</span><span class="n">setup_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">combined_name</span><span class="p">)</span>
+        <span class="n">expressions</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_app</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">available_report_quantities</span><span class="p">(</span><span class="n">solution</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">combined_name</span><span class="p">)]</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">post</span><span class="o">.</span><span class="n">reports_by_category</span><span class="o">.</span><span class="n">standard</span><span class="p">(</span>
+            <span class="n">setup_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">combined_name</span><span class="p">,</span> <span class="n">expressions</span><span class="o">=</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">identify_setup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">):</span>
+            <span class="n">sol</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span>
         <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">sol</span><span class="o">.</span><span class="n">get_solution_data</span><span class="p">()</span> <span class="k">else</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="SweepHFSS3DLayout.change_type"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.SetupTemplates.SweepHFSS3DLayout.change_type.html#pyaedt.modules.SetupTemplates.SweepHFSS3DLayout.change_type">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -2052,7 +2094,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeStep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1GHz&quot;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeEnd&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;7.5GHz&quot;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveSingleField&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-
                 <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeSamples&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeCount&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">401</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;SaveFields&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>

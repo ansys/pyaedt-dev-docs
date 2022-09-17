@@ -211,6 +211,7 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.Object3d</span> <span class="kn">import</span> <span class="n">Padstack</span>
@@ -618,9 +619,9 @@
 <span class="sd">        dict[str, :class:`pyaedt.modeler.object3dlayout.Pins3DLayout`]</span>
 <span class="sd">            Vias Dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span>
         <span class="n">objs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;via&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vias</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span>
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">Pins3DLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">is_pin</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vias</span>
@@ -911,24 +912,23 @@
 <span class="sd">            Position on the Y axis. The default is ``0``.</span>
 <span class="sd">        rotation : float, optional</span>
 <span class="sd">            Angle rotation in degrees. The default is ``0``.</span>
-<span class="sd">        hole_diam :</span>
-<span class="sd">            Diameter of the hole. The default is ``None``, in which case</span>
-<span class="sd">            the override is disabled.</span>
+<span class="sd">        hole_diam : float, optional</span>
+<span class="sd">            Diameter of the hole. If ``None`` the default is ``1``,</span>
+<span class="sd">            in which case the override is disabled.</span>
 <span class="sd">        top_layer : str, optional</span>
-<span class="sd">            Top layer. The default is ``None``.</span>
+<span class="sd">            Top layer. If ``None`` the first layer is taken.</span>
 <span class="sd">        bot_layer : str, optional</span>
-<span class="sd">            Bottom layer. The default is ``None``.</span>
+<span class="sd">            Bottom layer. If ``None`` the last layer is taken.</span>
 <span class="sd">        name : str, optional</span>
-<span class="sd">            Name of the via. The default is ``None``, in which case the</span>
-<span class="sd">            default name is assigned.</span>
+<span class="sd">            Name of the via. If ``None`` a random name is generated.</span>
 <span class="sd">        netname : str, optional</span>
-<span class="sd">            Name of the net. The default is ``None``, in which case the</span>
-<span class="sd">            default name is assigned.</span>
+<span class="sd">            Name of the net. The default is ``None``, in which case no</span>
+<span class="sd">            name is assigned.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
-<span class="sd">            Name of the via created when successful.</span>
+<span class="sd">        str or bool</span>
+<span class="sd">            Name of the via created when successful, ``False`` when failed.</span>
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
@@ -941,34 +941,46 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">bot_layer</span><span class="p">:</span>
             <span class="n">bot_layer</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">_uname</span><span class="p">()</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;via&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">listnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">FindObjects</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">listnames</span><span class="p">:</span>
                 <span class="n">name</span> <span class="o">=</span> <span class="n">_uname</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Contents&quot;</span><span class="p">]</span>
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;name:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ReferencedPadstack:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">padstack</span><span class="p">),</span>
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;vposition:=&quot;</span><span class="p">),</span>
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;x:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="s2">&quot;y:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">y</span><span class="p">)])</span>
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;vrotation:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;deg&quot;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">hole_diam</span><span class="p">:</span>
-            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;overrides hole:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;hole diameter:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">hole_diam</span><span class="p">)])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Contents&quot;</span><span class="p">]</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;name:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ReferencedPadstack:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">padstack</span><span class="p">),</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;vposition:=&quot;</span><span class="p">),</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;x:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="s2">&quot;y:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">y</span><span class="p">)])</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;vrotation:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">rotation</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;deg&quot;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">hole_diam</span><span class="p">:</span>
+                <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;overrides hole:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;hole diameter:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">hole_diam</span><span class="p">)])</span>
 
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;overrides hole:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;hole diameter:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="mi">1</span><span class="p">)])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;overrides hole:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;hole diameter:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="mi">1</span><span class="p">)])</span>
 
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Pin:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;highest_layer:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top_layer</span><span class="p">)</span>
-        <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;lowest_layer:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bot_layer</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateVia</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
-        <span class="c1"># self.objects[name] = Object3dlayout(self)</span>
-        <span class="c1"># self.objects[name].name = name</span>
-        <span class="c1"># if netname:</span>
-        <span class="c1">#     self.objects[name].set_net_name(netname)</span>
-        <span class="k">return</span> <span class="n">name</span></div>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Pin:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;highest_layer:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top_layer</span><span class="p">)</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;lowest_layer:=&quot;</span><span class="p">),</span> <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bot_layer</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreateVia</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">netname</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">ChangeProperty</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="s2">&quot;NAME:AllTabs&quot;</span><span class="p">,</span>
+                        <span class="p">[</span>
+                            <span class="s2">&quot;NAME:BaseElementTab&quot;</span><span class="p">,</span>
+                            <span class="p">[</span><span class="s2">&quot;NAME:PropServers&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">],</span>
+                            <span class="p">[</span><span class="s2">&quot;NAME:ChangedProps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:Net&quot;</span><span class="p">,</span> <span class="s2">&quot;Value:=&quot;</span><span class="p">,</span> <span class="n">netname</span><span class="p">]],</span>
+                        <span class="p">],</span>
+                    <span class="p">]</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">name</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Primitives3DLayout.create_circle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle.html#pyaedt.modeler.Primitives3DLayout.Primitives3DLayout.create_circle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_circle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layername</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">net_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
