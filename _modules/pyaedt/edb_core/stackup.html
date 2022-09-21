@@ -232,6 +232,407 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<span class="k">class</span> <span class="nc">Stackup</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Manages EDB methods for stackup and material management accessible from `Edb.stackup` property.&quot;&quot;&quot;</span>
+
+    <span class="k">class</span> <span class="nc">_Layer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pclass</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span> <span class="o">=</span> <span class="n">pclass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">_edb_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_edb_layer_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">l</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">is_stackup_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Determine whether this layer is a stackup layer.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            bool</span>
+<span class="sd">                True if this layer is a stackup layer, False otherwise.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">()</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Retrieve name of the layer.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            str</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+        <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
+        <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+            <span class="n">layer_clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span>
+            <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="s2">&quot;change_name&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">thickness</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Retrieve thickness of the layer.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            float</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_stackup_layer</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">return</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span><span class="o">.</span><span class="n">GetThicknessValue</span><span class="p">()</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+
+        <span class="nd">@thickness</span><span class="o">.</span><span class="n">setter</span>
+        <span class="k">def</span> <span class="nf">thickness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_stackup_layer</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">return</span>
+            <span class="n">layer_clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span>
+            <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetThickness</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="s2">&quot;change_attribute&quot;</span><span class="p">)</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">etch_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Retrieve etch factor of this layer</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            float</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span><span class="o">.</span><span class="n">GetEtchFactor</span><span class="p">()</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+
+        <span class="nd">@etch_factor</span><span class="o">.</span><span class="n">setter</span>
+        <span class="k">def</span> <span class="nf">etch_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_stackup_layer</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">return</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">layer_clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span>
+                <span class="k">return</span> <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetEtchFactorEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">layer_clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span>
+                <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetEtchFactorEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetEtchFactor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="s2">&quot;change_attribute&quot;</span><span class="p">)</span>
+
+        <span class="nd">@property</span>
+        <span class="k">def</span> <span class="nf">roughness_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Determine whether roughness is enabled on this layer.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            bool</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_stackup_layer</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">return</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span><span class="o">.</span><span class="n">IsRoughnessEnabled</span><span class="p">()</span>
+
+        <span class="nd">@roughness_enabled</span><span class="o">.</span><span class="n">setter</span>
+        <span class="k">def</span> <span class="nf">roughness_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">set_enable</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_stackup_layer</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">return</span>
+            <span class="k">if</span> <span class="n">set_enable</span><span class="p">:</span>
+                <span class="n">layer_clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span>
+                <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetRoughnessEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="s2">&quot;change_attribute&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_roughness_model</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">layer_clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span>
+                <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetRoughnessEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="s2">&quot;change_attribute&quot;</span><span class="p">)</span>
+
+        <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+        <span class="k">def</span> <span class="nf">assign_roughness_model</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;huray&quot;</span><span class="p">,</span>
+            <span class="n">huray_radius</span><span class="o">=</span><span class="s2">&quot;0.5um&quot;</span><span class="p">,</span>
+            <span class="n">huray_surface_ratio</span><span class="o">=</span><span class="s2">&quot;2.9&quot;</span><span class="p">,</span>
+            <span class="n">groisse_roughness</span><span class="o">=</span><span class="s2">&quot;1um&quot;</span><span class="p">,</span>
+            <span class="n">apply_on_surface</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Assign roughness model on this layer.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            model_type : str, optional</span>
+<span class="sd">                Type of roughness model. The default is ``&quot;huray&quot;``. Options are ``&quot;huray&quot;``, ``&quot;groisse&quot;``.</span>
+<span class="sd">            huray_radius : str, optional</span>
+<span class="sd">                Radius of huray model. The default is ``&quot;0.5um&quot;``.</span>
+<span class="sd">            huray_surface_ratio : str, float, optional.</span>
+<span class="sd">                Surface ratio of huray model. The default is ``&quot;2.9&quot;``.</span>
+<span class="sd">            groisse_roughness : str, float, optional</span>
+<span class="sd">                Roughness of groisse model. The default is ``&quot;1um&quot;``.</span>
+<span class="sd">            apply_on_surface : str, optional.</span>
+<span class="sd">                Where to assign roughness model. The default is ``&quot;all&quot;``. Options are ``&quot;top&quot;``, ``&quot;bottom&quot;``,</span>
+<span class="sd">                 ``&quot;side&quot;``.</span>
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_stackup_layer</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">return</span>
+            <span class="n">radius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">huray_radius</span><span class="p">)</span>
+            <span class="n">surface_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">huray_surface_ratio</span><span class="p">)</span>
+            <span class="n">groisse_roughness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">groisse_roughness</span><span class="p">)</span>
+            <span class="n">regions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">apply_on_surface</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
+                <span class="n">regions</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">RoughnessModel</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">Top</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">RoughnessModel</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">Side</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">RoughnessModel</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">Bottom</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="n">apply_on_surface</span> <span class="o">==</span> <span class="s2">&quot;top&quot;</span><span class="p">:</span>
+                <span class="n">regions</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">RoughnessModel</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">Top</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="n">apply_on_surface</span> <span class="o">==</span> <span class="s2">&quot;bottom&quot;</span><span class="p">:</span>
+                <span class="n">regions</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">RoughnessModel</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">Bottom</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="n">apply_on_surface</span> <span class="o">==</span> <span class="s2">&quot;side&quot;</span><span class="p">:</span>
+                <span class="n">regions</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">RoughnessModel</span><span class="o">.</span><span class="n">Region</span><span class="o">.</span><span class="n">Side</span><span class="p">,</span>
+                <span class="p">]</span>
+
+            <span class="n">layer_clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">regions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;huray&quot;</span><span class="p">:</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">HurrayRoughnessModel</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">surface_ratio</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">GroisseRoughnessModel</span><span class="p">(</span><span class="n">groisse_roughness</span><span class="p">)</span>
+                <span class="n">layer_clone</span><span class="o">.</span><span class="n">SetRoughnessModel</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pclass</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="s2">&quot;change_attribute&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pedb</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span> <span class="o">=</span> <span class="n">pedb</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_layer_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy of EDB layer collection.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        class : Ansys.Ansoft.Edb.Cell.LayerCollection</span>
+<span class="sd">            Collection of layers.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">lc_readonly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">()</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">lc_readonly</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">)))</span>
+        <span class="n">layer_collection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
+
+        <span class="n">flag_first_layer</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
+                <span class="k">continue</span>
+            <span class="n">lyr_clone</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
+            <span class="n">lyr_name</span> <span class="o">=</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">flag_first_layer</span><span class="p">:</span>
+                <span class="n">layer_collection</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">lyr_clone</span><span class="p">)</span>
+                <span class="n">flag_first_layer</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">layer_collection</span><span class="o">.</span><span class="n">AddLayerAbove</span><span class="p">(</span><span class="n">lyr_clone</span><span class="p">,</span> <span class="n">lyr_name</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lyr</span><span class="o">.</span><span class="n">IsStackupLayer</span><span class="p">():</span>
+                <span class="n">layer_collection</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">Clone</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">layer_collection</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb_layer_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layer_collection</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_edb_layer_list_nonstackup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layer_collection</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">NonStackupLayerSet</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the dictionary of layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer_list</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">signal_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the dictionary of signal layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">obj</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">_edb_layer</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span> <span class="o">==</span> <span class="n">layer_type</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">non_stackup_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the dictionary of signal layers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer_list_nonstackup</span><span class="p">}</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_set_layout_stackup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_clone</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="n">base_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">edb_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_layer_list</span>
+        <span class="k">if</span> <span class="n">operation</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;change_attribute&quot;</span><span class="p">,</span> <span class="s2">&quot;change_name&quot;</span><span class="p">]:</span>
+            <span class="n">new_layer_collection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_layer_collection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layer_collection</span>
+
+        <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;change_attribute&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">edb_layers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">layer_clone</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()):</span>
+                    <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerBottom</span><span class="p">(</span><span class="n">lyr</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerBottom</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;change_name&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">lyr</span> <span class="ow">in</span> <span class="n">edb_layers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">base_layer</span> <span class="o">==</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetName</span><span class="p">()):</span>
+                    <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerBottom</span><span class="p">(</span><span class="n">lyr</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerBottom</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;insert_below&quot;</span><span class="p">:</span>
+            <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerBelow</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="n">base_layer</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;insert_above&quot;</span><span class="p">:</span>
+            <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerAbove</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">,</span> <span class="n">base_layer</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;add_on_top&quot;</span><span class="p">:</span>
+            <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="s2">&quot;add_on_bottom&quot;</span><span class="p">:</span>
+            <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerBottom</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_layer_collection</span><span class="o">.</span><span class="n">AddLayerTop</span><span class="p">(</span><span class="n">layer_clone</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">new_layer_collection</span><span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_create_stackup_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;signal&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">:</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">DielectricLayer</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">StackupLayer</span><span class="p">(</span>
+            <span class="n">layer_name</span><span class="p">,</span>
+            <span class="n">_layer_type</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="n">thickness</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_value</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_create_nonstackup_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;conducting&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">ConductingLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;air_lines&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">AirlinesLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">ErrorsLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;symbol&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SymbolLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;measure&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">MeasureLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;assembly&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">AssemblyLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;silkscreen&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SilkscreenLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;solder_mask&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SolderMaskLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;solder_paste&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SolderPasteLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;glue&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">GlueLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;wirebond&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">WirebondLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">UserLayer</span>
+        <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;hfss_region&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SIwaveHFSSSolverRegions</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">_layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">OutlineLayer</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Layer</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">_layer_type</span><span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">add_layer</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">layer_name</span><span class="p">,</span>
+        <span class="n">base_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">&quot;add_on_top&quot;</span><span class="p">,</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span>
+        <span class="n">material</span><span class="o">=</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span>
+        <span class="n">fillMaterial</span><span class="o">=</span><span class="s2">&quot;fr4_epoxy&quot;</span><span class="p">,</span>
+        <span class="n">thickness</span><span class="o">=</span><span class="s2">&quot;35um&quot;</span><span class="p">,</span>
+        <span class="n">etch_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_negative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">enable_roughness</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Insert a layer into stackup.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layer_name : str</span>
+<span class="sd">            Name of the layer.</span>
+<span class="sd">        base_layer : str, optional</span>
+<span class="sd">            Name of the base layer.</span>
+<span class="sd">        method : str, optional</span>
+<span class="sd">            Where to insert the new layer. The default is ``&quot;add_on_top&quot;``. Options are ``&quot;add_on_top&quot;``,</span>
+<span class="sd">            ``&quot;add_on_bottom&quot;``, ``&quot;insert_above&quot;``, ``&quot;insert_below&quot;``.</span>
+<span class="sd">        layer_type : str, optional</span>
+<span class="sd">            Type of layer. The default is ``&quot;signal&quot;``. Options are ``&quot;signal&quot;``, ``&quot;dielectric&quot;``, ``&quot;conducting&quot;``,</span>
+<span class="sd">             ``&quot;air_lines&quot;``, ``&quot;error&quot;``, ``&quot;symbol&quot;``, ``&quot;measure&quot;``, ``&quot;assembly&quot;``, ``&quot;silkscreen&quot;``,</span>
+<span class="sd">             ``&quot;solder_mask&quot;``, ``&quot;solder_paste&quot;``, ``&quot;glue&quot;``, ``&quot;wirebond&quot;``, ``&quot;hfss_region&quot;``, ``&quot;user&quot;``.</span>
+<span class="sd">        material : str, optional</span>
+<span class="sd">            Material of the layer.</span>
+<span class="sd">        fillMaterial : str, optional</span>
+<span class="sd">            Fill material of the layer.</span>
+<span class="sd">        thickness : str, float, optional</span>
+<span class="sd">            Thickness of the layer.</span>
+<span class="sd">        etch_factor : int, float, optional</span>
+<span class="sd">            Etch factor of the layer.</span>
+<span class="sd">        is_negative : bool, optional</span>
+<span class="sd">            Whether the layer is negative.</span>
+<span class="sd">        enable_roughness : bool, optional</span>
+<span class="sd">            Whether roughness is enabled.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">layer_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">]:</span>
+            <span class="n">new_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_stackup_layer</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">)</span>
+            <span class="n">new_layer</span><span class="o">.</span><span class="n">SetMaterial</span><span class="p">(</span><span class="n">material</span><span class="p">)</span>
+            <span class="n">new_layer</span><span class="o">.</span><span class="n">SetFillMaterial</span><span class="p">(</span><span class="n">fillMaterial</span><span class="p">)</span>
+            <span class="n">new_layer</span><span class="o">.</span><span class="n">SetNegative</span><span class="p">(</span><span class="n">is_negative</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">new_layer</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">base_layer</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">etch_factor</span><span class="p">:</span>
+                <span class="n">new_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span>
+                <span class="n">new_layer</span><span class="o">.</span><span class="n">etch_factor</span> <span class="o">=</span> <span class="n">etch_factor</span>
+            <span class="k">if</span> <span class="n">enable_roughness</span><span class="p">:</span>
+                <span class="n">new_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span>
+                <span class="n">new_layer</span><span class="o">.</span><span class="n">roughness_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_nonstackup_layer</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">new_layer</span><span class="p">,</span> <span class="s2">&quot;non_stackup&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span>
+
+
 <div class="viewcode-block" id="EdbStackup"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.EdbStackup.html#pyaedt.edb_core.stackup.EdbStackup">[docs]</a><span class="k">class</span> <span class="nc">EdbStackup</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages EDB methods for stackup and material management accessible from `Edb.core_stackup` property.</span>
 
