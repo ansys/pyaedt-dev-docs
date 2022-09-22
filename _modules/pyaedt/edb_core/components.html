@@ -1730,6 +1730,73 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span><span class="o">.</span><span class="n">is_enabled</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="n">found</span></div>
 
+<div class="viewcode-block" id="Components.import_bom"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.import_bom.html#pyaedt.edb_core.components.Components.import_bom">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_bom</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">bom_file</span><span class="p">,</span>
+        <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
+        <span class="n">refdes_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">part_name_col</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">comp_type_col</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">value_col</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load external BOM file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bom_file : str</span>
+<span class="sd">            Full path to the BOM file, which is a delimited text file.</span>
+<span class="sd">        delimiter : str, optional</span>
+<span class="sd">            Value to use for the delimiter. The default is ``&quot;,&quot;``.</span>
+<span class="sd">        refdes_col : int, optional</span>
+<span class="sd">            Column index of reference designator. The default is ``&quot;0&quot;``.</span>
+<span class="sd">        part_name_col : int, optional</span>
+<span class="sd">             Column index of part name. The default is ``&quot;1&quot;``. Set to ``None`` if</span>
+<span class="sd">             the column does not exist.</span>
+<span class="sd">        comp_type_col : int, optional</span>
+<span class="sd">            Column index of component type. The default is ``&quot;2&quot;``.</span>
+<span class="sd">        value_col : int, optional</span>
+<span class="sd">            Column index of value. The default is ``&quot;3&quot;``. Set to ``None``</span>
+<span class="sd">            if the column does not exist.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bom_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="n">unmount_comp_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">l</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">l</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">delimiter</span><span class="p">)</span>
+
+                <span class="n">refdes</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">refdes_col</span><span class="p">]</span>
+                <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">refdes</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">part_name_col</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">part_name</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">part_name_col</span><span class="p">]</span>
+                    <span class="n">comp</span><span class="o">.</span><span class="n">partname</span> <span class="o">=</span> <span class="n">part_name</span>
+                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">comp_type_col</span><span class="p">]</span>
+                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">comp_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="o">+</span> <span class="n">comp_type</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">comp_type</span>
+                <span class="k">if</span> <span class="n">comp_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">]:</span>
+                    <span class="n">unmount_comp_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">value_col</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">value_col</span><span class="p">]</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Resistor&quot;</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">res_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">cap_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">ind_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">unmount_comp_list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span><span class="o">.</span><span class="n">is_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
 <div class="viewcode-block" id="Components.get_pin_from_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.get_pin_from_component.html#pyaedt.edb_core.components.Components.get_pin_from_component">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_pin_from_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">netName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pinName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the pins of a component.</span>
