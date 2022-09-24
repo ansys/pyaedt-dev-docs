@@ -210,6 +210,7 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>  <span class="c1"># noreorder</span>
 
+<span class="kn">import</span> <span class="nn">fnmatch</span>
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
@@ -554,7 +555,7 @@
             <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Hfss3dLayout.create_coax_port"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.create_coax_port.html#pyaedt.Hfss3dLayout.create_coax_port">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_coax_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vianame</span><span class="p">,</span> <span class="n">radial_extent</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_coax_port</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vianame</span><span class="p">,</span> <span class="n">radial_extent</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alignment</span><span class="o">=</span><span class="s2">&quot;lower&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a new coax port.</span>
 
 <span class="sd">        Parameters</span>
@@ -564,9 +565,9 @@
 <span class="sd">        radial_extent : float</span>
 <span class="sd">            Radial coax extension.</span>
 <span class="sd">        layer : str</span>
-<span class="sd">            Name of the layer.</span>
+<span class="sd">            Name of the layer to apply the reference to.</span>
 <span class="sd">        alignment : str, optional</span>
-<span class="sd">            Port alignment on Layer.</span>
+<span class="sd">            Port alignment on the layer.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -591,11 +592,12 @@
                 <span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">&quot;Radial Extent Factor&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">radial_extent</span><span class="p">),</span> <span class="s2">&quot;EM Design&quot;</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span><span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">&quot;Layer Alignment&quot;</span><span class="p">,</span> <span class="n">alignment</span><span class="p">,</span> <span class="s2">&quot;EM Design&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
-                <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                <span class="s2">&quot;Pad Port Layer&quot;</span><span class="p">,</span>
-                <span class="n">layer</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">layer</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">change_property</span><span class="p">(</span>
+                    <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">&quot;Pad Port Layer&quot;</span><span class="p">,</span>
+                    <span class="n">layer</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="n">bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_port_info</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">bound</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
@@ -1933,7 +1935,38 @@
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">propnames</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetPropertyValue</span><span class="p">(</span><span class="s2">&quot;EM Design&quot;</span><span class="p">,</span> <span class="s2">&quot;Excitations:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port</span><span class="p">),</span> <span class="n">prop</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">BoundaryObject3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Port&quot;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">BoundaryObject3dLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Port&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Hfss3dLayout.get_model_from_mesh_results"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.get_model_from_mesh_results.html#pyaedt.Hfss3dLayout.get_model_from_mesh_results">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get_model_from_mesh_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the path for the parasolid file in the results folder.</span>
+<span class="sd">        The parasolid file is generated after the mesh is created in 3D Layout.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        binary : str, optional</span>
+<span class="sd">            Either if retrieve binary format of parasoli or not.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Path for the parasolid file in the results folder.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">startpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results_directory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">binary</span><span class="p">:</span>
+            <span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;model_sm3.x_t&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;model.x_b&quot;</span>
+
+        <span class="n">out_files</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">filenames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">startpath</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">filenames</span>
+            <span class="k">if</span> <span class="n">fnmatch</span><span class="o">.</span><span class="n">fnmatch</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">out_files</span><span class="p">:</span>
+            <span class="n">out_files</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">out_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span></div></div>
 </pre></div>
 
               </article>

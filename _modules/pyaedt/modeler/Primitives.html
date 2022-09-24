@@ -1291,8 +1291,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">non_model_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;List of names of all non-model objects.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;List of objects of all non-model objects.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_model_objects</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">non_model_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of names of all non-model objects.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectsInGroup</span><span class="p">(</span><span class="s2">&quot;Non Model&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">model_consistency_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2906,7 +2911,7 @@
             <span class="k">return</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">get_bodynames_from_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_bodynames_from_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_non_model</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the names of the objects that are in contact with a given point.</span>
 
 <span class="sd">        Parameters</span>
@@ -2916,6 +2921,8 @@
 <span class="sd">        units : str, optional</span>
 <span class="sd">            Units, such as ``&quot;m&quot;``. The default is ``None``, in which case the</span>
 <span class="sd">            model units are used.</span>
+<span class="sd">        include_non_model : bool, optional</span>
+<span class="sd">            Either if include or not non model objects.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2934,6 +2941,9 @@
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;YPosition:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">YCenter</span><span class="p">)</span>
         <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ZPosition:=&quot;</span><span class="p">),</span> <span class="n">vArg1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ZCenter</span><span class="p">)</span>
         <span class="n">list_of_bodies</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetBodyNamesByPosition</span><span class="p">(</span><span class="n">vArg1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">include_non_model</span><span class="p">:</span>
+            <span class="n">non_models</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_model_names</span><span class="p">]</span>
+            <span class="n">list_of_bodies</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list_of_bodies</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">non_models</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">list_of_bodies</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>

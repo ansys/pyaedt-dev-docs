@@ -230,6 +230,9 @@
 
 
 <span class="k">class</span> <span class="nc">Maxwell</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
@@ -1642,8 +1645,117 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Current density can only be applied to Eddy current or magnetostatic solution types.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span>
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">enable_harmonic_force</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">objects</span><span class="p">,</span>
+        <span class="n">force_type</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">window_function</span><span class="o">=</span><span class="s2">&quot;Rectangular&quot;</span><span class="p">,</span>
+        <span class="n">use_number_of_last_cycles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">last_cycles_number</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">calculate_force</span><span class="o">=</span><span class="s2">&quot;Harmonic&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the Harmonic Force for Transient Analysis.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        objects : list</span>
+<span class="sd">            Object list to enable force computation.</span>
+<span class="sd">        force_type : int, optional</span>
+<span class="sd">            Force Type. `0` for Objects, `1` for Surface, `2` for volumetric.</span>
+<span class="sd">        window_function : str, optional</span>
+<span class="sd">            Windowing function. Default is `&quot;Rectangular&quot;`.</span>
+<span class="sd">        use_number_of_last_cycles : bool, optional</span>
+<span class="sd">            Either to use or not the last cycle. Default is `True`.</span>
+<span class="sd">        last_cycles_number : int, optional</span>
+<span class="sd">            Defines the number of cycles to compute if `use_number_of_last_cycle` is `True`.</span>
+<span class="sd">        calculate_force : sr, optional</span>
+<span class="sd">            Either `&quot;Harmonic&quot;` or `&quot;Transient&quot;`. Default is `&quot;Harmonic&quot;`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;Transient&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This methods work only with Maxwell Transient Analysis.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">EnableHarmonicForceCalculation</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;EnabledObjects:=&quot;</span><span class="p">,</span>
+                <span class="n">objects</span><span class="p">,</span>
+                <span class="s2">&quot;ForceType:=&quot;</span><span class="p">,</span>
+                <span class="n">force_type</span><span class="p">,</span>
+                <span class="s2">&quot;WindowFunctionType:=&quot;</span><span class="p">,</span>
+                <span class="n">window_function</span><span class="p">,</span>
+                <span class="s2">&quot;UseNumberOfLastCycles:=&quot;</span><span class="p">,</span>
+                <span class="n">use_number_of_last_cycles</span><span class="p">,</span>
+                <span class="s2">&quot;NumberOfLastCycles:=&quot;</span><span class="p">,</span>
+                <span class="n">last_cycles_number</span><span class="p">,</span>
+                <span class="s2">&quot;StartTime:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;0s&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;UseNumberOfCyclesForStopTime:=&quot;</span><span class="p">,</span>
+                <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">&quot;NumberOfCyclesForStopTime:=&quot;</span><span class="p">,</span>
+                <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;StopTime:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;0.01s&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OutputFreqRangeType:=&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Use All&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;CaculateForceType:=&quot;</span><span class="p">,</span>
+                <span class="n">calculate_force</span> <span class="o">+</span> <span class="s2">&quot; Force&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">export_element_based_harmonic_force</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">output_directory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">setup_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">start_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">stop_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">number_of_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export Element Based Harmonic Forces csv to file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        output_directory : str, optional</span>
+<span class="sd">            Path to export. If ``None`` pyaedt working dir will be used.</span>
+<span class="sd">        setup_name : str, optional</span>
+<span class="sd">            Setup name. If ``None`` pyaedt will use nominal setup.</span>
+<span class="sd">        start_frequency : float, optional</span>
+<span class="sd">            When a float is entered the Start-Stop Frequency approach is used.</span>
+<span class="sd">        stop_frequency : float, optional</span>
+<span class="sd">            A float must be entered when the Start-Stop Frequency approach is used.</span>
+<span class="sd">        number_of_frequency : int, optional</span>
+<span class="sd">            When a number is entered, the number of frequencies approach is used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Path to the export directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">!=</span> <span class="s2">&quot;Transient&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This methods work only with Maxwell Transient Analysis.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_directory</span><span class="p">:</span>
+            <span class="n">output_directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_directory</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setup_name</span><span class="p">:</span>
+            <span class="n">setup_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setups</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">freq_option</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">if</span> <span class="n">start_frequency</span> <span class="ow">and</span> <span class="n">stop_frequency</span><span class="p">:</span>
+            <span class="n">freq_option</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">start_frequency</span>
+            <span class="n">f2</span> <span class="o">=</span> <span class="n">stop_frequency</span>
+        <span class="k">elif</span> <span class="n">number_of_frequency</span><span class="p">:</span>
+            <span class="n">freq_option</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">f1</span> <span class="o">=</span> <span class="n">number_of_frequency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">ExportElementBasedHarmonicForce</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">setup_name</span><span class="p">,</span> <span class="n">freq_option</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_directory</span>
 
 
 <div class="viewcode-block" id="Maxwell3d"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell3d.html#pyaedt.Maxwell3d">[docs]</a><span class="k">class</span> <span class="nc">Maxwell3d</span><span class="p">(</span><span class="n">Maxwell</span><span class="p">,</span> <span class="n">FieldAnalysis3D</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
@@ -1971,7 +2083,27 @@
             <span class="k">return</span> <span class="n">bound</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error in boundary creation for </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">boundary_type</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span></div>
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="Maxwell3d.get_conduction_paths"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell3d.get_conduction_paths.html#pyaedt.Maxwell3d.get_conduction_paths">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get_conduction_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a dictionary of all conduction paths with relative objects. It works from AEDT 23R1.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of all conduction paths with relative objects.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">conduction_paths</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">paths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetConductionPaths</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+                <span class="n">conduction_paths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetConductionPathObjects</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">conduction_paths</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">conduction_paths</span></div></div>
 
 
 <div class="viewcode-block" id="Maxwell2d"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell2d.html#pyaedt.Maxwell2d">[docs]</a><span class="k">class</span> <span class="nc">Maxwell2d</span><span class="p">(</span><span class="n">Maxwell</span><span class="p">,</span> <span class="n">FieldAnalysis3D</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>

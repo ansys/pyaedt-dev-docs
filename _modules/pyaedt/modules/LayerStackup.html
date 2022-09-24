@@ -373,7 +373,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_usp</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hfssSp</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;si&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;dtv&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">planaremSp</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ifg&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;vly&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_zones</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_zones</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -972,6 +972,8 @@
 <span class="sd">        -------</span>
 <span class="sd">        list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zones</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_zones</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="o">.</span><span class="n">all_layers</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">i</span> <span class="ow">and</span> <span class="s2">&quot;;&quot;</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zones</span>
 
     <span class="nd">@zones</span><span class="o">.</span><span class="n">setter</span>
@@ -1482,7 +1484,7 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetStackupLayerNames()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetStackupLayerNames</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;;&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetAllLayerNames</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;;&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">drawing_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1498,8 +1500,9 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.GetAllLayerNames()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">stackup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_layers</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetAllLayerNames</span><span class="p">())</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stackup</span> <span class="ow">and</span> <span class="s2">&quot;;&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_layers</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_layers</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;signal&quot;</span><span class="p">,</span> <span class="s2">&quot;via&quot;</span><span class="p">,</span> <span class="s2">&quot;dielectric&quot;</span><span class="p">]]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">all_signal_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1510,15 +1513,9 @@
 <span class="sd">        list</span>
 <span class="sd">            List of signal layers.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_layers</span>
-        <span class="n">sig</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
-            <span class="n">layid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_id</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">layid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_layers</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">layid</span><span class="p">]</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">:</span>
-                <span class="n">sig</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">sig</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_layers</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_layers</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;signal&quot;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">all_diel_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1628,7 +1625,7 @@
                 <span class="n">layer</span><span class="o">.</span><span class="n">IsVisibleShape</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">IsVisibleShape</span>
                 <span class="n">layer</span><span class="o">.</span><span class="n">IsVisibleHole</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">IsVisibleHole</span>
                 <span class="n">layer</span><span class="o">.</span><span class="n">_color</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_color</span>
-                <span class="n">layer</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_index</span>
+                <span class="n">layer</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_index</span>
                 <span class="n">layer</span><span class="o">.</span><span class="n">_thickness</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_thickness</span>
                 <span class="n">layer</span><span class="o">.</span><span class="n">_lowerelevation</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_lowerelevation</span>
                 <span class="n">layer</span><span class="o">.</span><span class="n">_fillmaterial</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_fillmaterial</span>
