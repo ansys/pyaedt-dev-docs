@@ -40,6 +40,7 @@
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/clipboard.min.js"></script>
     <script src="../../_static/copybutton.js"></script>
     <link rel="shortcut icon" href="../../_static/favicon.png"/>
@@ -260,7 +261,6 @@
 <span class="n">pathname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
 <span class="n">pyaedtversion</span> <span class="o">=</span> <span class="n">__version__</span>
-
 
 <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">clr</span>  <span class="c1"># IronPython C:\Program Files\AnsysEM\AnsysEM19.4\Win64\common\IronPython\ipy64.exe</span>
@@ -652,6 +652,45 @@
             <span class="n">err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exception</span><span class="p">(</span><span class="n">ex_value</span><span class="p">,</span> <span class="n">ex_traceback</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">release_desktop</span><span class="p">(</span><span class="n">close_projects</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">,</span> <span class="n">close_on_exit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_on_exit</span><span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_design_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the application interface object (Hfss, Icepak, Maxwell3D...) for a given project name and design name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        project_design_name : list</span>
+<span class="sd">            Project and design name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:Application interface</span>
+<span class="sd">            Returns None if project and design name are not found.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">get_pyaedt_app</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">project_design_name</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project_design_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">project_design_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_list</span><span class="p">()):</span>
+            <span class="n">projectname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_list</span><span class="p">()[</span><span class="n">project_design_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project_design_name</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">project_design_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">project_list</span><span class="p">():</span>
+            <span class="n">projectname</span> <span class="o">=</span> <span class="n">project_design_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">initial_oproject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">GetActiveProject</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">initial_oproject</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">!=</span> <span class="n">projectname</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetActiveProject</span><span class="p">(</span><span class="n">projectname</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project_design_name</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="n">project_design_name</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">()):</span>
+            <span class="n">designname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">()[</span><span class="n">project_design_name</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project_design_name</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">project_design_name</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_list</span><span class="p">():</span>
+            <span class="n">designname</span> <span class="o">=</span> <span class="n">project_design_name</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">get_pyaedt_app</span><span class="p">(</span><span class="n">projectname</span><span class="p">,</span> <span class="n">designname</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">install_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1538,7 +1577,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.1.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.1.<br>
 </p>
   </div>
   
