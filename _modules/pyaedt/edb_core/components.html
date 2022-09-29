@@ -218,6 +218,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBComponent</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBComponentDef</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBPadstackInstance</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">Source</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
@@ -281,6 +282,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_edb</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span> <span class="o">=</span> <span class="n">p_edb</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_comp_def</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_res</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cap</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ind</span> <span class="o">=</span> <span class="p">{}</span>
@@ -356,15 +358,27 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">refresh_components</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve component definition list.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comp_def</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh_components</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comp_def</span>
+
 <div class="viewcode-block" id="Components.refresh_components"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.refresh_components.html#pyaedt.edb_core.components.Components.refresh_components">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">refresh_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Refresh the component dictionary.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_comp_def</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Refreshing the Components dictionary.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">cmp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Groups</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">cmp</span><span class="o">.</span><span class="n">GetType</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Ansys.Ansoft.Edb.Cell.Hierarchy.Component&quot;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span><span class="p">[</span><span class="n">cmp</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">)</span></div>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span><span class="p">[</span><span class="n">cmp</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmp</span><span class="p">)</span>
+                    <span class="n">comp_def</span> <span class="o">=</span> <span class="n">cmp</span><span class="o">.</span><span class="n">GetComponentDef</span><span class="p">()</span>
+                    <span class="n">comp_def_name</span> <span class="o">=</span> <span class="n">comp_def</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">comp_def_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comp_def</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_comp_def</span><span class="p">[</span><span class="n">comp_def_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">EDBComponentDef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comp_def</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">resistors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1776,11 +1790,31 @@
                 <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">refdes</span><span class="p">]</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">part_name_col</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">part_name</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">part_name_col</span><span class="p">]</span>
-                    <span class="n">comp</span><span class="o">.</span><span class="n">partname</span> <span class="o">=</span> <span class="n">part_name</span>
-                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">comp_type_col</span><span class="p">]</span>
-                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">comp_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="o">+</span> <span class="n">comp_type</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">partname</span> <span class="o">==</span> <span class="n">part_name</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">pinlist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pin_from_component</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">part_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">component_definition</span><span class="p">:</span>
+                            <span class="n">footprint_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">component_definition</span><span class="p">[</span><span class="n">comp</span><span class="o">.</span><span class="n">partname</span><span class="p">]</span><span class="o">.</span><span class="n">_edb_comp_def</span><span class="o">.</span><span class="n">GetFootprintCell</span><span class="p">()</span>
+                            <span class="n">comp_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentDef</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">part_name</span><span class="p">,</span> <span class="n">footprint_cell</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">pinlist</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">ComponentDefPin</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="n">comp_def</span><span class="p">,</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+
+                        <span class="n">p_layer</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">placement_layer</span>
+                        <span class="n">refdes_temp</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">refdes</span> <span class="o">+</span> <span class="s2">&quot;_temp&quot;</span>
+                        <span class="n">comp</span><span class="o">.</span><span class="n">refdes</span> <span class="o">=</span> <span class="n">refdes_temp</span>
+
+                        <span class="n">unmount_comp_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
+                        <span class="n">comp</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">Ungroup</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">create_component_from_pins</span><span class="p">(</span><span class="n">pinlist</span><span class="p">,</span> <span class="n">refdes</span><span class="p">,</span> <span class="n">p_layer</span><span class="p">,</span> <span class="n">part_name</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">refresh_components</span><span class="p">()</span>
+                        <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">refdes</span><span class="p">]</span>
+
+                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">comp_type_col</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
                 <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">comp_type</span>
-                <span class="k">if</span> <span class="n">comp_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">]:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">refdes</span><span class="p">,</span> <span class="n">comp_type</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">comp_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RESISTOR&quot;</span><span class="p">,</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">]:</span>
                     <span class="n">unmount_comp_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">value_col</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -1788,11 +1822,11 @@
                     <span class="k">except</span><span class="p">:</span>
                         <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Resistor&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;RESISTOR&quot;</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">res_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
-                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">:</span>
+                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">cap_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
-                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">:</span>
+                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">ind_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">unmount_comp_list</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span><span class="o">.</span><span class="n">is_enabled</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1812,15 +1846,15 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bom_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;RefDes&quot;</span><span class="p">,</span> <span class="s2">&quot;Part name&quot;</span><span class="p">,</span> <span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;Value</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">])])</span>
             <span class="k">for</span> <span class="n">refdes</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">comp</span><span class="o">.</span><span class="n">is_enabled</span> <span class="ow">and</span> <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">comp</span><span class="o">.</span><span class="n">is_enabled</span> <span class="ow">and</span> <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RESISTOR&quot;</span><span class="p">,</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">]:</span>
                     <span class="k">continue</span>
                 <span class="n">part_name</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">partname</span>
                 <span class="n">comp_type</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">type</span>
-                <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Resistor&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;RESISTOR&quot;</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">res_value</span>
-                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">cap_value</span>
-                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">ind_value</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -2281,7 +2315,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.1.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.2.<br>
 </p>
   </div>
   
