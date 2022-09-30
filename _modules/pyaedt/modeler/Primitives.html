@@ -215,6 +215,8 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
@@ -1320,6 +1322,56 @@
                 <span class="n">non_existent</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">report</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Missing Objects&quot;</span><span class="p">:</span> <span class="n">missing</span><span class="p">,</span> <span class="s2">&quot;Non-Existent Objects&quot;</span><span class="p">:</span> <span class="n">non_existent</span><span class="p">}</span>
         <span class="k">return</span> <span class="n">report</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;(143 175 143)&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a point.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position : list</span>
+<span class="sd">            List of ``[x, y, z]`` coordinates. Note, The list can be empty or contain less than 3 elements.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the point. The default is ``None``, in which case the</span>
+<span class="sd">            default name is assigned.</span>
+<span class="sd">        color : str, optional</span>
+<span class="sd">            String exposing 3 int values such as &quot;(value1 value2 value3)&quot;. Default value is ``&quot;(143 175 143)&quot;``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modeler.object3dlayout.Point`</span>
+<span class="sd">            Point object.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oEditor.CreateBox</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import hfss</span>
+<span class="sd">        &gt;&gt;&gt; hfss = Hfss()</span>
+<span class="sd">        &gt;&gt;&gt; point_object = hfss.modeler.primivites.create_point([0,0,0], name=&quot;mypoint&quot;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_position</span><span class="p">,</span> <span class="n">y_position</span><span class="p">,</span> <span class="n">z_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_with_arg</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">unique_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;NewPoint_&quot;</span> <span class="o">+</span> <span class="n">unique_name</span>
+
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:PointParameters&quot;</span><span class="p">]</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;PointX:=&quot;</span><span class="p">),</span> <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_position</span><span class="p">)</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;PointY:=&quot;</span><span class="p">),</span> <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_position</span><span class="p">)</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;PointZ:=&quot;</span><span class="p">),</span> <span class="n">parameters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_position</span><span class="p">)</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Attributes&quot;</span><span class="p">]</span>
+        <span class="n">attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Name:=&quot;</span><span class="p">),</span> <span class="n">attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Color:=&quot;</span><span class="p">),</span> <span class="n">attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="n">_retry_ntimes</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">CreatePoint</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_point</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_change_component_property</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vPropChange</span><span class="p">,</span> <span class="n">names_list</span><span class="p">):</span>
