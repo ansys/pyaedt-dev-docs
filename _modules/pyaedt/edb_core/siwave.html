@@ -1194,14 +1194,22 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_pin_group_terminal</span><span class="p">(</span><span class="n">dc_source</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.create_exec_file"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_exec_file.html#pyaedt.edb_core.siwave.EdbSiwave.create_exec_file">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_exec_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_exec_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_dc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_ac</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_syz</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an executable file.&quot;&quot;&quot;</span>
         <span class="n">workdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edbpath</span><span class="p">)</span>
         <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edbpath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.exec&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">f</span></div>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">add_ac</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecAcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">add_dc</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecDcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">add_syz</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecSyzSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;SaveSiw</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.add_siwave_ac_analysis"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.add_siwave_ac_analysis.html#pyaedt.edb_core.siwave.EdbSiwave.add_siwave_ac_analysis">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">add_siwave_ac_analysis</span><span class="p">(</span>
@@ -1248,10 +1256,7 @@
             <span class="nb">str</span><span class="p">(</span><span class="n">step_freq</span><span class="p">),</span>
             <span class="n">discrete_sweep</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
-        <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecAcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_ac</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.add_siwave_syz_analysis"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.add_siwave_syz_analysis.html#pyaedt.edb_core.siwave.EdbSiwave.add_siwave_syz_analysis">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">add_siwave_syz_analysis</span><span class="p">(</span>
@@ -1299,11 +1304,7 @@
             <span class="nb">str</span><span class="p">(</span><span class="n">step_freq</span><span class="p">),</span>
             <span class="n">discrete_sweep</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
-        <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecSyzSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;SaveSiw</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_syz</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.get_siwave_dc_setup_template"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.get_siwave_dc_setup_template.html#pyaedt.edb_core.siwave.EdbSiwave.get_siwave_dc_setup_template">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_siwave_dc_setup_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1381,17 +1382,11 @@
         <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">SourceTermsToGround</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">source_terms_to_ground</span>
         <span class="n">simulationSetup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">SIWaveDCIRSimulationSetup</span><span class="p">(</span><span class="n">sim_setup_info</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">AddSimulationSetup</span><span class="p">(</span><span class="n">simulationSetup</span><span class="p">):</span>
-            <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
-            <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecDcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_dc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">DeleteSimulationSetup</span><span class="p">(</span><span class="n">setup_settings</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">AddSimulationSetup</span><span class="p">(</span><span class="n">simulationSetup</span><span class="p">):</span>
-                <span class="n">exec_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">()</span>
-                <span class="n">exec_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ExecDcSim</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">exec_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_dc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.create_pin_group_terminal"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_terminal.html#pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_terminal">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>

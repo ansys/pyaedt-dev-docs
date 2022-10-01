@@ -929,13 +929,13 @@
         <span class="n">user_changed_settings</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">include_cap</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">include_cond</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">include_dcr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">include_dcl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">include_acr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">include_acl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">include_dcr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">include_dcl</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">include_acr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">include_acl</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">include_r</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">include_l</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">add_resistance</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">add_resistance</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">parse_pin_names</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">export_distributed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">lumped_length</span><span class="o">=</span><span class="s2">&quot;1meter&quot;</span><span class="p">,</span>
@@ -949,6 +949,7 @@
         <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">freq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">file_type</span><span class="o">=</span><span class="s2">&quot;HSPICE&quot;</span><span class="p">,</span>
+        <span class="n">include_cpp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Export matrix data.</span>
 
@@ -989,16 +990,16 @@
 <span class="sd">            Default value is None.</span>
 <span class="sd">        include_dcr : bool, optional</span>
 <span class="sd">            Flag indicates whether to export DC resistance matrix.</span>
-<span class="sd">            Default value is True.</span>
+<span class="sd">            Default value is ``False``.</span>
 <span class="sd">        include_dcl : bool, optional</span>
 <span class="sd">            Flag indicates whether to export DC Inductance matrix.</span>
-<span class="sd">            Default value is True.</span>
+<span class="sd">            Default value is ``False``.</span>
 <span class="sd">        include_acr : bool, optional</span>
 <span class="sd">            Flag indicates whether to export AC resistance matrix.</span>
-<span class="sd">            Default value is True.</span>
+<span class="sd">            Default value is ``False``.</span>
 <span class="sd">        include_acl : bool, optional</span>
 <span class="sd">            Flag indicates whether to export AC inductance matrix.</span>
-<span class="sd">            Default value is True.</span>
+<span class="sd">            Default value is ``False``.</span>
 <span class="sd">        include_r : bool, optional</span>
 <span class="sd">            Flag indicates whether to export resistance.</span>
 <span class="sd">            Default value is True.</span>
@@ -1055,6 +1056,9 @@
 <span class="sd">            &quot;Welement&quot;: Nexxim/HSPICE W Element file format</span>
 <span class="sd">            &quot;RLGC&quot;: Nexxim/HSPICE RLGC W Element file format</span>
 <span class="sd">            Default value is Hspice.</span>
+<span class="sd">        include_cpp : bool, optional</span>
+<span class="sd">            Whether to include chip package control.</span>
+<span class="sd">            Default value is False.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1253,8 +1257,25 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid file type, possible solutions are Hspice, Welement, RLGC.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
+        <span class="k">if</span> <span class="n">include_cpp</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">aedt_version</span> <span class="o">&gt;=</span> <span class="s2">&quot;2023.2&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="n">include_dcr</span><span class="p">,</span> <span class="n">include_dcl</span><span class="p">,</span> <span class="n">include_acr</span><span class="p">,</span> <span class="n">include_acl</span><span class="p">,</span> <span class="n">add_resistance</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s2">&quot;Select DC/AC resistance/inductance to include &quot;</span>
+                        <span class="s2">&quot;the chip package control data in export circuit.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">circuit_settings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span><span class="o">.</span><span class="n">GetCircuitSettings</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">setting</span> <span class="ow">in</span> <span class="n">circuit_settings</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">setting</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">setting</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NAME:CPPInfo&quot;</span><span class="p">:</span>
+                                <span class="n">cpp_settings</span> <span class="o">=</span> <span class="n">setting</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">include_cpp</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">cpp_settings</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_is3d</span><span class="p">:</span>
-            <span class="c1"># IncludeCPP always False, unable to access chip package information.</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span><span class="o">.</span><span class="n">ExportCircuit</span><span class="p">(</span>
                     <span class="n">analysis_setup</span><span class="p">,</span>
@@ -1286,7 +1307,8 @@
                         <span class="s2">&quot;ParsePinNames:=&quot;</span><span class="p">,</span>
                         <span class="n">parse_pin_names</span><span class="p">,</span>
                         <span class="s2">&quot;IncludeCPP:=&quot;</span><span class="p">,</span>
-                        <span class="kc">False</span><span class="p">,</span>
+                        <span class="n">include_cpp</span><span class="p">,</span>
+                        <span class="n">cpp_settings</span><span class="p">,</span>
                     <span class="p">],</span>
                     <span class="n">model_name</span><span class="p">,</span>
                     <span class="n">freq</span><span class="p">,</span>
