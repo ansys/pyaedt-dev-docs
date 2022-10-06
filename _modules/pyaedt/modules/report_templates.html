@@ -209,6 +209,7 @@
   <h1>Source code for pyaedt.modules.report_templates</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">LineStyle</span>
@@ -2096,6 +2097,8 @@
     <span class="k">def</span> <span class="nf">_did</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Sweep&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">3</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">==</span> <span class="s2">&quot;Clock Times&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">55827</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">1</span>
 
@@ -2162,6 +2165,60 @@
                     <span class="n">ctxt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;WS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_start</span><span class="p">])</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_stop</span><span class="p">:</span>
                     <span class="n">ctxt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;WE&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_stop</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post</span><span class="o">.</span><span class="n">post_solution_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;NexximAMI&quot;</span><span class="p">]:</span>
+            <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;NAME:Context&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;SimValueContext:=&quot;</span><span class="p">,</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_did</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;NUMLEVELS&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">],</span>
+            <span class="p">]</span>
+            <span class="n">qty</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&lt;[^&gt;]+&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expressions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">qty</span> <span class="o">==</span> <span class="s2">&quot;InitialWave&quot;</span><span class="p">:</span>
+                <span class="n">ctxt_temp</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;QTID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;SCID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;SID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">qty</span> <span class="o">==</span> <span class="s2">&quot;WaveAfterSource&quot;</span><span class="p">:</span>
+                <span class="n">ctxt_temp</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;QTID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;SCID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;SID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">qty</span> <span class="o">==</span> <span class="s2">&quot;WaveAfterChannel&quot;</span><span class="p">:</span>
+                <span class="n">ctxt_temp</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;PCID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;-1&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;PID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;QTID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;SCID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;-1&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;SID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="n">qty</span> <span class="o">==</span> <span class="s2">&quot;WaveAfterProbe&quot;</span><span class="p">:</span>
+                <span class="n">ctxt_temp</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="s2">&quot;PCID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;-1&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;PID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;QTID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;3&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;SCID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;-1&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;SID&quot;</span><span class="p">,</span>
+                    <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="n">qty</span> <span class="o">==</span> <span class="s2">&quot;ClockTics&quot;</span><span class="p">:</span>
+                <span class="n">ctxt_temp</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PCID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">,</span> <span class="s2">&quot;PID&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">ctxt_temp</span><span class="p">:</span>
+                <span class="n">ctxt</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">differential_pairs</span><span class="p">:</span>
             <span class="n">ctxt</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Diff:=&quot;</span><span class="p">,</span> <span class="s2">&quot;differential_pairs&quot;</span><span class="p">,</span> <span class="s2">&quot;Domain:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>

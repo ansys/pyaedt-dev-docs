@@ -220,6 +220,7 @@
 <span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
@@ -1700,6 +1701,7 @@
 
 <span class="sd">        &gt;&gt;&gt; oDesign.Analyze</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">set_custom_dso</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">active_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_desktop</span><span class="o">.</span><span class="n">GetRegistryString</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Desktop/ActiveDSOConfigurations/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">acf_file</span><span class="p">:</span>
@@ -1757,7 +1759,6 @@
                 <span class="n">set_custom_dso</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
-
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_analysis_setups</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Solving design setup </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -1778,7 +1779,11 @@
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">set_custom_dso</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_registry_key</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Desktop/ActiveDSOConfigurations/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_type</span><span class="p">,</span> <span class="n">active_config</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Design setup </span><span class="si">%s</span><span class="s2"> solved correctly&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Design setup </span><span class="si">{}</span><span class="s2"> solved correctly in </span><span class="si">{}</span><span class="s2">h </span><span class="si">{}</span><span class="s2">m </span><span class="si">{}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
