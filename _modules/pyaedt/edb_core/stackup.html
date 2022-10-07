@@ -890,29 +890,40 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">prev_layer</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">lyr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
-                <span class="n">lyr</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Type</span>
-                <span class="n">lyr</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Material</span>
-                <span class="n">lyr</span><span class="o">.</span><span class="n">dielectric_fill</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-                <span class="n">lyr</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Thickness</span>
-                <span class="k">if</span> <span class="n">prev_layer</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">_edb_layer</span><span class="p">,</span> <span class="s2">&quot;change_position&quot;</span><span class="p">,</span> <span class="n">prev_layer</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">prev_layer</span> <span class="ow">and</span> <span class="n">prev_layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">:</span>
-                    <span class="n">layer_name</span> <span class="o">=</span> <span class="n">prev_layer</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">layer_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
                     <span class="n">row</span><span class="p">,</span>
-                    <span class="n">layer_name</span><span class="p">,</span>
-                    <span class="s2">&quot;insert_above&quot;</span><span class="p">,</span>
+                    <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">&quot;add_on_top&quot;</span><span class="p">,</span>
                     <span class="n">val</span><span class="o">.</span><span class="n">Type</span><span class="p">,</span>
                     <span class="n">val</span><span class="o">.</span><span class="n">Material</span><span class="p">,</span>
                     <span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
                     <span class="n">val</span><span class="o">.</span><span class="n">Thickness</span><span class="p">,</span>
                 <span class="p">)</span>
-            <span class="n">prev_layer</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">lyr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+                    <span class="n">lyr</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Type</span>
+                    <span class="n">lyr</span><span class="o">.</span><span class="n">material</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Material</span>
+                    <span class="n">lyr</span><span class="o">.</span><span class="n">dielectric_fill</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                    <span class="n">lyr</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">Thickness</span>
+                    <span class="k">if</span> <span class="n">prev_layer</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_set_layout_stackup</span><span class="p">(</span><span class="n">lyr</span><span class="o">.</span><span class="n">_edb_layer</span><span class="p">,</span> <span class="s2">&quot;change_position&quot;</span><span class="p">,</span> <span class="n">prev_layer</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">prev_layer</span> <span class="ow">and</span> <span class="n">prev_layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">:</span>
+                        <span class="n">layer_name</span> <span class="o">=</span> <span class="n">prev_layer</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">layer_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+                        <span class="n">row</span><span class="p">,</span>
+                        <span class="n">layer_name</span><span class="p">,</span>
+                        <span class="s2">&quot;insert_above&quot;</span><span class="p">,</span>
+                        <span class="n">val</span><span class="o">.</span><span class="n">Type</span><span class="p">,</span>
+                        <span class="n">val</span><span class="o">.</span><span class="n">Material</span><span class="p">,</span>
+                        <span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">Dielectric_Fill</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                        <span class="n">val</span><span class="o">.</span><span class="n">Thickness</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="n">prev_layer</span> <span class="o">=</span> <span class="n">row</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Stackup.export_stackup"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.Stackup.export_stackup.html#pyaedt.edb_core.stackup.Stackup.export_stackup">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
