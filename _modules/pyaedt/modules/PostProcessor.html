@@ -223,6 +223,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">import</span> <span class="nn">pyaedt.modules.report_templates</span> <span class="k">as</span> <span class="nn">rt</span>
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">decompose_variable_value</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">unit_converter</span>
@@ -234,6 +235,14 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.solutions</span> <span class="kn">import</span> <span class="n">FieldPlot</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.solutions</span> <span class="kn">import</span> <span class="n">SolutionData</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;The Pandas module is required to run some functionalities.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install pandas</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
 <span class="n">TEMPLATES_BY_DESIGN</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;HFSS&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -3993,6 +4002,93 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">plotname</span></div>
 
+<div class="viewcode-block" id="CircuitPostProcessor.sample_waveform"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.CircuitPostProcessor.sample_waveform.html#pyaedt.modules.PostProcessor.CircuitPostProcessor.sample_waveform">[docs]</a>    <span class="k">def</span> <span class="nf">sample_waveform</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">waveform_data</span><span class="p">,</span>
+        <span class="n">waveform_sweep</span><span class="p">,</span>
+        <span class="n">waveform_unit</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
+        <span class="n">waveform_sweep_unit</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+        <span class="n">unit_interval</span><span class="o">=</span><span class="mf">1e-9</span><span class="p">,</span>
+        <span class="n">clock_tics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">pandas_enabled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sampling a waveform at clock times plus half unit interval.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        waveform_data : list</span>
+<span class="sd">            Waveform data</span>
+<span class="sd">        waveform_sweep : list</span>
+<span class="sd">            Waveform sweep data</span>
+<span class="sd">        waveform_unit : str, optional</span>
+<span class="sd">            Waveform units. The default values is ``V``.</span>
+<span class="sd">        waveform_sweep_unit : str, optional</span>
+<span class="sd">            Time units. The default value is ``s``.</span>
+<span class="sd">        unit_interval : float, optional</span>
+<span class="sd">            Unit interval in seconds. The default is ``1e-9``.</span>
+<span class="sd">        clock_tics : list, optional</span>
+<span class="sd">            List with clock tics. The default is ``None``, in which case the clock tics from</span>
+<span class="sd">            the AMI receiver are used.</span>
+<span class="sd">        pandas_enabled : bool, optional</span>
+<span class="sd">            ``True`` if data format is pandas. The default is `False``</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list or :class:`pandas.Series`</span>
+<span class="sd">            Sampled waveform in ``Volts`` at different times in ``seconds``.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; aedtapp = Circuit()</span>
+<span class="sd">        &gt;&gt;&gt; aedtapp.post.sample_ami_waveform(setup_name, probe_name, source_name, aedtapp.available_variations.nominal)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">new_tic</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tic</span> <span class="ow">in</span> <span class="n">clock_tics</span><span class="p">:</span>
+            <span class="n">new_tic</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unit_converter</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="n">waveform_sweep_unit</span><span class="p">))</span>
+        <span class="n">new_ui</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span><span class="n">unit_interval</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="n">waveform_sweep_unit</span><span class="p">)</span>
+
+        <span class="n">zipped_lists</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_tic</span><span class="p">,</span> <span class="p">[</span><span class="n">new_ui</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_tic</span><span class="p">))</span>
+        <span class="n">extraction_tic</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_lists</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">pandas_enabled</span><span class="p">:</span>
+            <span class="n">sweep_filtered</span> <span class="o">=</span> <span class="n">waveform_sweep</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">filtered_tic</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="n">num</span> <span class="o">&gt;=</span> <span class="n">waveform_sweep</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">extraction_tic</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sweep_filtered</span> <span class="o">=</span> <span class="n">waveform_sweep</span>
+            <span class="n">filtered_tic</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="n">num</span> <span class="o">&gt;=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">extraction_tic</span><span class="p">))</span>
+
+        <span class="n">outputdata</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">new_voltage</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tic_in_s</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tic</span> <span class="ow">in</span> <span class="n">filtered_tic</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tic</span> <span class="o">&gt;=</span> <span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">sweep_filtered</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="n">num</span> <span class="o">&gt;=</span> <span class="n">tic</span><span class="p">,</span> <span class="n">sweep_filtered</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">sweep_filtered</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">pandas_enabled</span><span class="p">:</span>
+                        <span class="n">waveform_index</span> <span class="o">=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">waveform_sweep</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">waveform_index</span> <span class="o">=</span> <span class="n">waveform_sweep</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">waveform_data</span><span class="p">[</span><span class="n">waveform_index</span><span class="p">],</span> <span class="nb">float</span><span class="p">):</span>
+                        <span class="n">voltage</span> <span class="o">=</span> <span class="n">waveform_data</span><span class="p">[</span><span class="n">waveform_index</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">voltage</span> <span class="o">=</span> <span class="n">waveform_data</span><span class="p">[</span><span class="n">waveform_index</span><span class="p">]</span>
+                    <span class="n">new_voltage</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">unit_converter</span><span class="p">(</span><span class="n">voltage</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Voltage&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">waveform_unit</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">tic_in_s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">unit_converter</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">waveform_sweep_unit</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">pandas_enabled</span><span class="p">:</span>
+                        <span class="n">outputdata</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tic_in_s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:][</span><span class="mi">0</span><span class="p">],</span> <span class="n">new_voltage</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:][</span><span class="mi">0</span><span class="p">]])</span>
+                    <span class="k">del</span> <span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+        <span class="k">if</span> <span class="n">pandas_enabled</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">new_voltage</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">tic_in_s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">outputdata</span></div>
+
 <div class="viewcode-block" id="CircuitPostProcessor.sample_ami_waveform"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.PostProcessor.CircuitPostProcessor.sample_ami_waveform.html#pyaedt.modules.PostProcessor.CircuitPostProcessor.sample_ami_waveform">[docs]</a>    <span class="k">def</span> <span class="nf">sample_ami_waveform</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">setupname</span><span class="p">,</span>
@@ -4093,61 +4189,15 @@
 
         <span class="n">outputdata</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">waveform</span><span class="p">))]</span>
         <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">waveform</span><span class="p">)):</span>
-            <span class="n">new_tic</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">tic</span> <span class="ow">in</span> <span class="n">tics</span><span class="p">:</span>
-                <span class="n">new_tic</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">unit_converter</span><span class="p">(</span><span class="n">tic</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="n">waveform_sweep_unit</span><span class="p">[</span><span class="n">w</span><span class="p">])</span>
-                <span class="p">)</span>
-            <span class="n">new_ui</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
-                <span class="n">unit_interval</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="n">output_units</span><span class="o">=</span><span class="n">waveform_sweep_unit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">outputdata</span><span class="p">[</span><span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_waveform</span><span class="p">(</span>
+                <span class="n">waveform_data</span><span class="o">=</span><span class="n">waveform</span><span class="p">[</span><span class="n">w</span><span class="p">],</span>
+                <span class="n">waveform_sweep</span><span class="o">=</span><span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">],</span>
+                <span class="n">waveform_unit</span><span class="o">=</span><span class="n">waveform_unit</span><span class="p">[</span><span class="n">w</span><span class="p">],</span>
+                <span class="n">waveform_sweep_unit</span><span class="o">=</span><span class="n">waveform_sweep_unit</span><span class="p">[</span><span class="n">w</span><span class="p">],</span>
+                <span class="n">unit_interval</span><span class="o">=</span><span class="n">unit_interval</span><span class="p">,</span>
+                <span class="n">clock_tics</span><span class="o">=</span><span class="n">tics</span><span class="p">,</span>
+                <span class="n">pandas_enabled</span><span class="o">=</span><span class="n">waveform_data</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">,</span>
             <span class="p">)</span>
-
-            <span class="n">zipped_lists</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">new_tic</span><span class="p">,</span> <span class="p">[</span><span class="n">new_ui</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_tic</span><span class="p">))</span>
-            <span class="n">extraction_tic</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">zipped_lists</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="n">waveform_data</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
-                <span class="n">sweep_filtered</span> <span class="o">=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-                <span class="n">filtered_tic</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="n">num</span> <span class="o">&gt;=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">extraction_tic</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">sweep_filtered</span> <span class="o">=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">]</span>
-                <span class="n">filtered_tic</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="n">num</span> <span class="o">&gt;=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">extraction_tic</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">tic</span> <span class="ow">in</span> <span class="n">filtered_tic</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">tic</span> <span class="o">&gt;=</span> <span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-                    <span class="n">sweep_filtered</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="n">num</span> <span class="o">&gt;=</span> <span class="n">tic</span><span class="p">,</span> <span class="n">sweep_filtered</span><span class="p">))</span>
-                    <span class="k">if</span> <span class="n">sweep_filtered</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">waveform_data</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
-                            <span class="n">waveform_index</span> <span class="o">=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">][</span>
-                                <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                            <span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">waveform_index</span> <span class="o">=</span> <span class="n">waveform_sweep</span><span class="p">[</span><span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                        <span class="n">new_voltage</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
-                            <span class="n">waveform</span><span class="p">[</span><span class="n">w</span><span class="p">][</span><span class="n">waveform_index</span><span class="p">],</span>
-                            <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Voltage&quot;</span><span class="p">,</span>
-                            <span class="n">input_units</span><span class="o">=</span><span class="n">waveform_unit</span><span class="p">[</span><span class="n">w</span><span class="p">],</span>
-                            <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;V&quot;</span><span class="p">,</span>
-                        <span class="p">)</span>
-                        <span class="n">tic_in_s</span> <span class="o">=</span> <span class="n">unit_converter</span><span class="p">(</span>
-                            <span class="n">tic</span><span class="p">,</span> <span class="n">unit_system</span><span class="o">=</span><span class="s2">&quot;Time&quot;</span><span class="p">,</span> <span class="n">input_units</span><span class="o">=</span><span class="n">waveform_sweep_unit</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">output_units</span><span class="o">=</span><span class="s2">&quot;s&quot;</span>
-                        <span class="p">)</span>
-                        <span class="k">if</span> <span class="n">waveform_data</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
-                            <span class="n">outputdata</span><span class="p">[</span><span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tic_in_s</span><span class="p">,</span> <span class="n">new_voltage</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]])</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">outputdata</span><span class="p">[</span><span class="n">w</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">tic_in_s</span><span class="p">,</span> <span class="n">new_voltage</span><span class="p">])</span>
-                        <span class="k">del</span> <span class="n">sweep_filtered</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="k">break</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">=</span> <span class="n">initial_solution_type</span>
-        <span class="k">if</span> <span class="n">waveform_data</span><span class="o">.</span><span class="n">enable_pandas_output</span><span class="p">:</span>
-            <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-
-            <span class="n">df</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">cont</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">outputdata</span><span class="p">:</span>
-                <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;voltage&quot;</span><span class="p">]))</span>
-                <span class="n">cont</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">outputdata</span> <span class="o">=</span> <span class="n">df</span>
         <span class="k">return</span> <span class="n">outputdata</span></div></div>
 </pre></div>
 
