@@ -1229,7 +1229,7 @@
             <span class="k">if</span> <span class="s2">&quot;UserDefinedModels&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetChildTypes</span><span class="p">():</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">udm</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">(</span><span class="s2">&quot;UserDefinedModels&quot;</span><span class="p">))</span>
-                <span class="k">except</span><span class="p">:</span>
+                <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                     <span class="n">udm</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">obs3d</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">udm</span> <span class="o">+</span> <span class="n">obs3d</span><span class="p">))</span>
             <span class="n">new_obs3d</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">obs3d</span><span class="p">)</span>
@@ -2100,7 +2100,7 @@
 <span class="sd">        contained_string : str</span>
 <span class="sd">            Prefix in the names of the objects to delete.</span>
 <span class="sd">        case_sensitive : bool, optional</span>
-<span class="sd">            Whether the prefix is case-senstive. The default is ``True``.</span>
+<span class="sd">            Whether the prefix is case sensitive. The default is ``True``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2224,8 +2224,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">user_defined_components</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_currentId</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_object_types</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_all_ids_from_aedt_file</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_all_ids</span><span class="p">()</span>
-        <span class="c1"># self._refresh_all_ids_from_aedt_file()</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">cleanup_objects</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2246,11 +2247,13 @@
         <span class="n">new_object_id_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">all_objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_names</span>
         <span class="n">all_unclassified</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unclassified_names</span>
+        <span class="n">all_objs</span> <span class="o">=</span> <span class="n">all_objects</span> <span class="o">+</span> <span class="n">all_unclassified</span>
         <span class="k">for</span> <span class="n">old_id</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">all_objects</span> <span class="ow">or</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">all_unclassified</span><span class="p">:</span>
-                <span class="n">updated_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">id</span>  <span class="c1"># By calling the object property we get the new id</span>
-                <span class="n">new_object_id_dict</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">updated_id</span>
-                <span class="n">new_object_dict</span><span class="p">[</span><span class="n">updated_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">all_objs</span><span class="p">:</span>
+                <span class="c1"># Check if ID can change in boolean operations</span>
+                <span class="c1"># updated_id = obj.id  # By calling the object property we get the new id</span>
+                <span class="n">new_object_id_dict</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_id</span>
+                <span class="n">new_object_dict</span><span class="p">[</span><span class="n">old_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="n">new_object_dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span> <span class="o">=</span> <span class="n">new_object_id_dict</span>
@@ -2359,13 +2362,7 @@
 <span class="sd">        &gt;&gt;&gt; oEditor.GetObjectsByMaterial</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">obj_lst</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">==</span> <span class="n">materialname</span>
-                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="n">el</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">==</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">materialname</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span>
-            <span class="p">):</span>
-                <span class="n">obj_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="n">obj_lst</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">GetObjectsByMaterial</span><span class="p">(</span><span class="n">materialname</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">obj_lst</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -3069,8 +3066,8 @@
         <span class="n">edgeID</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object_edges</span><span class="p">(</span><span class="n">obj_name</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
-            <span class="n">vertx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_edge_vertices</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">vertexid</span> <span class="ow">in</span> <span class="n">vertx</span><span class="p">:</span>
+            <span class="n">vertices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_edge_vertices</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">vertexid</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">:</span>
                 <span class="n">edgeID</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">edgeID</span>
@@ -3654,9 +3651,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solids</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sheets</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unclassified</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">_create_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_create_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="n">o</span> <span class="o">=</span> <span class="n">Object3d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-        <span class="n">new_id</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">if</span> <span class="n">pid</span><span class="p">:</span>
+            <span class="n">new_id</span> <span class="o">=</span> <span class="n">pid</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_id</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">[</span><span class="n">new_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">o</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">object_id_dict</span><span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_id</span>
         <span class="k">return</span> <span class="n">o</span>
@@ -3704,12 +3704,28 @@
         <span class="p">]:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
                 <span class="n">attribs</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;Attributes&quot;</span><span class="p">]</span>
+                <span class="n">operations</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Operations&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">attribs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryOperations&quot;</span><span class="p">][</span>
                     <span class="s2">&quot;ToplevelParts&quot;</span>
                 <span class="p">][</span><span class="s2">&quot;GeometryPart&quot;</span><span class="p">][</span><span class="s2">&quot;Attributes&quot;</span><span class="p">]</span>
+                <span class="n">operations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;ModelSetup&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryCore&quot;</span><span class="p">][</span><span class="s2">&quot;GeometryOperations&quot;</span><span class="p">][</span>
+                    <span class="s2">&quot;ToplevelParts&quot;</span>
+                <span class="p">][</span><span class="s2">&quot;GeometryPart&quot;</span><span class="p">][</span><span class="s2">&quot;Attributes&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_object_names</span><span class="p">:</span>
-                <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">])</span>
+                <span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">if</span> <span class="n">operations</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Operation&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">pid</span> <span class="o">=</span> <span class="n">operations</span><span class="p">[</span><span class="s2">&quot;Operation&quot;</span><span class="p">][</span><span class="s2">&quot;ParentPartID&quot;</span><span class="p">]</span>
+                    <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                        <span class="k">pass</span>
+                <span class="k">elif</span> <span class="n">operations</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Operation&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">pid</span> <span class="o">=</span> <span class="n">operations</span><span class="p">[</span><span class="s2">&quot;Operation&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;ParentPartID&quot;</span><span class="p">]</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="k">pass</span>
+                <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_object</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">],</span> <span class="n">pid</span><span class="o">=</span><span class="n">pid</span><span class="p">)</span>
                 <span class="n">o</span><span class="o">.</span><span class="n">_part_coordinate_system</span> <span class="o">=</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;PartCoordinateSystem&quot;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="s2">&quot;NonModel&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;Flags&quot;</span><span class="p">]:</span>
                     <span class="n">o</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">False</span>
@@ -3734,8 +3750,6 @@
                     <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">_surface_material</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
                 <span class="k">if</span> <span class="s2">&quot;MaterialValue&quot;</span> <span class="ow">in</span> <span class="n">attribs</span><span class="p">:</span>
                     <span class="n">o</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">attribs</span><span class="p">[</span><span class="s2">&quot;MaterialValue&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">o</span><span class="o">.</span><span class="n">_material_name</span> <span class="o">=</span> <span class="n">attribs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;MaterialName&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
                 <span class="n">o</span><span class="o">.</span><span class="n">_is_updated</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objects</span><span class="p">)</span>
