@@ -3397,13 +3397,15 @@
         <span class="k">return</span> <span class="n">bound</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">unite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theList</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">unite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theList</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Unite objects from a list.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        theList : list</span>
 <span class="sd">            List of objects.</span>
+<span class="sd">        purge : bool, optional</span>
+<span class="sd">            Purge history after unite.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -3415,7 +3417,7 @@
 
 <span class="sd">        &gt;&gt;&gt; oEditor.Unite</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">slice</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">theList</span><span class="p">))</span>
+        <span class="nb">slice</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">theList</span><span class="p">))</span>
         <span class="n">num_objects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theList</span><span class="p">)</span>
         <span class="n">remaining</span> <span class="o">=</span> <span class="n">num_objects</span>
         <span class="n">objs_groups</span> <span class="o">=</span> <span class="p">[]</span>
@@ -3425,6 +3427,13 @@
             <span class="n">vArg1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Selections&quot;</span><span class="p">,</span> <span class="s2">&quot;Selections:=&quot;</span><span class="p">,</span> <span class="n">szSelections</span><span class="p">]</span>
             <span class="n">vArg2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:UniteParameters&quot;</span><span class="p">,</span> <span class="s2">&quot;KeepOriginals:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">oeditor</span><span class="o">.</span><span class="n">Unite</span><span class="p">(</span><span class="n">vArg1</span><span class="p">,</span> <span class="n">vArg2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unclassified_names</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error in uniting objects.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_odesign</span><span class="o">.</span><span class="n">Undo</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cleanup_objects</span><span class="p">()</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="n">purge</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">purge_history</span><span class="p">(</span><span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">objs_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">remaining</span> <span class="o">-=</span> <span class="nb">slice</span>
             <span class="k">if</span> <span class="n">remaining</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -3433,7 +3442,7 @@
             <span class="n">objs_groups</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">theList</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cleanup_objects</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs_groups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unite</span><span class="p">(</span><span class="n">objs_groups</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">unite</span><span class="p">(</span><span class="n">objs_groups</span><span class="p">,</span> <span class="n">purge</span><span class="o">=</span><span class="n">purge</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Union of </span><span class="si">{}</span><span class="s2"> objects has been executed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num_objects</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">theList</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
 

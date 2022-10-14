@@ -214,7 +214,6 @@
 <span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
@@ -224,7 +223,6 @@
 <span class="k">else</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">subprocess</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.application.Analysis3D</span> <span class="kn">import</span> <span class="n">FieldAnalysis3D</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_arg2dict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">random_string</span>
@@ -1966,62 +1964,6 @@
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">filename</span></div>
-
-<div class="viewcode-block" id="Icepak.UniteFieldsSummaryReports"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.UniteFieldsSummaryReports.html#pyaedt.Icepak.UniteFieldsSummaryReports">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">UniteFieldsSummaryReports</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">savedir</span><span class="p">,</span> <span class="n">proj_icepak</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Unite the files created by a fields summary for the variations.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        savedir : str</span>
-<span class="sd">           Directory path for saving the file.</span>
-<span class="sd">        proj_icepak : str</span>
-<span class="sd">            Name of the Icepak project.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">newfilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">savedir</span><span class="p">,</span> <span class="n">proj_icepak</span> <span class="o">+</span> <span class="s2">&quot;_HTCAndTemp.csv&quot;</span><span class="p">)</span>
-        <span class="n">newfilelines</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">headerwriten</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">filetoremove</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># first variation</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">savedir</span><span class="p">,</span> <span class="n">proj_icepak</span> <span class="o">+</span> <span class="s2">&quot;_HTCAndTemp_var&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
-        <span class="c1"># iterate the variations</span>
-        <span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">remote_rpc_session</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-                <span class="n">variation</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                <span class="c1"># Searching file content for temp and power</span>
-                <span class="n">pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;DesignVariation,\$AmbientTemp=(&#39;.+?&#39;)\s+\$PowerIn=(&#39;.+?&#39;)&quot;</span><span class="p">)</span>
-                <span class="n">m</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">variation</span><span class="p">)</span>
-                <span class="n">temp</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                <span class="n">power</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">headerwriten</span><span class="p">:</span>
-                    <span class="c1"># write the new file header</span>
-                    <span class="n">newfilelines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;$AmbientTemp,$PowerIn,&quot;</span> <span class="o">+</span> <span class="n">lines</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
-                    <span class="n">newfilelines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">headerwriten</span> <span class="o">=</span> <span class="kc">True</span>
-
-                <span class="c1"># add the new lines</span>
-                <span class="n">newfilelines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">power</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">lines</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
-                <span class="n">newfilelines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">power</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span> <span class="o">+</span> <span class="n">lines</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
-
-            <span class="c1"># search for next variation</span>
-            <span class="n">filetoremove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">savedir</span><span class="p">,</span> <span class="n">proj_icepak</span> <span class="o">+</span> <span class="s2">&quot;_HTCAndTemp_var&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">)</span>
-        <span class="c1"># write the new file</span>
-        <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">newfilename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">newfilelines</span><span class="p">)</span>
-        <span class="c1"># remove the single files variation</span>
-        <span class="k">for</span> <span class="n">fr</span> <span class="ow">in</span> <span class="n">filetoremove</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fr</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Icepak.export_summary"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Icepak.export_summary.html#pyaedt.Icepak.export_summary">[docs]</a>    <span class="k">def</span> <span class="nf">export_summary</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
