@@ -216,9 +216,12 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">fnmatch</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_arg2dict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_create_json_file</span>
@@ -230,6 +233,14 @@
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Material</span> <span class="kn">import</span> <span class="n">MatProperties</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Material</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Material</span> <span class="kn">import</span> <span class="n">SurfaceMaterial</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;The Pandas module is required to run some functionalities.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install pandas</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="Materials"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.MaterialLib.Materials.html#pyaedt.modules.MaterialLib.Materials">[docs]</a><span class="k">class</span> <span class="nc">Materials</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -927,10 +938,10 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        List of :class:`pyaedt.modules.Material.Material`</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">materials_added</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">with</span> <span class="n">open_file</span><span class="p">(</span><span class="n">full_json_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">)</span>
 
@@ -964,7 +975,57 @@
             <span class="n">newmat</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newname</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
             <span class="n">newmat</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">newname</span><span class="p">]</span> <span class="o">=</span> <span class="n">newmat</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+            <span class="n">materials_added</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newmat</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">materials_added</span></div>
+
+<div class="viewcode-block" id="Materials.import_materials_from_excel"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.MaterialLib.Materials.import_materials_from_excel.html#pyaedt.modules.MaterialLib.Materials.import_materials_from_excel">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_materials_from_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import and create materials from a csv or excel file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        material_file : str</span>
+<span class="sd">            Full path and name for the csv or xlsx file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List of :class:`pyaedt.modules.Material.Material`</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">materials_added</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This method only works with CPython.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">material_file</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.csv&quot;</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">material_file</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">material_file</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;.xlsx&quot;</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">material_file</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Only csv and xlsx are supported.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+        <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">el</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+                <span class="n">newname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Material </span><span class="si">%s</span><span class="s2"> already exists. Renaming to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="n">newname</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newname</span> <span class="o">=</span> <span class="n">el</span>
+            <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">MatProperties</span><span class="o">.</span><span class="n">aedtname</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">prop</span> <span class="ow">in</span> <span class="n">keys</span>
+                    <span class="ow">and</span> <span class="n">val</span><span class="p">[</span><span class="n">keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)]</span>
+                    <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="n">keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)],</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="n">keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)]))</span>
+                <span class="p">):</span>
+                    <span class="n">props</span><span class="p">[</span><span class="n">prop</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">prop</span><span class="p">)]</span>
+            <span class="n">new_material</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newname</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span>
+            <span class="n">new_material</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">material_keys</span><span class="p">[</span><span class="n">newname</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_material</span>
+            <span class="n">materials_added</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_material</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">materials_added</span></div></div>
 </pre></div>
 
               </article>
