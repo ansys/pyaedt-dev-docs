@@ -210,6 +210,8 @@
 <span></span><span class="sd">&quot;&quot;&quot;This module contains the `Components` class.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -365,6 +367,95 @@
 <span class="sd">        -------</span>
 <span class="sd">        dict of :class:`pyaedt.edb_core.EDB_Data.EDBComponentDef`&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="n">EDBComponentDef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">ComponentDefs</span><span class="p">)}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nport_comp_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve Nport component definition list.&quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="s2">&quot;Ansys.Ansoft.Edb.Definition.NPortComponentModel&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">l</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">definitions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">m</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">l</span><span class="o">.</span><span class="n">_comp_model</span><span class="p">]}</span>
+
+<div class="viewcode-block" id="Components.import_definition"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.import_definition.html#pyaedt.edb_core.components.Components.import_definition">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">import_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Import component definition from json file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file_path : str</span>
+<span class="sd">            File path of json file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">part_name</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">model_type</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Model_type&quot;</span><span class="p">]</span>
+                <span class="n">comp_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">definitions</span><span class="p">[</span><span class="n">part_name</span><span class="p">]</span>
+                <span class="n">comp_definition</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Component_type&quot;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;RLC&quot;</span><span class="p">:</span>
+                    <span class="n">comp_definition</span><span class="o">.</span><span class="n">assign_rlc_model</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;Res&quot;</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Ind&quot;</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Cap&quot;</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Is_parallel&quot;</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">model_name</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Model_name&quot;</span><span class="p">]</span>
+                    <span class="n">file_path</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">model_type</span><span class="p">][</span><span class="n">model_name</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;SParameterModel&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s2">&quot;Reference_net&quot;</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+                            <span class="n">reference_net</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Reference_net&quot;</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">reference_net</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="n">comp_definition</span><span class="o">.</span><span class="n">assign_s_param_model</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">reference_net</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;SPICEModel&quot;</span><span class="p">:</span>
+                        <span class="n">comp_definition</span><span class="o">.</span><span class="n">assign_spice_model</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">pass</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Components.export_definition"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.export_definition.html#pyaedt.edb_core.components.Components.export_definition">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">export_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Export component definitions to json file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file_path : str</span>
+<span class="sd">            File path of json file.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;SParameterModel&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;SPICEModel&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;Definitions&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">part_name</span><span class="p">,</span> <span class="n">props</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">definitions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">comp_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">props</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">comp_list</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Component_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">props</span><span class="o">.</span><span class="n">type</span>
+                <span class="n">comp</span> <span class="o">=</span> <span class="n">comp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Model_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">model_type</span>
+                <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;RLC&quot;</span><span class="p">:</span>
+                    <span class="n">rlc_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">if</span> <span class="n">i</span> <span class="k">else</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">rlc_values</span><span class="p">]</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Res&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rlc_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Ind&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rlc_values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Cap&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rlc_values</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Is_parallel&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">is_parallel_rlc</span> <span class="k">else</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">comp</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;SParameterModel&quot;</span><span class="p">:</span>
+                        <span class="n">model</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">s_param_model</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Model_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Reference_net&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">reference_net</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SParameterModel&quot;</span><span class="p">]:</span>
+                            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SParameterModel&quot;</span><span class="p">][</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">file_path</span>
+                    <span class="k">elif</span> <span class="n">comp</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;SPICEModel&quot;</span><span class="p">:</span>
+                        <span class="n">model</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">spice_model</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Model_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SPICEModel&quot;</span><span class="p">]:</span>
+                            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SPICEModel&quot;</span><span class="p">][</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">file_path</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">model</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">netlist_model</span>
+                        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Model_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">netlist</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">file_path</span></div>
 
 <div class="viewcode-block" id="Components.refresh_components"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.refresh_components.html#pyaedt.edb_core.components.Components.refresh_components">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">refresh_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1349,7 +1440,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Wrong number of Pins&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="k">elif</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;Touchstone&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;Touchstone&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
 
             <span class="n">nPortModelName</span> <span class="o">=</span> <span class="n">modelname</span>
             <span class="n">edbComponentDef</span> <span class="o">=</span> <span class="n">edbComponent</span><span class="o">.</span><span class="n">GetComponentDef</span><span class="p">()</span>
@@ -1360,12 +1451,11 @@
                 <span class="n">edbComponentDef</span><span class="o">.</span><span class="n">AddComponentModel</span><span class="p">(</span><span class="n">nPortModel</span><span class="p">)</span>
 
             <span class="n">sParameterMod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">SParameterModel</span><span class="p">()</span>
-            <span class="n">sParameterMod</span><span class="o">.</span><span class="n">SetComponentModelName</span><span class="p">(</span><span class="n">nPortModel</span><span class="p">)</span>
+            <span class="n">sParameterMod</span><span class="o">.</span><span class="n">SetComponentModelName</span><span class="p">(</span><span class="n">nPortModelName</span><span class="p">)</span>
             <span class="n">gndnets</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot;gnd&quot;</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">componentNets</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gndnets</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">gndnets</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                 <span class="n">net</span> <span class="o">=</span> <span class="n">gndnets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                 <span class="n">net</span> <span class="o">=</span> <span class="n">componentNets</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">componentNets</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
             <span class="n">sParameterMod</span><span class="o">.</span><span class="n">SetReferenceNet</span><span class="p">(</span><span class="n">net</span><span class="p">)</span>
             <span class="n">edbRlcComponentProperty</span><span class="o">.</span><span class="n">SetModel</span><span class="p">(</span><span class="n">sParameterMod</span><span class="p">)</span>
@@ -1822,10 +1912,13 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">refresh_components</span><span class="p">()</span>
                         <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">refdes</span><span class="p">]</span>
 
-                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">comp_type_col</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-                <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">comp_type</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">refdes</span><span class="p">,</span> <span class="n">comp_type</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">comp_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RESISTOR&quot;</span><span class="p">,</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">]:</span>
+                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="n">comp_type_col</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">comp_type</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">,</span> <span class="s2">&quot;Other&quot;</span><span class="p">]:</span>
+                    <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">comp_type</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">comp_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">comp_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">]:</span>
                     <span class="n">unmount_comp_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">value_col</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -1833,11 +1926,11 @@
                     <span class="k">except</span><span class="p">:</span>
                         <span class="n">value</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;RESISTOR&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Resistor&quot;</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">res_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
-                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">:</span>
+                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">cap_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
-                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">:</span>
+                        <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">set_component_rlc</span><span class="p">(</span><span class="n">refdes</span><span class="p">,</span> <span class="n">ind_value</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">unmount_comp_list</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span><span class="o">.</span><span class="n">is_enabled</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1857,15 +1950,15 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bom_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;RefDes&quot;</span><span class="p">,</span> <span class="s2">&quot;Part name&quot;</span><span class="p">,</span> <span class="s2">&quot;Type&quot;</span><span class="p">,</span> <span class="s2">&quot;Value</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">])])</span>
             <span class="k">for</span> <span class="n">refdes</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">comp</span><span class="o">.</span><span class="n">is_enabled</span> <span class="ow">and</span> <span class="n">comp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;RESISTOR&quot;</span><span class="p">,</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">,</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">comp</span><span class="o">.</span><span class="n">is_enabled</span> <span class="ow">and</span> <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">]:</span>
                     <span class="k">continue</span>
                 <span class="n">part_name</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">partname</span>
-                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;RESISTOR&quot;</span><span class="p">:</span>
+                <span class="n">comp_type</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">type</span>
+                <span class="k">if</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Resistor&quot;</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">res_value</span>
-                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;CAPACITOR&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">cap_value</span>
-                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;INDUCTOR&quot;</span><span class="p">:</span>
+                <span class="k">elif</span> <span class="n">comp_type</span> <span class="o">==</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">ind_value</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -2326,7 +2419,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.2.3.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 5.3.0.<br>
 </p>
   </div>
   
