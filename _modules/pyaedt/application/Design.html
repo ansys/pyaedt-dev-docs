@@ -2318,7 +2318,7 @@
             <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">load_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_file</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">close_active_proj</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">load_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project_file</span><span class="p">,</span> <span class="n">design_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">close_active_proj</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">save_active_project</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Open an AEDT project based on a project and optional design.</span>
 
 <span class="sd">        Parameters</span>
@@ -2329,6 +2329,8 @@
 <span class="sd">            Design name. The default is ``None``.</span>
 <span class="sd">        close_active_proj : bool, optional</span>
 <span class="sd">            Whether to close the active project. The default is ``False``.</span>
+<span class="sd">        save_active_project : bool, optional</span>
+<span class="sd">            Whether to save the active project. The default is ``False``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -2343,7 +2345,7 @@
         <span class="n">proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">OpenProject</span><span class="p">(</span><span class="n">project_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">close_active_proj</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">oproject</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_close_edb</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">close_project</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close_project</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">save_project</span><span class="o">=</span><span class="n">save_active_project</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">proj</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_design</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="n">proj</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">design_name</span><span class="o">=</span><span class="n">design_name</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
@@ -2922,7 +2924,7 @@
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">close_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">saveproject</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">close_project</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">save_project</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Close an AEDT project.</span>
 
 <span class="sd">        Parameters</span>
@@ -2930,7 +2932,7 @@
 <span class="sd">        name : str, optional</span>
 <span class="sd">            Name of the project. The default is ``None``, in which case the</span>
 <span class="sd">            active project is closed.</span>
-<span class="sd">        saveproject : bool, optional</span>
+<span class="sd">        save_project : bool, optional</span>
 <span class="sd">            Whether to save the project before closing it. The default is</span>
 <span class="sd">            ``True``.</span>
 
@@ -2953,7 +2955,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Closing the AEDT Project </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="n">oproj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">SetActiveProject</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">proj_path</span> <span class="o">=</span> <span class="n">oproj</span><span class="o">.</span><span class="n">GetPath</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">saveproject</span><span class="p">:</span>
+        <span class="n">proj_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">proj_path</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.aedt&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save_project</span><span class="p">:</span>
             <span class="n">oproj</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">CloseProject</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">legacy_name</span><span class="p">:</span>
@@ -2977,6 +2980,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mf">0.2</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">proj_file</span><span class="p">)</span> <span class="ow">in</span> <span class="n">settings</span><span class="o">.</span><span class="n">_project_properties</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">settings</span><span class="o">.</span><span class="n">_project_properties</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">proj_file</span><span class="p">)]</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
