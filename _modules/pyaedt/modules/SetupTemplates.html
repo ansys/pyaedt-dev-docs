@@ -210,6 +210,7 @@
 <span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os.path</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_dict2arg</span>
@@ -1538,10 +1539,12 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    oanalysis :</span>
-
+<span class="sd">    app : :class &#39;pyaedt.modules.SolveSetup.Setup&#39;</span>
+<span class="sd">        Setup used for the analysis.</span>
 <span class="sd">    setupname : str</span>
 <span class="sd">        Name of the setup.</span>
+<span class="sd">    sweepname : str</span>
+<span class="sd">        Name of the sweep.</span>
 <span class="sd">    sweeptype : str, optional</span>
 <span class="sd">        Type of the sweep. Options are ``&quot;Fast&quot;``, ``&quot;Interpolating&quot;``,</span>
 <span class="sd">        and ``&quot;Discrete&quot;``. The default is ``&quot;Interpolating&quot;``.</span>
@@ -1549,19 +1552,36 @@
 <span class="sd">        Dictionary of the properties. The default is ``None``, in which case</span>
 <span class="sd">        the default properties are retrieved.</span>
 
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; hfss = Hfss(specified_version=version, projectname=proj, designname=gtemDesign, solution_type=solutiontype,</span>
+<span class="sd">                    setup_name=setupname, new_desktop_session=False, close_on_exit=False)</span>
+<span class="sd">    &gt;&gt;&gt; hfss_setup = hfss.setups[0]</span>
+<span class="sd">    &gt;&gt;&gt; hfss_sweep = SweepHFSS(hfss_setup, &#39;Sweep&#39;, sweeptype =&#39;Interpolating&#39;, props=None)</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">,</span> <span class="n">sweeptype</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">omodule</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">,</span> <span class="n">sweeptype</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;app&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`app` is deprecated since v0.6.22. Use `setup` instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">setup</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;setupname&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`setupname` is deprecated since v0.6.22 and not required anymore.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">omodule</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setupname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">sweepname</span>
         <span class="k">if</span> <span class="n">props</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">props</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setupname</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">sweepname</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sweeptype</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;IsEnabled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;RangeType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;LinearCount&quot;</span>
@@ -1792,8 +1812,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    oanaysis :</span>
-
+<span class="sd">    app : :class &#39;pyaedt.modules.SolveSetup.Setup&#39;</span>
+<span class="sd">        Setup used for the analysis.</span>
 <span class="sd">    setupname : str</span>
 <span class="sd">        Name of the setup.</span>
 <span class="sd">    sweepname : str</span>
@@ -1808,26 +1828,28 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">app</span><span class="p">,</span>
-        <span class="n">setupname</span><span class="p">,</span>
-        <span class="n">sweepname</span><span class="p">,</span>
-        <span class="n">sweeptype</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span>
-        <span class="n">save_fields</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">omodule</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">,</span> <span class="n">sweeptype</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="n">save_fields</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="s2">&quot;app&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`app` is deprecated since v0.6.22. Use `setup` instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">setup</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;setupname&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`setupname` is deprecated since v0.6.22 and not required anymore.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">omodule</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setupname</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">sweepname</span>
         <span class="k">if</span> <span class="n">props</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">props</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setupname</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">sweepname</span>
-
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Properties&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Enable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sweeps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
                 <span class="p">{</span><span class="s2">&quot;Variable&quot;</span><span class="p">:</span> <span class="s2">&quot;Sweep 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Data&quot;</span><span class="p">:</span> <span class="s2">&quot;LIN 1Hz 20GHz 0.05GHz&quot;</span><span class="p">,</span> <span class="s2">&quot;OffsetF1&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;Synchronize&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
@@ -2069,8 +2091,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    oanalysis :</span>
-
+<span class="sd">    app : :class &#39;pyaedt.modules.SolveSetup.Setup&#39;</span>
+<span class="sd">        Setup used for the analysis.</span>
 <span class="sd">    setupname : str</span>
 <span class="sd">        Name of the setup.</span>
 <span class="sd">    sweepname : str</span>
@@ -2084,10 +2106,21 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">,</span> <span class="n">setupname</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">,</span> <span class="n">sweeptype</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">omodule</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setupname</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup</span><span class="p">,</span> <span class="n">sweepname</span><span class="p">,</span> <span class="n">sweeptype</span><span class="o">=</span><span class="s2">&quot;Interpolating&quot;</span><span class="p">,</span> <span class="n">props</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;app&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`app` is deprecated since v0.6.22. Use `setup` instead.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">setup</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;app&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;setupname&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;`setupname` is deprecated since v0.6.22 and not required anymore.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">setup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">oanalysis</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">omodule</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupname</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">sweepname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">props</span><span class="p">:</span>

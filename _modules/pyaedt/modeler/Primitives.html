@@ -221,6 +221,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">pyaedt.application.Variables</span> <span class="kn">import</span> <span class="n">decompose_variable_value</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">PLANE</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_number</span>
@@ -1508,14 +1509,16 @@
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad_percent</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">create_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad_percent</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">is_percentage</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an air region.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        pad_percent : float or list of floats, optional</span>
-<span class="sd">            If a float, use padding in percent for all dimensions. The default is ``300``.</span>
-<span class="sd">            If a list of floats, interpret as adding for ``[&quot;+X&quot;, &quot;+Y&quot;, &quot;+Z&quot;, &quot;-X&quot;, &quot;-Y&quot;, &quot;-Z&quot;]``.</span>
+<span class="sd">        pad_percent : float, str, list of floats or list of str, optional</span>
+<span class="sd">            Same padding is applied if not a list. The default is ``300``.</span>
+<span class="sd">            If a list of floats or str, interpret as adding for ``[&quot;+X&quot;, &quot;+Y&quot;, &quot;+Z&quot;, &quot;-X&quot;, &quot;-Y&quot;, &quot;-Z&quot;]``.</span>
+<span class="sd">        is_percentage : bool, optional</span>
+<span class="sd">            Region definition in percentage or absolute value. The default is `True``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1529,18 +1532,34 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="s2">&quot;Region&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_names</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">is_number</span><span class="p">(</span><span class="n">pad_percent</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pad_percent</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">pad_percent</span> <span class="o">=</span> <span class="p">[</span><span class="n">pad_percent</span><span class="p">]</span> <span class="o">*</span> <span class="mi">6</span>
 
         <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:RegionParameters&quot;</span><span class="p">]</span>
         <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;+X&quot;</span><span class="p">,</span> <span class="s2">&quot;+Y&quot;</span><span class="p">,</span> <span class="s2">&quot;+Z&quot;</span><span class="p">,</span> <span class="s2">&quot;-X&quot;</span><span class="p">,</span> <span class="s2">&quot;-Y&quot;</span><span class="p">,</span> <span class="s2">&quot;-Z&quot;</span><span class="p">]</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">pval</span> <span class="ow">in</span> <span class="n">p</span><span class="p">:</span>
+            <span class="n">region_type</span> <span class="o">=</span> <span class="s2">&quot;Percentage Offset&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_percentage</span><span class="p">:</span>
+                <span class="n">region_type</span> <span class="o">=</span> <span class="s2">&quot;Absolute Offset&quot;</span>
             <span class="n">pvalstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pval</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;PaddingType:=&quot;</span>
             <span class="n">qvalstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pval</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Padding:=&quot;</span>
             <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pvalstr</span><span class="p">)</span>
-            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Percentage Offset&quot;</span><span class="p">)</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">region_type</span><span class="p">)</span>
             <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qvalstr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="n">decompose_variable_value</span><span class="p">(</span><span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">units</span> <span class="ow">and</span> <span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_percentage</span><span class="p">:</span>
+                        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span>
+                        <span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">units</span>
+                <span class="k">elif</span> <span class="n">is_percentage</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Percentage input must not have units&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">is_percentage</span><span class="p">:</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span>
+                <span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">units</span>
             <span class="n">arg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pad_percent</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">arg2</span> <span class="o">=</span> <span class="p">[</span>
