@@ -219,13 +219,13 @@
 
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBComponent</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBComponentDef</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">EDBPadstackInstance</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">Source</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.components_data</span> <span class="kn">import</span> <span class="n">EDBComponent</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.components_data</span> <span class="kn">import</span> <span class="n">EDBComponentDef</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.padstacks_data</span> <span class="kn">import</span> <span class="n">EDBPadstackInstance</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">Source</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">SourceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.padstack</span> <span class="kn">import</span> <span class="n">EdbPadstacks</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SourceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">get_filename_without_extension</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
@@ -344,7 +344,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBComponent`]</span>
+<span class="sd">        dict[str, :class:`pyaedt.edb_core.edb_data.components_data.EDBComponent`]</span>
 <span class="sd">            Default dictionary for the EDB component.</span>
 
 <span class="sd">        Examples</span>
@@ -365,7 +365,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict of :class:`pyaedt.edb_core.EDB_Data.EDBComponentDef`&quot;&quot;&quot;</span>
+<span class="sd">        dict of :class:`pyaedt.edb_core.edb_data.components_data.EDBComponentDef`&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="n">EDBComponentDef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">ComponentDefs</span><span class="p">)}</span>
 
     <span class="nd">@property</span>
@@ -442,14 +442,12 @@
                         <span class="n">model</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">s_param_model</span>
                         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Model_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span>
                         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Reference_net&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">reference_net</span>
-                        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SParameterModel&quot;</span><span class="p">]:</span>
-                            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SParameterModel&quot;</span><span class="p">][</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">NPortComponentModel</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span>
-                                <span class="n">comp</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">GetComponentDef</span><span class="p">(),</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span>
-                            <span class="p">)</span><span class="o">.</span><span class="n">GetReferenceFile</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SParameterModel&quot;</span><span class="p">]:</span>
+                            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SParameterModel&quot;</span><span class="p">][</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">file_path</span>
                     <span class="k">elif</span> <span class="n">comp</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;SPICEModel&quot;</span><span class="p">:</span>
                         <span class="n">model</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">spice_model</span>
                         <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Definitions&quot;</span><span class="p">][</span><span class="n">part_name</span><span class="p">][</span><span class="s2">&quot;Model_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span>
-                        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SPICEModel&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SPICEModel&quot;</span><span class="p">]:</span>
                             <span class="n">data</span><span class="p">[</span><span class="s2">&quot;SPICEModel&quot;</span><span class="p">][</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">file_path</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">model</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">netlist_model</span>
@@ -476,7 +474,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBComponent`]</span>
+<span class="sd">        dict[str, :class:`pyaedt.edb_core.edb_data.components_data.EDBComponent`]</span>
 <span class="sd">            Dictionary of resistors.</span>
 
 <span class="sd">        Examples</span>
@@ -498,7 +496,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBComponent`]</span>
+<span class="sd">        dict[str, :class:`pyaedt.edb_core.edb_data.components_data.EDBComponent`]</span>
 <span class="sd">            Dictionary of capacitors.</span>
 
 <span class="sd">        Examples</span>
@@ -520,7 +518,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBComponent`]</span>
+<span class="sd">        dict[str, :class:`pyaedt.edb_core.edb_data.components_data.EDBComponent`]</span>
 <span class="sd">            Dictionary of inductors.</span>
 
 <span class="sd">        Examples</span>
@@ -543,7 +541,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBComponent`]</span>
+<span class="sd">        dict[str, :class:`pyaedt.edb_core.edb_data.components_data.EDBComponent`]</span>
 <span class="sd">            Dictionary of integrated circuits.</span>
 
 <span class="sd">        Examples</span>
@@ -566,7 +564,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBComponent`]</span>
+<span class="sd">        dict[str, :class:`pyaedt.edb_core.edb_data.components_data.EDBComponent`]</span>
 <span class="sd">            Dictionary of circuit inputs and outputs.</span>
 
 <span class="sd">        Examples</span>
@@ -592,7 +590,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        dict[str, :class:`pyaedt.edb_core.EDB_Data.EDBComponent`]</span>
+<span class="sd">        dict[str, :class:`pyaedt.edb_core.edb_data.components_data.EDBComponent`]</span>
 <span class="sd">            Dictionary of other core components.</span>
 
 <span class="sd">        Examples</span>
@@ -834,7 +832,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        sources : list[Source]</span>
-<span class="sd">            List of ``EDB_Data.Source`` objects.</span>
+<span class="sd">            List of ``edb_data.sources.Source`` objects.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -979,8 +977,9 @@
             <span class="k">if</span> <span class="n">do_pingroup</span><span class="p">:</span>
                 <span class="n">pingroups</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_pins</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">ref_pin_group_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_terminal</span><span class="p">(</span><span class="n">ref_pins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
+                    <span class="bp">self</span><span class="o">.</span><span class="n">create_terminal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_terminal</span><span class="p">(</span><span class="n">ref_pins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_terminal</span>
+                    <span class="n">ref_pin_group_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">ref_pin_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_pingroup_from_pins</span><span class="p">(</span><span class="n">ref_pins</span><span class="p">)</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">ref_pin_group</span><span class="p">:</span>
@@ -998,7 +997,7 @@
                         <span class="k">if</span> <span class="n">pin_group_term</span><span class="p">:</span>
                             <span class="n">pin_group_term</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">ref_pin_group_term</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No pins found on component </span><span class="si">{}</span><span class="s2"> for the net </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">net</span><span class="p">))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No pins found on component </span><span class="si">{}</span><span class="s2"> for the net </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">component</span><span class="p">,</span> <span class="n">net</span><span class="p">))</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">net_list</span><span class="p">:</span>
@@ -1188,15 +1187,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">layout</span> <span class="o">=</span> <span class="n">pingroup</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span>
-        <span class="n">cmp_name</span> <span class="o">=</span> <span class="n">pingroup</span><span class="o">.</span><span class="n">GetPins</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetComponent</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="n">cmp_name</span> <span class="o">=</span> <span class="n">pingroup</span><span class="o">.</span><span class="n">GetComponent</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
         <span class="n">net_name</span> <span class="o">=</span> <span class="n">pingroup</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
-        <span class="n">term_name</span> <span class="o">=</span> <span class="s2">&quot;Pingroup_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmp_name</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">term_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">excitations</span><span class="p">:</span>
-            <span class="n">term_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Pingroup_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmp_name</span><span class="p">,</span> <span class="n">net_name</span><span class="p">))</span>
+        <span class="n">term_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Pingroup_</span><span class="si">{0}</span><span class="s2">_</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cmp_name</span><span class="p">,</span> <span class="n">net_name</span><span class="p">))</span>
         <span class="n">pingroup_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">PinGroupTerminal</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">pingroup</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span> <span class="n">term_name</span><span class="p">,</span> <span class="n">pingroup</span><span class="p">,</span> <span class="n">isref</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Terminal </span><span class="si">%s</span><span class="s2"> created.&quot;</span><span class="p">,</span> <span class="n">term_name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pingroup_term</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1234,9 +1230,8 @@
                 <span class="k">if</span> <span class="n">componentDefinitionPin</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to create component definition pin </span><span class="si">{}</span><span class="s2">-</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pin</span><span class="o">.</span><span class="n">GetName</span><span class="p">()))</span>
                     <span class="k">return</span> <span class="kc">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created new component definition for footprint </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found existing component definition for footprint </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Found existing component definition for footprint </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">componentDefinition</span>
 
 <div class="viewcode-block" id="Components.create_rlc_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.create_rlc_component.html#pyaedt.edb_core.components.Components.create_rlc_component">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1778,7 +1773,7 @@
                 <span class="n">componentname</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;RLC properties for Component </span><span class="si">%s</span><span class="s2"> has been assigned.&quot;</span><span class="p">,</span> <span class="n">componentname</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;RLC properties for Component </span><span class="si">%s</span><span class="s2"> has been assigned.&quot;</span><span class="p">,</span> <span class="n">componentname</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Components.update_rlc_from_bom"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.update_rlc_from_bom.html#pyaedt.edb_core.components.Components.update_rlc_from_bom">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1909,6 +1904,7 @@
                         <span class="n">p_layer</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">placement_layer</span>
                         <span class="n">refdes_temp</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">refdes</span> <span class="o">+</span> <span class="s2">&quot;_temp&quot;</span>
                         <span class="n">comp</span><span class="o">.</span><span class="n">refdes</span> <span class="o">=</span> <span class="n">refdes_temp</span>
+
                         <span class="n">unmount_comp_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
                         <span class="n">comp</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">Ungroup</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
@@ -1922,7 +1918,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">comp</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">comp_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
 
-                <span class="k">if</span> <span class="n">comp_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">refdes</span> <span class="ow">in</span> <span class="n">unmount_comp_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">comp_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Resistor&quot;</span><span class="p">,</span> <span class="s2">&quot;Capacitor&quot;</span><span class="p">,</span> <span class="s2">&quot;Inductor&quot;</span><span class="p">]:</span>
                     <span class="n">unmount_comp_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">refdes</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">value_col</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
@@ -1973,7 +1969,7 @@
 
 <div class="viewcode-block" id="Components.get_pin_from_component"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.components.Components.get_pin_from_component.html#pyaedt.edb_core.components.Components.get_pin_from_component">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_pin_from_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">,</span> <span class="n">netName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pinName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieve the pins object of a component.</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the pins of a component.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>

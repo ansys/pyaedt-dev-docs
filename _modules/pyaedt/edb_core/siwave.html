@@ -213,370 +213,23 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.EDB_Data</span> <span class="kn">import</span> <span class="n">SourceType</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SiwaveDCSetupTemplate</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SourceType</span>
+
+<span class="c1"># from pyaedt.edb_core.edb_data.sources import SourceType</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">CircuitPort</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">CurrentSource</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">DCTerminal</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">ResistorSource</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">VoltageSource</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SolverType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SweepType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">String</span>
-    <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">Dictionary</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This module requires pythonnet.&quot;</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="SiwaveDCSetupTemplate"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.SiwaveDCSetupTemplate.html#pyaedt.edb_core.siwave.SiwaveDCSetupTemplate">[docs]</a><span class="k">class</span> <span class="nc">SiwaveDCSetupTemplate</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Siwave DC Settings Data Class.</span>
-
-<span class="sd">    This class contains all the settings for a Siwave DC Analysis and</span>
-<span class="sd">    is used as input</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; from pyaedt import Edb</span>
-<span class="sd">    &gt;&gt;&gt; edb  = Edb(&quot;pathtoaedb&quot;, edbversion=&quot;2021.2&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; settings = edb.core_siwave.get_siwave_dc_setup_template()</span>
-<span class="sd">    &gt;&gt;&gt; settings.accuracy_level = 0</span>
-<span class="sd">    &gt;&gt;&gt; settings.use_dc_custom_settings  = True</span>
-<span class="sd">    &gt;&gt;&gt; settings.name = &quot;myDCIR_3&quot;</span>
-<span class="sd">    &gt;&gt;&gt; settings.pos_term_to_ground = &quot;I1&quot;</span>
-<span class="sd">    &gt;&gt;&gt; settings.neg_term_to_ground = &quot;V1&quot;</span>
-<span class="sd">    &gt;&gt;&gt; edb.core_siwave.add_siwave_dc_analysis(settings)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;DC IR 1&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dcreport_show_active_devices</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">export_dcthermal_data</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">full_dcreport_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_loopres_forperpin</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">via_report_path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">compute_inductance</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">accuracy_level</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">plotjv</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_passes</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_passes</span> <span class="o">=</span> <span class="mi">5</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">percent_localrefinement</span> <span class="o">=</span> <span class="mi">20</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">energy_error</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">refine_bondwires</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">refine_vias</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_bondwire_sides</span> <span class="o">=</span> <span class="mi">8</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_via_sides</span> <span class="o">=</span> <span class="mi">8</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mesh_bondwires</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mesh_vias</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">perform_adaptive_refinement</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_dc_custom_settings</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_source_terms_to_ground</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">pos_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set positive terminals to ground.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        terms : list, str</span>
-<span class="sd">            List of terminals with positive nodes to ground.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span>
-
-    <span class="nd">@pos_term_to_ground</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">pos_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">terms</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">terms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span> <span class="o">=</span> <span class="p">[</span><span class="n">terms</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span> <span class="o">=</span> <span class="n">terms</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">neg_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set negative terminals to ground.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        terms : list, str</span>
-<span class="sd">            List of terminals with negative nodes to ground.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span>
-
-    <span class="nd">@neg_term_to_ground</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">neg_term_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">terms</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">terms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span> <span class="o">=</span> <span class="p">[</span><span class="n">terms</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span> <span class="o">=</span> <span class="n">terms</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">source_terms_to_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Terminals with positive or negative grounded terminals.&quot;&quot;&quot;</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">Dictionary</span><span class="p">[</span><span class="n">String</span><span class="p">,</span> <span class="nb">int</span><span class="p">]()</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neg_term_to_ground</span><span class="p">:</span>
-            <span class="n">a</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_term_to_ground</span><span class="p">:</span>
-            <span class="n">a</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_source_terms_to_ground</span> <span class="o">=</span> <span class="n">a</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source_terms_to_ground</span></div>
-
-
-<span class="k">class</span> <span class="nc">SourceType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages source types.&quot;&quot;&quot;</span>
-
-    <span class="p">(</span><span class="n">Port</span><span class="p">,</span> <span class="n">CurrentSource</span><span class="p">,</span> <span class="n">VoltageSource</span><span class="p">,</span> <span class="n">Resistor</span><span class="p">,</span> <span class="n">DcTerminal</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
-
-
-<span class="k">class</span> <span class="nc">PinGroup</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages pin groups.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_component</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_node_pins</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_net</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Name.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
-
-    <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">component</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Component.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component</span>
-
-    <span class="nd">@component</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_component</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">node_pins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Node pins.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_node_pins</span>
-
-    <span class="nd">@node_pins</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">node_pins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_node_pins</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_net</span>
-
-    <span class="nd">@net</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_net</span> <span class="o">=</span> <span class="n">value</span>
-
-
-<span class="k">class</span> <span class="nc">Source</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages sources.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Port</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_positive_node</span> <span class="o">=</span> <span class="n">PinGroup</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_negative_node</span> <span class="o">=</span> <span class="n">PinGroup</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_do_pin_grouping</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Name.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
-
-    <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Type.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
-
-    <span class="nd">@type</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">positive_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Positive node.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positive_node</span>
-
-    <span class="nd">@positive_node</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">positive_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_positive_node</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">negative_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Negative node.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_negative_node</span>
-
-    <span class="nd">@negative_node</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">negative_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_negative_node</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">do_pin_grouping</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Do pin groupings.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_pin_grouping</span>
-
-    <span class="nd">@do_pin_grouping</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">do_pin_grouping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_do_pin_grouping</span> <span class="o">=</span> <span class="n">value</span>
-
-
-<span class="k">class</span> <span class="nc">CircuitPort</span><span class="p">(</span><span class="n">Source</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages a circuit port.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">CircuitPort</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="s2">&quot;50&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Port</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Impedance.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span>
-
-    <span class="nd">@impedance</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get type.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
-
-
-<span class="k">class</span> <span class="nc">VoltageSource</span><span class="p">(</span><span class="n">Source</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages a voltage source.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">VoltageSource</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_magnitude</span> <span class="o">=</span> <span class="s2">&quot;1V&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="s2">&quot;0Deg&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="s2">&quot;0.05&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">VoltageSource</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Magnitude.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_magnitude</span>
-
-    <span class="nd">@magnitude</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_magnitude</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Phase.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span>
-
-    <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Impedance.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span>
-
-    <span class="nd">@impedance</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">source_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Source type.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
-
-
-<span class="k">class</span> <span class="nc">CurrentSource</span><span class="p">(</span><span class="n">Source</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages a current source.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">CurrentSource</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_magnitude</span> <span class="o">=</span> <span class="s2">&quot;0.1A&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="s2">&quot;0Deg&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="s2">&quot;1e7&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">CurrentSource</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Magnitude.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_magnitude</span>
-
-    <span class="nd">@magnitude</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">magnitude</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_magnitude</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Phase.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span>
-
-    <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Impedance.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span>
-
-    <span class="nd">@impedance</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">source_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Source type.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
-
-
-<span class="k">class</span> <span class="nc">DCTerminal</span><span class="p">(</span><span class="n">Source</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages a dc terminal source.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DCTerminal</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">DcTerminal</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">source_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Source type.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
-
-
-<span class="k">class</span> <span class="nc">ResistorSource</span><span class="p">(</span><span class="n">Source</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Manages a resistor source.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ResistorSource</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rvalue</span> <span class="o">=</span> <span class="s2">&quot;50&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_type</span> <span class="o">=</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Resistor</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">rvalue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Resistance value.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rvalue</span>
-
-    <span class="nd">@rvalue</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">rvalue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_rvalue</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">source_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Source type.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_type</span>
 
 
 <div class="viewcode-block" id="EdbSiwave"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.html#pyaedt.edb_core.siwave.EdbSiwave">[docs]</a><span class="k">class</span> <span class="nc">EdbSiwave</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -671,12 +324,13 @@
             <span class="n">neg_pin</span><span class="p">,</span>
             <span class="n">toLayer_neg</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Port</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">SourceType</span><span class="o">.</span><span class="n">CoaxPort</span><span class="p">,</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">CircPort</span><span class="p">,</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">LumpedPort</span><span class="p">]:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">PortBoundary</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">PortBoundary</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetSourceAmplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">impedance</span><span class="p">))</span>
-            <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">CircPort</span><span class="p">:</span>
+                <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_pingroup_terminal</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -684,7 +338,7 @@
                 <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> already exists. Renaming to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">CurrentSource</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Isource</span><span class="p">:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kCurrentSource</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kCurrentSource</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetSourceAmplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">magnitude</span><span class="p">))</span>
@@ -697,7 +351,7 @@
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> already exists. Renaming to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">VoltageSource</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Vsource</span><span class="p">:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kVoltageSource</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kVoltageSource</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetSourceAmplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">magnitude</span><span class="p">))</span>
@@ -710,7 +364,7 @@
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> already exists. Renaming to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Resistor</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Rlc</span><span class="p">:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">RlcBoundary</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">RlcBoundary</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_pingroup_terminal</span><span class="p">)</span>
@@ -1312,7 +966,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        pyaedt.edb_core.siwave.SiwaveDCSetupTemplate</span>
+<span class="sd">        pyaedt.edb_core.edb_data.simulation_configuration.SiwaveDCSetupTemplate</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">SiwaveDCSetupTemplate</span><span class="p">()</span></div>
 
@@ -1328,7 +982,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        setup_settings : pyaedt.edb_core.siwave.SiwaveDCSetupTemplate</span>
+<span class="sd">        setup_settings : pyaedt.edb_core.edb_data.simulation_configuration.SiwaveDCSetupTemplate</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1430,12 +1084,13 @@
                 <span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Port</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="ow">in</span> <span class="p">[</span><span class="n">SourceType</span><span class="o">.</span><span class="n">CoaxPort</span><span class="p">,</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">CircPort</span><span class="p">,</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">LumpedPort</span><span class="p">]:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">PortBoundary</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">PortBoundary</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetSourceAmplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">impedance</span><span class="p">))</span>
-            <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">CircPort</span><span class="p">:</span>
+                <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetIsCircuitPort</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_pingroup_terminal</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -1444,7 +1099,7 @@
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> already exists. Renaming to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">CurrentSource</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Isource</span><span class="p">:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kCurrentSource</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kCurrentSource</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetSourceAmplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">magnitude</span><span class="p">))</span>
@@ -1457,7 +1112,7 @@
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> already exists. Renaming to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">VoltageSource</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Vsource</span><span class="p">:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kVoltageSource</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kVoltageSource</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetSourceAmplitude</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">magnitude</span><span class="p">))</span>
@@ -1470,7 +1125,7 @@
                 <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> already exists. Renaming to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Resistor</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">Rlc</span><span class="p">:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">RlcBoundary</span><span class="p">)</span>
             <span class="n">neg_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">RlcBoundary</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_pingroup_terminal</span><span class="p">)</span>
@@ -1481,7 +1136,7 @@
             <span class="n">Rlc</span><span class="o">.</span><span class="n">REnabled</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">Rlc</span><span class="o">.</span><span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">rvalue</span><span class="p">)</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetRlcBoundaryParameters</span><span class="p">(</span><span class="n">Rlc</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">DcTerminal</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="n">SourceType</span><span class="o">.</span><span class="n">DcTerminal</span><span class="p">:</span>
             <span class="n">pos_pingroup_terminal</span><span class="o">.</span><span class="n">SetBoundaryType</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BoundaryType</span><span class="o">.</span><span class="n">kDcTerminal</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">pass</span>
