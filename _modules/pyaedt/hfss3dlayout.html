@@ -225,6 +225,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.application.Analysis3DLayout</span> <span class="kn">import</span> <span class="n">FieldAnalysis3DLayout</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">open_file</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">parse_excitation_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject3dLayout</span>
 
@@ -2106,7 +2107,100 @@
         <span class="k">if</span> <span class="n">out_files</span><span class="p">:</span>
             <span class="n">out_files</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">out_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span></div></div>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="Hfss3dLayout.edit_source_from_file"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss3dLayout.edit_source_from_file.html#pyaedt.Hfss3dLayout.edit_source_from_file">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">edit_source_from_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_name</span><span class="p">,</span>
+        <span class="n">file_name</span><span class="p">,</span>
+        <span class="n">is_time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">x_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">y_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+        <span class="n">include_post_effects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">incident_voltage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Edit a source from file data.</span>
+<span class="sd">        File data is a csv containing either frequency data or time domain data that will be converted through FFT.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        source_name : str</span>
+<span class="sd">            Source Name.</span>
+<span class="sd">        file_name : str</span>
+<span class="sd">            Full name of the input file.</span>
+<span class="sd">        is_time_domain : bool, optional</span>
+<span class="sd">            Either if the input data is Time based or Frequency Based. Frequency based data are Mag/Phase (deg).</span>
+<span class="sd">        x_scale : float, optional</span>
+<span class="sd">            Scaling factor for x axis.</span>
+<span class="sd">        y_scale : float, optional</span>
+<span class="sd">            Scaling factor for y axis.</span>
+<span class="sd">        impedance : float, optional</span>
+<span class="sd">            Excitation impedance. Default is `50`.</span>
+<span class="sd">        data_format : str, optional</span>
+<span class="sd">            Either `&quot;Power&quot;`, `&quot;Current&quot;` or `&quot;Voltage&quot;`.</span>
+<span class="sd">        encoding : str, optional</span>
+<span class="sd">            Csv file encoding.</span>
+<span class="sd">        include_post_effects : bool, optional</span>
+<span class="sd">            Either if include or not post-processing effects. Default is `True`,</span>
+<span class="sd">        incident_voltage : bool, optional</span>
+<span class="sd">            Either if include or incident or total voltage. Default is `True`, for incident voltage.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="s2">&quot;Voltage&quot;</span>
+        <span class="n">freq</span><span class="p">,</span> <span class="n">mag</span><span class="p">,</span> <span class="n">phase</span> <span class="o">=</span> <span class="n">parse_excitation_file</span><span class="p">(</span>
+            <span class="n">file_name</span><span class="o">=</span><span class="n">file_name</span><span class="p">,</span>
+            <span class="n">is_time_domain</span><span class="o">=</span><span class="n">is_time_domain</span><span class="p">,</span>
+            <span class="n">x_scale</span><span class="o">=</span><span class="n">x_scale</span><span class="p">,</span>
+            <span class="n">y_scale</span><span class="o">=</span><span class="n">y_scale</span><span class="p">,</span>
+            <span class="n">impedance</span><span class="o">=</span><span class="n">impedance</span><span class="p">,</span>
+            <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+            <span class="n">out_mag</span><span class="o">=</span><span class="n">out</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ds_name_mag</span> <span class="o">=</span> <span class="s2">&quot;ds_&quot;</span> <span class="o">+</span> <span class="n">source_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;_mode_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_Mag&quot;</span>
+        <span class="n">ds_name_phase</span> <span class="o">=</span> <span class="s2">&quot;ds_&quot;</span> <span class="o">+</span> <span class="n">source_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;_mode_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_Angle&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_exists</span><span class="p">(</span><span class="n">ds_name_mag</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_mag</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_mag</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">mag</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_mag</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset1d_design</span><span class="p">(</span><span class="n">ds_name_mag</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">mag</span><span class="p">,</span> <span class="n">xunit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_exists</span><span class="p">(</span><span class="n">ds_name_phase</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_phase</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_phase</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">phase</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_phase</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset1d_design</span><span class="p">(</span><span class="n">ds_name_phase</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">xunit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span> <span class="n">yunit</span><span class="o">=</span><span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">source_name</span><span class="p">:</span>
+                <span class="n">str_val</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;TotalVoltage&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">incident_voltage</span><span class="p">:</span>
+                    <span class="n">str_val</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;IncidentVoltage&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">include_post_effects</span><span class="p">:</span>
+                    <span class="n">str_val</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;IncludePortPostProcess&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">EditExcitations</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="s2">&quot;NAME:Excitations&quot;</span><span class="p">,</span>
+                        <span class="p">[</span><span class="n">source_name</span><span class="p">,</span> <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Freq)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds_name_mag</span><span class="p">),</span> <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Freq)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds_name_phase</span><span class="p">)],</span>
+                    <span class="p">],</span>
+                    <span class="p">[</span><span class="s2">&quot;NAME:Terminations&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">source_name</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">impedance</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;ohm&quot;</span><span class="p">,</span> <span class="s2">&quot;0ohm&quot;</span><span class="p">]],</span>
+                    <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">str_val</span><span class="p">),</span>
+                    <span class="p">[],</span>
+                <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Source Excitation updated with Dataset.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Port not found.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div></div>
 </pre></div>
 
               </article>

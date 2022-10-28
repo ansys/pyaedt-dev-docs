@@ -229,6 +229,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">json_to_dict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">open_file</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">parse_excitation_file</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.actors</span> <span class="kn">import</span> <span class="n">Radar</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
@@ -4079,6 +4080,91 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">osolution</span><span class="o">.</span><span class="n">EditSources</span><span class="p">(</span>
                 <span class="p">[[</span><span class="s2">&quot;FieldType:=&quot;</span><span class="p">,</span> <span class="s2">&quot;EigenStoredEnergy&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Name:=&quot;</span><span class="p">,</span> <span class="s2">&quot;Modes&quot;</span><span class="p">,</span> <span class="s2">&quot;Magnitudes:=&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">powerin</span><span class="p">]]]</span>
             <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Hfss.edit_source_from_file"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.edit_source_from_file.html#pyaedt.Hfss.edit_source_from_file">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">edit_source_from_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">portandmode</span><span class="p">,</span>
+        <span class="n">file_name</span><span class="p">,</span>
+        <span class="n">is_time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">x_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">y_scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="s2">&quot;Power&quot;</span><span class="p">,</span>
+        <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Edit a source from file data.</span>
+<span class="sd">        File data is a csv containing either frequency data or time domain data that will be converted through FFT.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        portandmode : str</span>
+<span class="sd">            Port name and mode. For example, ``&quot;Port1:1&quot;``.</span>
+<span class="sd">            The port name must be defined if the solution type is other than Eigenmodal.</span>
+<span class="sd">        file_name : str</span>
+<span class="sd">            Full name of the input file.</span>
+<span class="sd">        is_time_domain : bool, optional</span>
+<span class="sd">            Either if the input data is Time based or Frequency Based. Frequency based data are Mag/Phase (deg).</span>
+<span class="sd">        x_scale : float, optional</span>
+<span class="sd">            Scaling factor for x axis.</span>
+<span class="sd">        y_scale : float, optional</span>
+<span class="sd">            Scaling factor for y axis.</span>
+<span class="sd">        impedance : float, optional</span>
+<span class="sd">            Excitation impedance. Default is `50`.</span>
+<span class="sd">        data_format : str, optional</span>
+<span class="sd">            Either `&quot;Power&quot;`, `&quot;Current&quot;` or `&quot;Voltage&quot;`.</span>
+<span class="sd">        encoding : str, optional</span>
+<span class="sd">            Csv file encoding.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution_type</span> <span class="o">==</span> <span class="s2">&quot;Modal&quot;</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="s2">&quot;Power&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="s2">&quot;Voltage&quot;</span>
+        <span class="n">freq</span><span class="p">,</span> <span class="n">mag</span><span class="p">,</span> <span class="n">phase</span> <span class="o">=</span> <span class="n">parse_excitation_file</span><span class="p">(</span>
+            <span class="n">file_name</span><span class="o">=</span><span class="n">file_name</span><span class="p">,</span>
+            <span class="n">is_time_domain</span><span class="o">=</span><span class="n">is_time_domain</span><span class="p">,</span>
+            <span class="n">x_scale</span><span class="o">=</span><span class="n">x_scale</span><span class="p">,</span>
+            <span class="n">y_scale</span><span class="o">=</span><span class="n">y_scale</span><span class="p">,</span>
+            <span class="n">impedance</span><span class="o">=</span><span class="n">impedance</span><span class="p">,</span>
+            <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+            <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">,</span>
+            <span class="n">out_mag</span><span class="o">=</span><span class="n">out</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ds_name_mag</span> <span class="o">=</span> <span class="s2">&quot;ds_&quot;</span> <span class="o">+</span> <span class="n">portandmode</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;_mode_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_Mag&quot;</span>
+        <span class="n">ds_name_phase</span> <span class="o">=</span> <span class="s2">&quot;ds_&quot;</span> <span class="o">+</span> <span class="n">portandmode</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;_mode_&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_Angle&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_exists</span><span class="p">(</span><span class="n">ds_name_mag</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_mag</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_mag</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">mag</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_mag</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset1d_design</span><span class="p">(</span><span class="n">ds_name_mag</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">mag</span><span class="p">,</span> <span class="n">xunit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_exists</span><span class="p">(</span><span class="n">ds_name_phase</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_phase</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">freq</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_phase</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">phase</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">design_datasets</span><span class="p">[</span><span class="n">ds_name_phase</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset1d_design</span><span class="p">(</span><span class="n">ds_name_phase</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">xunit</span><span class="o">=</span><span class="s2">&quot;Hz&quot;</span><span class="p">,</span> <span class="n">yunit</span><span class="o">=</span><span class="s2">&quot;deg&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">osolution</span><span class="o">.</span><span class="n">EditSources</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span><span class="s2">&quot;IncludePortPostProcessing:=&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;SpecifySystemPower:=&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;Name:=&quot;</span><span class="p">,</span>
+                    <span class="n">portandmode</span><span class="p">,</span>
+                    <span class="s2">&quot;Magnitude:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Freq)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds_name_mag</span><span class="p">),</span>
+                    <span class="s2">&quot;Phase:=&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;pwl(</span><span class="si">{}</span><span class="s2">, Freq)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ds_name_phase</span><span class="p">),</span>
+                <span class="p">],</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Source Excitation updated with Dataset.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Hfss.thicken_port_sheets"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.thicken_port_sheets.html#pyaedt.Hfss.thicken_port_sheets">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
