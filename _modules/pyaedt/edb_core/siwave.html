@@ -226,8 +226,10 @@
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">CircuitPort</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">CurrentSource</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">DCTerminal</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">PinGroup</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">ResistorSource</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">VoltageSource</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SolverType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SweepType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
@@ -292,6 +294,20 @@
     <span class="k">def</span> <span class="nf">_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">db</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pin_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;All Layout Pin groups.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            List of all layout pin groups.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pingroups</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">PinGroups</span><span class="p">:</span>
+            <span class="n">pingroups</span><span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PinGroup</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">el</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pingroups</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_create_terminal_on_pins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
@@ -1348,7 +1364,112 @@
             <span class="n">c_value</span><span class="o">=</span><span class="n">c_value</span><span class="p">,</span>
             <span class="n">l_value</span><span class="o">=</span><span class="n">l_value</span><span class="p">,</span>
             <span class="n">is_parallel</span><span class="o">=</span><span class="n">is_parallel</span><span class="p">,</span>
-        <span class="p">)</span>  <span class="c1"># pragma no cover</span></div></div>
+        <span class="p">)</span>  <span class="c1"># pragma no cover</span></div>
+
+<div class="viewcode-block" id="EdbSiwave.create_pin_group"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_pin_group.html#pyaedt.edb_core.siwave.EdbSiwave.create_pin_group">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">create_pin_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_designator</span><span class="p">,</span> <span class="n">pin_numbers</span><span class="p">,</span> <span class="n">group_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create pin group on the component.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reference_designator : str</span>
+<span class="sd">            References designator of the component.</span>
+<span class="sd">        pin_numbers : int, str, list</span>
+<span class="sd">            List of pin names.</span>
+<span class="sd">        group_name : str, optional</span>
+<span class="sd">            Name of the pin group.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        PinGroup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pin_numbers</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">pin_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">pin_numbers</span><span class="p">]</span>
+        <span class="n">pin_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pin_numbers</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">group_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">group_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">PinGroup</span><span class="o">.</span><span class="n">GetUniqueName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">)</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">reference_designator</span><span class="p">]</span>
+        <span class="n">pins</span> <span class="o">=</span> <span class="p">[</span><span class="n">pin</span><span class="o">.</span><span class="n">pin</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">comp</span><span class="o">.</span><span class="n">pins</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">pin_numbers</span><span class="p">]</span>
+        <span class="n">edb_pingroup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">PinGroup</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">pins</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">edb_pingroup</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edb_pingroup</span><span class="o">.</span><span class="n">SetNet</span><span class="p">(</span><span class="n">pins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetNet</span><span class="p">())</span>
+            <span class="k">return</span> <span class="n">group_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_groups</span><span class="p">[</span><span class="n">group_name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="EdbSiwave.create_pin_group_on_net"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_on_net.html#pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_on_net">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">create_pin_group_on_net</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_designator</span><span class="p">,</span> <span class="n">net_name</span><span class="p">,</span> <span class="n">group_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create pin group on component by net name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reference_designator : str</span>
+<span class="sd">            References designator of the component.</span>
+<span class="sd">        net_name : str</span>
+<span class="sd">            Name of the net.</span>
+<span class="sd">        group_name : str, optional</span>
+<span class="sd">            Name of the pin group. The default value is ``None``.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        PinGroup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">get_pin_from_component</span><span class="p">(</span><span class="n">reference_designator</span><span class="p">,</span> <span class="n">net_name</span><span class="p">)</span>
+        <span class="n">pin_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pins</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_pin_group</span><span class="p">(</span><span class="n">reference_designator</span><span class="p">,</span> <span class="n">pin_names</span><span class="p">,</span> <span class="n">group_name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EdbSiwave.create_current_source_on_pin_group"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_current_source_on_pin_group.html#pyaedt.edb_core.siwave.EdbSiwave.create_current_source_on_pin_group">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">create_current_source_on_pin_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos_pin_group_name</span><span class="p">,</span> <span class="n">neg_pin_group_name</span><span class="p">,</span> <span class="n">magnitude</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create current source between two pin groups.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pos_pin_group_name : str</span>
+<span class="sd">            Name of the positive pin group.</span>
+<span class="sd">        neg_pin_group_name : str</span>
+<span class="sd">            Name of the negative pin group.</span>
+<span class="sd">        magnitude : int, float, optional</span>
+<span class="sd">            Magnitude of the source.</span>
+<span class="sd">        phase : int, float, optional</span>
+<span class="sd">            Phase of the source</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pos_pin_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_groups</span><span class="p">[</span><span class="n">pos_pin_group_name</span><span class="p">]</span>
+        <span class="n">pos_terminal</span> <span class="o">=</span> <span class="n">pos_pin_group</span><span class="o">.</span><span class="n">create_current_source_terminal</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+
+        <span class="n">neg_pin_group_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_groups</span><span class="p">[</span><span class="n">neg_pin_group_name</span><span class="p">]</span>
+        <span class="n">neg_terminal</span> <span class="o">=</span> <span class="n">neg_pin_group_name</span><span class="o">.</span><span class="n">create_current_source_terminal</span><span class="p">()</span>
+        <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_terminal</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EdbSiwave.create_voltage_source_on_pin_group"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_voltage_source_on_pin_group.html#pyaedt.edb_core.siwave.EdbSiwave.create_voltage_source_on_pin_group">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
+    <span class="k">def</span> <span class="nf">create_voltage_source_on_pin_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos_pin_group_name</span><span class="p">,</span> <span class="n">neg_pin_group_name</span><span class="p">,</span> <span class="n">magnitude</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create voltage source between two pin groups.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pos_pin_group_name : str</span>
+<span class="sd">            Name of the positive pin group.</span>
+<span class="sd">        neg_pin_group_name : str</span>
+<span class="sd">            Name of the negative pin group.</span>
+<span class="sd">        magnitude : int, float, optional</span>
+<span class="sd">            Magnitude of the source.</span>
+<span class="sd">        phase : int, float, optional</span>
+<span class="sd">            Phase of the source</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pos_pin_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_groups</span><span class="p">[</span><span class="n">pos_pin_group_name</span><span class="p">]</span>
+        <span class="n">pos_terminal</span> <span class="o">=</span> <span class="n">pos_pin_group</span><span class="o">.</span><span class="n">create_voltage_source_terminal</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+
+        <span class="n">neg_pin_group_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_groups</span><span class="p">[</span><span class="n">neg_pin_group_name</span><span class="p">]</span>
+        <span class="n">neg_terminal</span> <span class="o">=</span> <span class="n">neg_pin_group_name</span><span class="o">.</span><span class="n">create_voltage_source_terminal</span><span class="p">()</span>
+        <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_terminal</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
 
               </article>
