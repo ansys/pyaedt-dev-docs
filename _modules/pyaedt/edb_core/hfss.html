@@ -217,6 +217,7 @@
 <span class="kn">import</span> <span class="nn">math</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">Excitation</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_netdict_to_pydict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_pytuple_to_nettuple</span>
@@ -289,6 +290,13 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">builder</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">excitations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all excitations.&quot;&quot;&quot;</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">GetBoundaryType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">terms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">IsReferenceTerminal</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="n">Excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">ter</span><span class="p">,</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span> <span class="k">for</span> <span class="n">ter</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -814,6 +822,11 @@
         <span class="n">port_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">impedance</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
         <span class="n">reference_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">hfss_type</span><span class="o">=</span><span class="s2">&quot;Gap&quot;</span><span class="p">,</span>
+        <span class="n">horizontal_extent_factor</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">vertical_extent_factor</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">radial_extent_factor</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">pec_launch_width</span><span class="o">=</span><span class="s2">&quot;0.01mm&quot;</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a vertical edge port.</span>
 
@@ -831,6 +844,16 @@
 <span class="sd">            Impedance of the port. The default value is ``50``.</span>
 <span class="sd">        reference_layer : str, optional</span>
 <span class="sd">            Reference layer of the port. The default is ``None``.</span>
+<span class="sd">        hfss_type : str, optional</span>
+<span class="sd">            Type of the port. The default value is ``&quot;Gap&quot;``. Options are ``&quot;Gap&quot;``, ``&quot;Wave&quot;``.</span>
+<span class="sd">        horizontal_extent_factor : int, float, optional</span>
+<span class="sd">            Horizontal extent factor. The default value is ``5``.</span>
+<span class="sd">        vertical_extent_factor : int, float, optional</span>
+<span class="sd">            Vertical extent factor. The default value is ``3``.</span>
+<span class="sd">        radial_extent_factor : int, float, optional</span>
+<span class="sd">            Radial extent factor. The default value is ``0``.</span>
+<span class="sd">        pec_launch_width : str, optional</span>
+<span class="sd">            Launch Width of PEC. The default value is ``&quot;0.01mm&quot;``.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        str</span>
@@ -841,6 +864,23 @@
         <span class="k">if</span> <span class="n">reference_layer</span><span class="p">:</span>
             <span class="n">reference_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="p">[</span><span class="n">reference_layer</span><span class="p">]</span><span class="o">.</span><span class="n">_layer</span>
             <span class="n">pos_edge_term</span><span class="o">.</span><span class="n">SetReferenceLayer</span><span class="p">(</span><span class="n">reference_layer</span><span class="p">)</span>
+
+        <span class="n">prop</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;HFSS(&#39;HFSS Type&#39;=&#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hfss_type</span><span class="p">),</span>
+                <span class="s2">&quot; Orientation=&#39;Vertical&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot; &#39;Layer Alignment&#39;=&#39;Upper&#39;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot; &#39;Horizontal Extent Factor&#39;=&#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">horizontal_extent_factor</span><span class="p">),</span>
+                <span class="s2">&quot; &#39;Vertical Extent Factor&#39;=&#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vertical_extent_factor</span><span class="p">),</span>
+                <span class="s2">&quot; &#39;Radial Extent Factor&#39;=&#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">radial_extent_factor</span><span class="p">),</span>
+                <span class="s2">&quot; &#39;PEC Launch Width&#39;=&#39;</span><span class="si">{}</span><span class="s2">&#39;)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pec_launch_width</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">pos_edge_term</span><span class="o">.</span><span class="n">SetProductSolverOption</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span>
+            <span class="s2">&quot;HFSS&quot;</span><span class="p">,</span>
+            <span class="n">prop</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">pos_edge_term</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">port_name</span>
         <span class="k">else</span><span class="p">:</span>
