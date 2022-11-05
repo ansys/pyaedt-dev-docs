@@ -247,7 +247,6 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_edb</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span> <span class="o">=</span> <span class="n">p_edb</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># self.update_primitives()</span>
 
     <span class="nd">@property</span>
@@ -306,19 +305,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">layoutInstance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span>
-            <span class="n">layoutObjectInstances</span> <span class="o">=</span> <span class="n">layoutInstance</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">layoutObjectInstances</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">lay_obj</span> <span class="o">=</span> <span class="n">el</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">()</span>
-                    <span class="n">lay_obj_str</span> <span class="o">=</span> <span class="n">lay_obj</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="s2">&quot;Primitive&quot;</span> <span class="ow">in</span> <span class="n">lay_obj_str</span> <span class="ow">and</span> <span class="s2">&quot;PadstackInstance&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lay_obj_str</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">lay_obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="k">continue</span>
-            <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polygons_by_layer</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">lay_obj</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Primitives</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">lay_obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Primitives Updated&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span></div>
@@ -345,9 +333,14 @@
 <span class="sd">        dict</span>
 <span class="sd">            Dictionary of primitives with layer names as keys.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span>
+        <span class="n">_primitives_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_polygons_by_layer</span><span class="p">(</span><span class="n">lay</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_primitives_by_layer</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_primitives_by_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygons_by_layer</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">rectangles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

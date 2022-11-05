@@ -943,11 +943,7 @@
 
 <div class="viewcode-block" id="EdbHfss.create_lumped_port_on_net"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_lumped_port_on_net.html#pyaedt.edb_core.hfss.EdbHfss.create_lumped_port_on_net">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_lumped_port_on_net</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">nets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">reference_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">return_points_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">digit_resolution</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">nets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reference_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_points_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">digit_resolution</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">at_bounding_box</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an edge port on nets. Only ports on traces (e.g. Path) are currently supported.</span>
 <span class="sd">        The command will look for traces on the nets and will try to assign vertical lumped port on first and last</span>
@@ -967,6 +963,11 @@
 
 <span class="sd">        digit_resolution : int, optional</span>
 <span class="sd">            The number of digits carried for the edge location accuracy. The default value is ``6``.</span>
+
+<span class="sd">        at_bounding_box : bool</span>
+<span class="sd">            When ``True`` will keep the edges from traces at the layout bounding box location. This is recommended when</span>
+<span class="sd">             a cutout has been performed before and lumped ports have to be created on ending traces. Default value is</span>
+<span class="sd">             ``True``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1010,15 +1011,32 @@
                             <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">),</span>
                             <span class="nb">round</span><span class="p">(</span><span class="n">pt</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">digit_resolution</span><span class="p">),</span>
                         <span class="p">]</span>
-                        <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
-                            <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_pt</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">at_bounding_box</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">layout_bbox</span><span class="p">)</span><span class="o">.</span><span class="n">isdisjoint</span><span class="p">(</span><span class="n">_pt</span><span class="p">):</span>
+                                <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
+                                    <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_pt</span><span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="k">try</span><span class="p">:</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePort</span><span class="p">(</span>
+                                            <span class="n">path</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span>
+                                        <span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+                                    <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                                            <span class="s2">&quot;edge port creation failed on point </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                                        <span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePort</span><span class="p">(</span>
-                                <span class="n">path</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span>
-                            <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
-                                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                                    <span class="s2">&quot;edge port creation failed on point </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">_pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-                                <span class="p">)</span>
+                            <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                                <span class="n">edges_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_pt</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">try</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">_hfss_terminals</span><span class="o">.</span><span class="n">CreateEdgePort</span><span class="p">(</span>
+                                        <span class="n">path</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">reference_layer</span><span class="p">,</span> <span class="n">port_name</span>
+                                    <span class="p">)</span>  <span class="c1"># pragma: no cover</span>
+                                <span class="k">except</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                                        <span class="s2">&quot;edge port creation failed on point </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">pt</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                                    <span class="p">)</span>
+
             <span class="k">if</span> <span class="n">return_points_only</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">edges_pts</span>
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -1424,7 +1442,6 @@
                     <span class="n">ii</span> <span class="o">+=</span> <span class="mi">1</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">use_default_coax_port_radial_extension</span><span class="p">:</span>
-                <span class="n">radial_factor_multiplier</span> <span class="o">=</span> <span class="mf">0.125</span>
                 <span class="c1"># Set the Radial Extent Factor</span>
                 <span class="n">typ</span> <span class="o">=</span> <span class="n">cmp</span><span class="o">.</span><span class="n">GetComponentType</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">typ</span> <span class="ow">in</span> <span class="p">[</span>
@@ -1438,11 +1455,18 @@
                         <span class="n">diam1</span><span class="p">,</span>
                         <span class="n">diam2</span><span class="p">,</span>
                     <span class="p">)</span> <span class="o">=</span> <span class="n">cmp_prop</span><span class="o">.</span><span class="n">GetSolderBallProperty</span><span class="p">()</span><span class="o">.</span><span class="n">GetDiameter</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">diam1</span> <span class="ow">and</span> <span class="n">diam2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="n">radial_factor</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">meter&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">radial_factor_multiplier</span> <span class="o">*</span> <span class="n">diam1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">success</span> <span class="ow">and</span> <span class="n">diam1</span> <span class="ow">and</span> <span class="n">diam2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                        <span class="n">option</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="s2">&quot;HFSS(&#39;HFSS Type&#39;=&#39;**Invalid**&#39;, &quot;</span>
+                            <span class="s2">&quot;Orientation=&#39;**Invalid**&#39;, &quot;</span>
+                            <span class="s2">&quot;&#39;Layer Alignment&#39;=&#39;Upper&#39;, &quot;</span>
+                            <span class="s2">&quot;&#39;Horizontal Extent Factor&#39;=&#39;5&#39;, &quot;</span>
+                            <span class="s2">&quot;&#39;Vertical Extent Factor&#39;=&#39;3&#39;, &quot;</span>
+                            <span class="s2">&quot;&#39;Radial Extent Factor&#39;=&#39;0.25&#39;, &quot;</span>
+                            <span class="s2">&quot;&#39;PEC Launch Width&#39;=&#39;0mm&#39;)&quot;</span>
+                        <span class="p">)</span>
                         <span class="k">for</span> <span class="n">tt</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="o">.</span><span class="n">SetHfssSolverOption</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="s2">&quot;Radial Extent Factor&quot;</span><span class="p">,</span> <span class="n">radial_factor</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="o">.</span><span class="n">SetHfssSolverOption</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="s2">&quot;Layer Alignment&quot;</span><span class="p">,</span> <span class="s2">&quot;Upper&quot;</span><span class="p">)</span>  <span class="c1"># ensure this is also set</span>
+                            <span class="n">tt</span><span class="o">.</span><span class="n">SetProductSolverOption</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span> <span class="s2">&quot;HFSS&quot;</span><span class="p">,</span> <span class="n">option</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>

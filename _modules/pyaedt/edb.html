@@ -1385,6 +1385,7 @@
         <span class="n">open_cutout_at_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">nets_to_include</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">include_partial_instances</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">keep_voids</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout on a specified shape and save it to a new AEDB file.</span>
 
@@ -1405,6 +1406,9 @@
 <span class="sd">        include_partial_instances : bool, optional</span>
 <span class="sd">            Whether to include padstack instances that have bounding boxes intersecting with point list polygons.</span>
 <span class="sd">            This operation may slow down the cutout export.</span>
+<span class="sd">        keep_voids : bool</span>
+<span class="sd">            Boolean used for keep or not the voids intersecting the polygon used for clipping the layout.</span>
+<span class="sd">            Default value is ``True``, ``False`` will remove the voids.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1443,25 +1447,26 @@
                     <span class="n">_ref_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">_ref</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">_ref_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">_ref</span><span class="p">]</span><span class="o">.</span><span class="n">net_object</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
-        <span class="n">voids</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">circles</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_void</span><span class="p">]</span>
-        <span class="n">voids2</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">polygons</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_void</span><span class="p">]</span>
-        <span class="n">voids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">voids2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">keep_voids</span><span class="p">:</span>
+            <span class="n">voids</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">circles</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_void</span><span class="p">]</span>
+            <span class="n">voids2</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">polygons</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">is_void</span><span class="p">]</span>
+            <span class="n">voids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">voids2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">voids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">voids_to_add</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">circle</span> <span class="ow">in</span> <span class="n">voids</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">polygonData</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">circle</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="n">voids_to_add</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
 
         <span class="n">_netsClip</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">_ref_nets</span><span class="p">)</span>
-        <span class="n">net_signals</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">_ref_nets</span><span class="p">[</span><span class="mi">0</span><span class="p">])]()</span>
+        <span class="n">net_signals</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">_ref_nets</span><span class="p">[</span><span class="mi">0</span><span class="p">])]()</span>  <span class="c1"># pragma: no cover</span>
         <span class="c1"># Create new cutout cell/design</span>
         <span class="n">_cutout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">CutOut</span><span class="p">(</span><span class="n">net_signals</span><span class="p">,</span> <span class="n">_netsClip</span><span class="p">,</span> <span class="n">polygonData</span><span class="p">)</span>
         <span class="n">layout</span> <span class="o">=</span> <span class="n">_cutout</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span>
-        <span class="n">cutout_obj_coll</span> <span class="o">=</span> <span class="n">layout</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span><span class="o">.</span><span class="n">GetAllLayoutObjInstances</span><span class="p">()</span>
+        <span class="n">cutout_obj_coll</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">layout</span><span class="o">.</span><span class="n">PadstackInstances</span><span class="p">)</span>
         <span class="n">ids</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">cutout_obj_coll</span><span class="o">.</span><span class="n">Items</span><span class="p">:</span>
-            <span class="n">lobj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">lobj</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PadstackInstance</span><span class="p">:</span>
-                <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lobj</span><span class="o">.</span><span class="n">GetId</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">lobj</span> <span class="ow">in</span> <span class="n">cutout_obj_coll</span><span class="p">:</span>
+            <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lobj</span><span class="o">.</span><span class="n">GetId</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">include_partial_instances</span><span class="p">:</span>
             <span class="n">p_missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pinstance_to_add</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
