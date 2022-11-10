@@ -245,9 +245,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_edb</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span> <span class="o">=</span> <span class="n">p_edb</span>
-        <span class="c1"># self.update_primitives()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -293,24 +291,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">stackup_layers</span><span class="o">.</span><span class="n">layers</span>
 
-<div class="viewcode-block" id="EdbLayout.update_primitives"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.update_primitives.html#pyaedt.edb_core.layout.EdbLayout.update_primitives">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">update_primitives</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update a primitives list from the EDB database.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">lay_obj</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Primitives</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">lay_obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Primitives Updated&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="kc">False</span></div>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">primitives</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Primitives.</span>
@@ -320,9 +300,11 @@
 <span class="sd">        list of :class:`pyaedt.edb_core.edb_data.primitives_data.EDBPrimitives`</span>
 <span class="sd">            List of primitives.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span>
+        <span class="n">_prims</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">lay_obj</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Primitives</span><span class="p">):</span>
+                <span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">lay_obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">_prims</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">polygons_by_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -339,8 +321,20 @@
         <span class="k">return</span> <span class="n">_primitives_by_layer</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_primitives_by_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">polygons_by_layer</span>
+    <span class="k">def</span> <span class="nf">primitives_by_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Primitives with layer names as keys.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Dictionary of primitives with layer names as keys.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_primitives_by_layer</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">lay</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Primitives</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">GetLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="n">lay</span>
+            <span class="p">]</span>
+        <span class="k">return</span> <span class="n">_primitives_by_layer</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">rectangles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -661,15 +655,6 @@
         <span class="k">if</span> <span class="n">polygon</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Null path created&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">polygon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">polygon</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">polygon</span></div>
 
 <div class="viewcode-block" id="EdbLayout.create_trace"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.create_trace.html#pyaedt.edb_core.layout.EdbLayout.create_trace">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -745,12 +730,18 @@
 <span class="sd">            Polygon when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">net</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">find_or_create_net</span><span class="p">(</span><span class="n">net_name</span><span class="p">)</span>
-        <span class="n">polygonData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">main_shape</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">main_shape</span><span class="p">,</span> <span class="n">EdbLayout</span><span class="o">.</span><span class="n">Shape</span><span class="p">):</span>
+            <span class="n">polygonData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">main_shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">polygonData</span> <span class="o">=</span> <span class="n">main_shape</span>
         <span class="k">if</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">polygonData</span><span class="o">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="ow">or</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to create main shape polygon data&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">voids</span><span class="p">:</span>
-            <span class="n">voidPolygonData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">void</span><span class="p">,</span> <span class="n">EdbLayout</span><span class="o">.</span><span class="n">Shape</span><span class="p">):</span>
+                <span class="n">voidPolygonData</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">voidPolygonData</span> <span class="o">=</span> <span class="n">void</span>
             <span class="k">if</span> <span class="n">voidPolygonData</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">voidPolygonData</span><span class="o">.</span><span class="n">IsNull</span><span class="p">()</span> <span class="ow">or</span> <span class="n">polygonData</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to create void polygon data&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -760,14 +751,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Null polygon created&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_prims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPrimitives</span><span class="p">(</span><span class="n">polygon</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_primitives_by_layer</span><span class="p">[</span><span class="n">layer_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">polygon</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">polygon</span></div>
 
 <div class="viewcode-block" id="EdbLayout.create_rectangle"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.create_rectangle.html#pyaedt.edb_core.layout.EdbLayout.create_rectangle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -867,10 +850,9 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">net_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
             <span class="n">net_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">net_names</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">primitives</span><span class="p">[:]:</span>
             <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">in</span> <span class="n">net_names</span><span class="p">:</span>
                 <span class="n">p</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbLayout.get_primitives"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.get_primitives.html#pyaedt.edb_core.layout.EdbLayout.get_primitives">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -940,7 +922,6 @@
             <span class="k">if</span> <span class="n">res</span><span class="p">:</span>
                 <span class="n">cloned_circle</span><span class="o">.</span><span class="n">SetIsNegative</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">void_circle</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbLayout.add_void"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.add_void.html#pyaedt.edb_core.layout.EdbLayout.add_void">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1275,7 +1256,6 @@
                 <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">pad</span><span class="p">]</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">remove_pads_from_padstack</span><span class="p">(</span><span class="n">pad</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_primitives</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbLayout.defeature_polygon"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.layout.EdbLayout.defeature_polygon.html#pyaedt.edb_core.layout.EdbLayout.defeature_polygon">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>

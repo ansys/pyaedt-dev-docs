@@ -248,7 +248,6 @@
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.materials</span> <span class="kn">import</span> <span class="n">Materials</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.padstack</span> <span class="kn">import</span> <span class="n">EdbPadstacks</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.stackup</span> <span class="kn">import</span> <span class="n">Stackup</span>
-<span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">CutoutSubdesignType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">SolverType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">env_path</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">env_path_student</span>
@@ -1037,7 +1036,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_name</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_global_logger</span><span class="o">.</span><span class="n">remove_file_logger</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_name</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_global_logger</span><span class="o">.</span><span class="n">remove_file_logger</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_name</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_logger</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -1179,6 +1178,29 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
+    <span class="k">def</span> <span class="nf">_create_extent</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">net_signals</span><span class="p">,</span>
+        <span class="n">extent_type</span><span class="p">,</span>
+        <span class="n">expansion_size</span><span class="p">,</span>
+        <span class="n">use_round_corner</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">extent_type</span> <span class="o">==</span> <span class="s2">&quot;Conforming&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">extent_type</span> <span class="o">==</span> <span class="s2">&quot;Bounding&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+            <span class="p">)</span>
+            <span class="n">_poly_list</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">_poly</span><span class="p">])</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">GetConvexHullOfPolygons</span><span class="p">(</span><span class="n">_poly_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_poly</span>
+
 <div class="viewcode-block" id="Edb.create_cutout"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.create_cutout.html#pyaedt.Edb.create_cutout">[docs]</a>    <span class="k">def</span> <span class="nf">create_cutout</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">signal_list</span><span class="o">=</span><span class="p">[],</span>
@@ -1188,7 +1210,6 @@
         <span class="n">use_round_corner</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">open_cutout_at_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">simulation_setup</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout and save it to a new AEDB file.</span>
 
@@ -1210,8 +1231,6 @@
 <span class="sd">        open_cutout_at_end : bool, optional</span>
 <span class="sd">            Whether to open the cutout at the end. The default</span>
 <span class="sd">            is ``True``.</span>
-<span class="sd">        simulation_setup : edb_data.simulation_configuration.SimulationConfiguration object, optional</span>
-<span class="sd">            Simulation setup to use to overwrite the other parameters. The default is ``None``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1221,13 +1240,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">expansion_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">expansion_size</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">simulation_setup</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>
-            <span class="n">signal_list</span> <span class="o">=</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_nets</span>
-            <span class="n">reference_list</span> <span class="o">=</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">power_nets</span>
-            <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span> <span class="o">==</span> <span class="n">CutoutSubdesignType</span><span class="o">.</span><span class="n">Conformal</span><span class="p">:</span>
-                <span class="n">extent_type</span> <span class="o">=</span> <span class="s2">&quot;Conforming&quot;</span>
-                <span class="n">expansion_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_expansion</span><span class="p">)</span>
-                <span class="n">use_round_corner</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_round_corner</span><span class="p">)</span>
 
         <span class="c1"># validate nets in layout</span>
         <span class="n">net_signals</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
@@ -1238,20 +1250,12 @@
             <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">reference_list</span><span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">extent_type</span> <span class="o">==</span> <span class="s2">&quot;Conforming&quot;</span><span class="p">:</span>
-            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">extent_type</span> <span class="o">==</span> <span class="s2">&quot;Bounding&quot;</span><span class="p">:</span>
-            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
-            <span class="p">)</span>
-            <span class="n">_poly_list</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">_poly</span><span class="p">])</span>
-            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">GetConvexHullOfPolygons</span><span class="p">(</span><span class="n">_poly_list</span><span class="p">)</span>
+        <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_extent</span><span class="p">(</span>
+            <span class="n">net_signals</span><span class="p">,</span>
+            <span class="n">extent_type</span><span class="p">,</span>
+            <span class="n">expansion_size</span><span class="p">,</span>
+            <span class="n">use_round_corner</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># Create new cutout cell/design</span>
         <span class="n">included_nets</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
@@ -1310,6 +1314,196 @@
         <span class="k">elif</span> <span class="n">open_cutout_at_end</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_active_cell</span> <span class="o">=</span> <span class="n">_cutout</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_init_objects</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Edb.create_cutout_multithread"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.create_cutout_multithread.html#pyaedt.Edb.create_cutout_multithread">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_cutout_multithread</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">signal_list</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">reference_list</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GND&quot;</span><span class="p">],</span>
+        <span class="n">extent_type</span><span class="o">=</span><span class="s2">&quot;Conforming&quot;</span><span class="p">,</span>
+        <span class="n">expansion_size</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>
+        <span class="n">use_round_corner</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">number_of_threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">custom_extent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a cutout using an approach entirely based on pyaedt.</span>
+<span class="sd">        It does in sequence:</span>
+<span class="sd">        - delete all nets not in list,</span>
+<span class="sd">        - create a extent of the nets,</span>
+<span class="sd">        - check and delete all vias not in the extent,</span>
+<span class="sd">        - check and delete all the primitives not in extent,</span>
+<span class="sd">        - check and intersect all the primitives that intersect the extent.</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        signal_list : list</span>
+<span class="sd">            List of signal strings.</span>
+<span class="sd">        reference_list : list, optional</span>
+<span class="sd">            List of references to add. The default is ``[&quot;GND&quot;]``.</span>
+<span class="sd">        extent_type : str, optional</span>
+<span class="sd">            Type of the extension. Options are ``&quot;Conforming&quot;``, ``&quot;ConvexHull&quot;``, and</span>
+<span class="sd">            ``&quot;Bounding&quot;``. The default is ``&quot;Conforming&quot;``.</span>
+<span class="sd">        expansion_size : float, str, optional</span>
+<span class="sd">            Expansion size ratio in meters. The default is ``0.002``.</span>
+<span class="sd">        use_round_corner : bool, optional</span>
+<span class="sd">            Whether to use round corners. The default is ``False``.</span>
+<span class="sd">        number_of_threads : int, optional</span>
+<span class="sd">            Number of thread to use. Default is 4</span>
+<span class="sd">        custom_extent : list, optional</span>
+<span class="sd">            Custom extent to use for the cutout. It has to be a list of points [[x1,y1],[x2,y2]....] or</span>
+<span class="sd">            Edb PolygonData object. In this case, both signal_list and reference_list will be cut.</span>
+<span class="sd">        output_aedb_path : str, optional</span>
+<span class="sd">            Full path and name for the new AEDB file. If None, then current aedb will be cutout.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; edb = Edb(r&#39;C:.aedb&#39;, edbversion=&quot;2022.2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; edb.logger.info_timer(&quot;Edb Opening&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; edb.logger.reset_timer()</span>
+<span class="sd">        &gt;&gt;&gt; start = time.time()</span>
+<span class="sd">        &gt;&gt;&gt; signal_list = []</span>
+<span class="sd">        &gt;&gt;&gt; for net in edb.core_nets.nets.keys():</span>
+<span class="sd">        &gt;&gt;&gt;      if &quot;3V3&quot; in net:</span>
+<span class="sd">        &gt;&gt;&gt;           signal_list.append(net)</span>
+<span class="sd">        &gt;&gt;&gt; power_list = [&quot;PGND&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; edb.create_cutout_multithread(signal_list=signal_list, reference_list=power_list, extent_type=&quot;Conforming&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; end_time = str((time.time() - start)/60)</span>
+<span class="sd">        &gt;&gt;&gt; edb.logger.info(&quot;Total pyaedt cutout time in min %s&quot;, end_time)</span>
+<span class="sd">        &gt;&gt;&gt; edb.core_nets.plot(signal_list, None, color_by_net=True)</span>
+<span class="sd">        &gt;&gt;&gt; edb.core_nets.plot(power_list, None, color_by_net=True)</span>
+<span class="sd">        &gt;&gt;&gt; edb.save_edb()</span>
+<span class="sd">        &gt;&gt;&gt; edb.close_edb()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method working only in Cpython&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+
+        <span class="k">if</span> <span class="n">output_aedb_path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_edb_as</span><span class="p">(</span><span class="n">output_aedb_path</span><span class="p">)</span>
+
+        <span class="n">expansion_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">expansion_size</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">custom_extent</span><span class="p">:</span>
+            <span class="n">reference_list</span> <span class="o">=</span> <span class="n">reference_list</span> <span class="o">+</span> <span class="n">signal_list</span>
+            <span class="n">all_list</span> <span class="o">=</span> <span class="n">reference_list</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">all_list</span> <span class="o">=</span> <span class="n">signal_list</span> <span class="o">+</span> <span class="n">reference_list</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_list</span><span class="p">:</span>
+                <span class="n">i</span><span class="o">.</span><span class="n">delete_padstack_instance</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_list</span><span class="p">:</span>
+                <span class="n">i</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_list</span><span class="p">:</span>
+                <span class="n">i</span><span class="o">.</span><span class="n">net_object</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Net clean up&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">custom_extent</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">custom_extent</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">plane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span><span class="s2">&quot;polygon&quot;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">custom_extent</span><span class="p">)</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">shape_to_polygon_data</span><span class="p">(</span><span class="n">plane</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">custom_extent</span><span class="p">:</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="n">custom_extent</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">net_signals</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">signal_list</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_extent</span><span class="p">(</span>
+                <span class="n">net_signals</span><span class="p">,</span>
+                <span class="n">extent_type</span><span class="p">,</span>
+                <span class="n">expansion_size</span><span class="p">,</span>
+                <span class="n">use_round_corner</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Expanded Net Polygon Creation&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
+        <span class="n">_poly_list</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">_poly</span><span class="p">])</span>
+        <span class="n">polys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">is_void</span><span class="p">]</span>
+        <span class="n">pinsts</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">())]</span>
+        <span class="n">prims_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">poly_to_create</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pins_to_delete</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span> <span class="nf">get_polygon_data</span><span class="p">(</span><span class="n">prim</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">prim</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">poly1</span><span class="p">,</span> <span class="n">poly2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly1</span><span class="o">.</span><span class="n">Intersect</span><span class="p">(</span><span class="n">poly2</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">clean_prim</span><span class="p">(</span><span class="n">prim_1</span><span class="p">):</span>
+            <span class="n">net</span> <span class="o">=</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">net_name</span>
+            <span class="k">if</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">reference_list</span><span class="p">:</span>
+                <span class="n">pdata</span> <span class="o">=</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">prim_1</span><span class="p">)</span>
+                <span class="n">int_data</span> <span class="o">=</span> <span class="n">_poly</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">pdata</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">int_data</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">prims_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prim_1</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">int_data</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">list_poly</span> <span class="o">=</span> <span class="n">intersect</span><span class="p">(</span><span class="n">_poly</span><span class="p">,</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">prim_1</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">list_poly</span><span class="p">:</span>
+                        <span class="n">list_void</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="n">voids</span> <span class="o">=</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">voids</span>
+                        <span class="k">if</span> <span class="n">voids</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">voids</span><span class="p">:</span>
+                                <span class="n">void_pdata</span> <span class="o">=</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
+                                <span class="n">int_data</span> <span class="o">=</span> <span class="n">_poly</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">int_data</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">int_data</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                    <span class="n">list_void</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">intersect</span><span class="p">(</span><span class="n">_poly</span><span class="p">,</span> <span class="n">void_pdata</span><span class="p">))</span>
+                                <span class="k">elif</span> <span class="n">int_data</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                    <span class="n">list_void</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
+                        <span class="n">poly_to_create</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">list_poly</span><span class="p">,</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">list_void</span><span class="p">])</span>
+                    <span class="n">prims_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prim_1</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">pins_clean</span><span class="p">(</span><span class="n">pinst</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">pinst</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">in</span> <span class="n">reference_list</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pinst</span><span class="o">.</span><span class="n">in_polygon</span><span class="p">(</span><span class="n">_poly</span><span class="p">,</span> <span class="n">simple_check</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="n">pins_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pinst</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">number_of_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">pins_clean</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="n">pinsts</span><span class="p">)</span>
+        <span class="c1"># for item in pinsts:</span>
+        <span class="c1">#     pins_clean(item)</span>
+
+        <span class="k">for</span> <span class="n">pin</span> <span class="ow">in</span> <span class="n">pins_to_delete</span><span class="p">:</span>
+            <span class="n">pin</span><span class="o">.</span><span class="n">delete_padstack_instance</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Padstack Instances removal completed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">number_of_threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">clean_prim</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="n">polys</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">poly_to_create</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">create_polygon</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">net_name</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">voids</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="n">prims_to_delete</span><span class="p">:</span>
+            <span class="n">prim</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Primitives cleanup completed&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">delete_single_pin_rlc</span><span class="p">()</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">comp</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">numpins</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">val</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">refresh_components</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleted </span><span class="si">{}</span><span class="s2"> additional components&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Single Pins components deleted&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Edb.get_conformal_polygon_from_netlist"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.get_conformal_polygon_from_netlist.html#pyaedt.Edb.get_conformal_polygon_from_netlist">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1999,14 +2193,36 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">classify_nets</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">do_cutout_subdesign</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutting out using method: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span><span class="p">))</span>
-                <span class="n">old_cell_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_cutout</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">=</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">output_aedb_path</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">output_aedb</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">use_default_cutout</span><span class="p">:</span>
+                    <span class="n">old_cell_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_cutout</span><span class="p">(</span>
+                        <span class="n">signal_list</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_nets</span><span class="p">,</span>
+                        <span class="n">reference_list</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">power_nets</span><span class="p">,</span>
+                        <span class="n">expansion_size</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_expansion</span><span class="p">,</span>
+                        <span class="n">use_round_corner</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_round_corner</span><span class="p">,</span>
+                        <span class="n">extent_type</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span><span class="p">,</span>
+                        <span class="n">output_aedb_path</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">output_aedb</span><span class="p">,</span>
+                    <span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutout processed.&quot;</span><span class="p">)</span>
+                        <span class="n">old_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">CellType</span><span class="o">.</span><span class="n">CircuitCell</span><span class="p">,</span> <span class="n">old_cell_name</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="n">old_cell</span><span class="p">:</span>
+                            <span class="n">old_cell</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cutout failed.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutting out using method: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">create_cutout_multithread</span><span class="p">(</span>
+                        <span class="n">signal_list</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_nets</span><span class="p">,</span>
+                        <span class="n">reference_list</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">power_nets</span><span class="p">,</span>
+                        <span class="n">expansion_size</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_expansion</span><span class="p">,</span>
+                        <span class="n">use_round_corner</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_round_corner</span><span class="p">,</span>
+                        <span class="n">extent_type</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">cutout_subdesign_type</span><span class="p">,</span>
+                        <span class="n">output_aedb_path</span><span class="o">=</span><span class="n">simulation_setup</span><span class="o">.</span><span class="n">output_aedb</span><span class="p">,</span>
+                    <span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cutout processed.&quot;</span><span class="p">)</span>
-                    <span class="n">old_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">CellType</span><span class="o">.</span><span class="n">CircuitCell</span><span class="p">,</span> <span class="n">old_cell_name</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">old_cell</span><span class="p">:</span>
-                        <span class="n">old_cell</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cutout failed.&quot;</span><span class="p">)</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleting existing ports.&quot;</span><span class="p">)</span>
             <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">port</span><span class="p">:</span> <span class="n">port</span><span class="o">.</span><span class="n">Delete</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">))</span>
             <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">pg</span><span class="p">:</span> <span class="n">pg</span><span class="o">.</span><span class="n">Delete</span><span class="p">(),</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">PinGroups</span><span class="p">))</span>

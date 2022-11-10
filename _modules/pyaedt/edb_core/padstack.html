@@ -358,10 +358,12 @@
 <span class="sd">            List of padstacks via padstack definitions.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_padstacks</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span>
+        <span class="n">_padstacks</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">padstackdef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">PadstackDefs</span><span class="p">:</span>
+            <span class="n">PadStackData</span> <span class="o">=</span> <span class="n">padstackdef</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">PadStackData</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">_padstacks</span><span class="p">[</span><span class="n">padstackdef</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPadstack</span><span class="p">(</span><span class="n">padstackdef</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_padstacks</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">padstack_instances</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -373,10 +375,11 @@
 <span class="sd">            List of padstack instances.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_padstack_instances</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span>
+        <span class="n">layout_lobj_collection</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">PadstackInstances</span><span class="p">)</span>
+        <span class="n">_padstack_instances</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">lobj</span> <span class="ow">in</span> <span class="n">layout_lobj_collection</span><span class="p">:</span>
+            <span class="n">_padstack_instances</span><span class="p">[</span><span class="n">lobj</span><span class="o">.</span><span class="n">GetId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPadstackInstance</span><span class="p">(</span><span class="n">lobj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_padstack_instances</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pingroups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -406,21 +409,6 @@
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">PadType</span>
-
-<div class="viewcode-block" id="EdbPadstacks.update_padstacks"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.update_padstacks.html#pyaedt.edb_core.padstack.EdbPadstacks.update_padstacks">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">update_padstacks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update Padstack Dictionary.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            Dictionary of Padstacks.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">padstackdef</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">PadstackDefs</span><span class="p">:</span>
-            <span class="n">PadStackData</span> <span class="o">=</span> <span class="n">padstackdef</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">PadStackData</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_padstacks</span><span class="p">[</span><span class="n">padstackdef</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPadstack</span><span class="p">(</span><span class="n">padstackdef</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbPadstacks.create_circular_padstack"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.create_circular_padstack.html#pyaedt.edb_core.padstack.EdbPadstacks.create_circular_padstack">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_circular_padstack</span><span class="p">(</span>
@@ -522,8 +510,7 @@
                     <span class="n">value0</span><span class="p">,</span>
                     <span class="n">value0</span><span class="p">,</span>
                 <span class="p">)</span>
-        <span class="n">PadStack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">new_PadStackData</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_padstacks</span><span class="p">()</span></div>
+        <span class="n">PadStack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">new_PadStackData</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbPadstacks.delete_padstack_instances"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.delete_padstack_instances.html#pyaedt.edb_core.padstack.EdbPadstacks.delete_padstack_instances">[docs]</a>    <span class="nd">@pyaedt_function_handler</span>
     <span class="k">def</span> <span class="nf">delete_padstack_instances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_names</span><span class="p">):</span>
@@ -922,7 +909,6 @@
         <span class="n">padstackDefinition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDef</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">padstackname</span><span class="p">)</span>
         <span class="n">padstackDefinition</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">padstackData</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Padstack </span><span class="si">%s</span><span class="s2"> create correctly&quot;</span><span class="p">,</span> <span class="n">padstackname</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_padstacks</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">padstackname</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -957,7 +943,6 @@
 
         <span class="n">padstack_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDef</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">new_padstack_name</span><span class="p">)</span>
         <span class="n">padstack_definition</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">new_padstack_definition_data</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_padstacks</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">new_padstack_name</span></div>
 
@@ -1033,7 +1018,6 @@
                 <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">padstack_instance</span><span class="o">.</span><span class="n">SetIsLayoutPin</span><span class="p">(</span><span class="n">is_pin</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">update_padstack_instances</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">padstack_instance</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
@@ -1069,7 +1053,6 @@
             <span class="n">newPadstackDefinitionData</span><span class="o">.</span><span class="n">SetPadParameters</span><span class="p">(</span><span class="n">lay</span><span class="p">,</span> <span class="n">pad_type</span><span class="p">,</span> <span class="n">pad_geo</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">vals</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">padstack_name</span><span class="p">]</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">newPadstackDefinitionData</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_padstacks</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="EdbPadstacks.set_pad_property"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.set_pad_property.html#pyaedt.edb_core.padstack.EdbPadstacks.set_pad_property">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -1172,16 +1155,7 @@
                 <span class="n">antipad_rotation</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">padstacks</span><span class="p">[</span><span class="n">padstack_name</span><span class="p">]</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">new_padstack_def</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_padstacks</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="EdbPadstacks.update_padstack_instances"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.update_padstack_instances.html#pyaedt.edb_core.padstack.EdbPadstacks.update_padstack_instances">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">update_padstack_instances</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update Padstack Instance List.&quot;&quot;&quot;</span>
-        <span class="n">layout_lobj_collection</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">PadstackInstances</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">lobj</span> <span class="ow">in</span> <span class="n">layout_lobj_collection</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_padstack_instances</span><span class="p">[</span><span class="n">lobj</span><span class="o">.</span><span class="n">GetId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBPadstackInstance</span><span class="p">(</span><span class="n">lobj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbPadstacks.get_padstack_instance_by_net_name"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.padstack.EdbPadstacks.get_padstack_instance_by_net_name.html#pyaedt.edb_core.padstack.EdbPadstacks.get_padstack_instance_by_net_name">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">get_padstack_instance_by_net_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_name</span><span class="p">):</span>
