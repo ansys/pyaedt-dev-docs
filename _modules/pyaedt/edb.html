@@ -1045,7 +1045,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;EDB file release time: </span><span class="si">{0:.2f}</span><span class="s2">ms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed_time</span> <span class="o">*</span> <span class="mf">1000.0</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clean_variables</span><span class="p">()</span>
         <span class="n">timeout</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># TODO check if we can remove this sleep</span>
+        <span class="c1"># time.sleep(2)</span>
         <span class="k">while</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">timeout</span> <span class="o">-=</span> <span class="mi">1</span>
@@ -1238,7 +1239,6 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">expansion_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">expansion_size</span><span class="p">)</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()</span>
 
         <span class="c1"># validate nets in layout</span>
@@ -1258,11 +1258,11 @@
         <span class="p">)</span>
 
         <span class="c1"># Create new cutout cell/design</span>
+        <span class="n">included_nets_list</span> <span class="o">=</span> <span class="n">signal_list</span> <span class="o">+</span> <span class="n">reference_list</span>
         <span class="n">included_nets</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">signal_list</span> <span class="o">+</span> <span class="n">reference_list</span><span class="p">]</span>
+            <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">included_nets_list</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="n">_cutout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_cell</span><span class="o">.</span><span class="n">CutOut</span><span class="p">(</span><span class="n">included_nets</span><span class="p">,</span> <span class="n">_netsClip</span><span class="p">,</span> <span class="n">_poly</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-
         <span class="c1"># Analysis setups do not come over with the clipped design copy,</span>
         <span class="c1"># so add the analysis setups from the original here.</span>
         <span class="nb">id</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1287,7 +1287,11 @@
             <span class="n">_success</span> <span class="o">=</span> <span class="n">db2</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
             <span class="n">_dbCells</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">_dbCells</span><span class="p">)</span>
             <span class="n">db2</span><span class="o">.</span><span class="n">CopyCells</span><span class="p">(</span><span class="n">_dbCells</span><span class="p">)</span>  <span class="c1"># Copies cutout cell/design to db2 project</span>
-            <span class="n">_success</span> <span class="o">=</span> <span class="n">db2</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">db2</span><span class="o">.</span><span class="n">CircuitCells</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">db2</span><span class="o">.</span><span class="n">CircuitCells</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span><span class="o">.</span><span class="n">Nets</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">included_nets_list</span><span class="p">:</span>
+                        <span class="n">net</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+                <span class="n">_success</span> <span class="o">=</span> <span class="n">db2</span><span class="o">.</span><span class="n">Save</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">TopCircuitCells</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="n">_cutout</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span>
                     <span class="n">c</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
@@ -1327,6 +1331,7 @@
         <span class="n">number_of_threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="n">custom_extent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">remove_single_pin_components</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout using an approach entirely based on pyaedt.</span>
 <span class="sd">        It does in sequence:</span>
@@ -1357,6 +1362,8 @@
 <span class="sd">            Edb PolygonData object. In this case, both signal_list and reference_list will be cut.</span>
 <span class="sd">        output_aedb_path : str, optional</span>
 <span class="sd">            Full path and name for the new AEDB file. If None, then current aedb will be cutout.</span>
+<span class="sd">        remove_single_pin_components : bool, optional</span>
+<span class="sd">            Remove all Single Pin RLC after the cutout is completed. Default is `False`.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1383,7 +1390,7 @@
 <span class="sd">        &gt;&gt;&gt; edb.close_edb()</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Method working only in Cpython&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
@@ -1443,6 +1450,9 @@
         <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">poly1</span><span class="p">,</span> <span class="n">poly2</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly1</span><span class="o">.</span><span class="n">Intersect</span><span class="p">(</span><span class="n">poly2</span><span class="p">))</span>
 
+        <span class="k">def</span> <span class="nf">subtract</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">voids</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">poly</span><span class="o">.</span><span class="n">Subtract</span><span class="p">(</span><span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">poly</span><span class="p">),</span> <span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">voids</span><span class="p">))</span>
+
         <span class="k">def</span> <span class="nf">clean_prim</span><span class="p">(</span><span class="n">prim_1</span><span class="p">):</span>
             <span class="n">net</span> <span class="o">=</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">net_name</span>
             <span class="k">if</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">reference_list</span><span class="p">:</span>
@@ -1453,17 +1463,33 @@
                 <span class="k">elif</span> <span class="n">int_data</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="n">list_poly</span> <span class="o">=</span> <span class="n">intersect</span><span class="p">(</span><span class="n">_poly</span><span class="p">,</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">prim_1</span><span class="p">))</span>
                     <span class="k">if</span> <span class="n">list_poly</span><span class="p">:</span>
-                        <span class="n">list_void</span> <span class="o">=</span> <span class="p">[]</span>
                         <span class="n">voids</span> <span class="o">=</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">voids</span>
-                        <span class="k">if</span> <span class="n">voids</span><span class="p">:</span>
-                            <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">voids</span><span class="p">:</span>
-                                <span class="n">void_pdata</span> <span class="o">=</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
-                                <span class="n">int_data</span> <span class="o">=</span> <span class="n">_poly</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
-                                <span class="k">if</span> <span class="n">int_data</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">int_data</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                                    <span class="n">list_void</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">intersect</span><span class="p">(</span><span class="n">_poly</span><span class="p">,</span> <span class="n">void_pdata</span><span class="p">))</span>
-                                <span class="k">elif</span> <span class="n">int_data</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                                    <span class="n">list_void</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
-                        <span class="n">poly_to_create</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">list_poly</span><span class="p">,</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">list_void</span><span class="p">])</span>
+                        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">list_poly</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
+                                <span class="k">continue</span>
+                            <span class="n">list_void</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="n">void_to_subtract</span> <span class="o">=</span> <span class="p">[]</span>
+                            <span class="k">if</span> <span class="n">voids</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">voids</span><span class="p">:</span>
+                                    <span class="n">void_pdata</span> <span class="o">=</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
+                                    <span class="n">int_data</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
+                                    <span class="k">if</span> <span class="n">int_data</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                                        <span class="n">void_to_subtract</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
+                                    <span class="k">elif</span> <span class="n">int_data</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                        <span class="n">list_void</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">void_to_subtract</span><span class="p">:</span>
+                                    <span class="n">polys_cleans</span> <span class="o">=</span> <span class="n">subtract</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">void_to_subtract</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">polys_clean</span> <span class="ow">in</span> <span class="n">polys_cleans</span><span class="p">:</span>
+                                        <span class="k">if</span> <span class="ow">not</span> <span class="n">polys_clean</span><span class="o">.</span><span class="n">IsNull</span><span class="p">():</span>
+                                            <span class="n">void_to_append</span> <span class="o">=</span> <span class="p">[</span>
+                                                <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">list_void</span> <span class="k">if</span> <span class="n">polys_clean</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+                                            <span class="p">]</span>
+                                            <span class="n">poly_to_create</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">polys_clean</span><span class="p">,</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">void_to_append</span><span class="p">])</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">poly_to_create</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">p</span><span class="p">,</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">list_void</span><span class="p">])</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">poly_to_create</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">p</span><span class="p">,</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">list_void</span><span class="p">])</span>
+
                     <span class="n">prims_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prim_1</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">pins_clean</span><span class="p">(</span><span class="n">pinst</span><span class="p">):</span>
@@ -1485,20 +1511,21 @@
             <span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">clean_prim</span><span class="p">(</span><span class="n">item</span><span class="p">),</span> <span class="n">polys</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">poly_to_create</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">create_polygon</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">net_name</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">voids</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">create_polygon</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">el</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">net_name</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">voids</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
 
         <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="n">prims_to_delete</span><span class="p">:</span>
             <span class="n">prim</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Primitives cleanup completed&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">delete_single_pin_rlc</span><span class="p">()</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">comp</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">numpins</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">val</span><span class="o">.</span><span class="n">edbcomponent</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">remove_single_pin_components</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">delete_single_pin_rlc</span><span class="p">()</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">refresh_components</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleted </span><span class="si">{}</span><span class="s2"> additional components&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
 

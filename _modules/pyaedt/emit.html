@@ -229,6 +229,11 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Provides the ``Result`` object.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    emit_obj : emit_obj object</span>
+<span class="sd">        Emit object used to create the result.</span>
+
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    Create an instance of the ``Result`` object.</span>
@@ -240,41 +245,27 @@
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emit_obj</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__result_loaded</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_loaded</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">emit_api</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">EmitApi</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">revisions_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">emit_obj</span><span class="o">.</span><span class="n">oproject</span><span class="o">.</span><span class="n">GetPath</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">curr_design</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_design</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">set_result_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the status of whether the result is loaded to ``True``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        ----------</span>
-<span class="sd">        &gt;&gt;&gt; aedtapp.results.set_result_loaded():</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__result_loaded</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">get_result_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">result_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check whether the result is loaded.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        ----------</span>
-<span class="sd">        &gt;&gt;&gt;  if aedtapp.results.get_result_loaded():</span>
+<span class="sd">            ``True`` if the results are loaded and ``False`` if they are not.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__result_loaded</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_loaded</span>
+
+    <span class="nd">@result_loaded</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">result_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_loaded</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">interaction_domain</span><span class="p">():</span>
@@ -612,10 +603,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emit_api_enabled</span><span class="p">:</span>
             <span class="n">design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesktop</span><span class="o">.</span><span class="n">GetActiveProject</span><span class="p">()</span><span class="o">.</span><span class="n">GetActiveDesign</span><span class="p">()</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">curr_design</span> <span class="o">==</span> <span class="n">design</span><span class="o">.</span><span class="n">getRevision</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">current_design</span> <span class="o">==</span> <span class="n">design</span><span class="o">.</span><span class="n">getRevision</span><span class="p">():</span>
                 <span class="n">design</span><span class="o">.</span><span class="n">AddResult</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">revisions_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Revision</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">curr_design</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">getRevision</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">current_design</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">getRevision</span><span class="p">()</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;checkpoint - revision generated successfully&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">revisions_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
 
