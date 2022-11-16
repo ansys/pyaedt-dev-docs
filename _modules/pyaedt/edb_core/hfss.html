@@ -297,7 +297,13 @@
         <span class="sd">&quot;&quot;&quot;Get all excitations.&quot;&quot;&quot;</span>
         <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">GetBoundaryType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">terms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">IsReferenceTerminal</span><span class="p">()]</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="n">Excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">ter</span><span class="p">,</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span> <span class="k">for</span> <span class="n">ter</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">}</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ter</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;BundleTerminal&quot;</span> <span class="ow">in</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetType</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">ExcitationDifferential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">ter</span><span class="p">,</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">Excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">ter</span><span class="p">,</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">temp</span>
 
     <span class="k">def</span> <span class="nf">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -1376,8 +1382,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;Configure HFSS analysis requires and edb_data.simulation_configuration.SimulationConfiguration object as </span><span class="se">\</span>
-<span class="s2">                               argument&quot;</span>
+                <span class="s2">&quot;Configure HFSS analysis requires and edb_data.simulation_configuration.SimulationConfiguration object </span><span class="se">\</span>
+<span class="s2">                               as argument&quot;</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="n">adapt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">AdaptiveFrequencyData</span><span class="p">()</span>
@@ -1488,8 +1494,8 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;Trim component reference size requires an edb_data.simulation_configuration.SimulationConfiguration object </span><span class="se">\</span>
-<span class="s2">                               as argument&quot;</span>
+                <span class="s2">&quot;Trim component reference size requires an edb_data.simulation_configuration.SimulationConfiguration </span><span class="se">\</span>
+<span class="s2">                    object as argument&quot;</span>
             <span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 

@@ -422,6 +422,8 @@
         <span class="n">layers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">color_by_net</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">outline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">plot_components_on_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">plot_components_on_bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return List of points for Matplotlib 2D Chart.</span>
 
@@ -432,10 +434,18 @@
 <span class="sd">        layers : str, list, optional</span>
 <span class="sd">            Name of the layers to include in the plot. If `None` all the signal layers will be considered.</span>
 <span class="sd">        color_by_net : bool, optional</span>
-<span class="sd">            If `True`  the plot will be colored by net.</span>
-<span class="sd">            If `False` the plot will be colored by layer. (default)</span>
+<span class="sd">            If ``True``  the plot will be colored by net.</span>
+<span class="sd">            If ``False`` the plot will be colored by layer. (default)</span>
 <span class="sd">        outline : list, optional</span>
 <span class="sd">            List of points of the outline to plot.</span>
+<span class="sd">        plot_components_on_top : bool, optional</span>
+<span class="sd">            If ``True``  the components placed on top layer are plotted.</span>
+<span class="sd">            If ``False`` the components are not plotted. (default)</span>
+<span class="sd">            If nets and/or layers is specified, only the components belonging to the specified nets/layers are plotted.</span>
+<span class="sd">        plot_components_on_bottom : bool, optional</span>
+<span class="sd">            If ``True``  the components placed on bottom layer are plotted.</span>
+<span class="sd">            If ``False`` the components are not plotted. (default)</span>
+<span class="sd">            If nets and/or layers is specified, only the components belonging to the specified nets/layers are plotted.</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        list, str</span>
@@ -444,123 +454,261 @@
 <span class="sd">            using ast.literal_eval().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">layers</span><span class="p">:</span>
-            <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">nets</span><span class="p">:</span>
             <span class="n">nets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">objects_lists</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">label_colors</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="n">outline</span><span class="p">:</span>
-            <span class="n">x1</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outline</span><span class="p">]</span>
-            <span class="n">y1</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outline</span><span class="p">]</span>
-            <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;Outline&quot;</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nets</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">nets</span> <span class="o">=</span> <span class="p">[</span><span class="n">nets</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">layers</span><span class="p">:</span>
+            <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">layers</span><span class="p">]</span>
+        <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">objects_lists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">label_colors</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">n_label</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_labels</span> <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="k">if</span> <span class="n">outline</span><span class="p">:</span>
+            <span class="n">xt</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outline</span><span class="p">]</span>
+            <span class="n">yt</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outline</span><span class="p">]</span>
+            <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">xt</span><span class="p">,</span> <span class="n">yt</span><span class="p">,</span> <span class="n">clockwise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">vertices</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">)]</span>
+            <span class="n">codes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">]</span>
+            <span class="n">codes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">79</span><span class="p">)</span>
+            <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;Outline&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="s2">&quot;contour&quot;</span><span class="p">])</span>
+            <span class="n">n_label</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">plot_components_on_top</span> <span class="ow">or</span> <span class="n">plot_components_on_bottom</span><span class="p">:</span>
+            <span class="n">nc</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">comp</span><span class="o">.</span><span class="n">is_enabled</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">net_names</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">nets</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">i</span> <span class="ow">in</span> <span class="n">nets</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">net_names</span><span class="p">]):</span>
+                    <span class="k">continue</span>
+                <span class="n">layer_name</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">placement_layer</span>
+                <span class="k">if</span> <span class="n">layer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">top_layer</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">bottom_layer</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_stackup</span><span class="o">.</span><span class="n">signal_layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">plot_components_on_top</span> <span class="ow">and</span> <span class="n">layer_name</span> <span class="o">==</span> <span class="n">top_layer</span><span class="p">:</span>
+                    <span class="n">component_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">184</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">115</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">51</span> <span class="o">/</span> <span class="mi">255</span><span class="p">)</span>  <span class="c1"># this is the color used in AEDT</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Component on top layer&quot;</span>
+                <span class="k">elif</span> <span class="n">plot_components_on_bottom</span> <span class="ow">and</span> <span class="n">layer_name</span> <span class="o">==</span> <span class="n">bottom_layer</span><span class="p">:</span>
+                    <span class="n">component_color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">41</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">171</span> <span class="o">/</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">135</span> <span class="o">/</span> <span class="mi">255</span><span class="p">)</span>  <span class="c1"># 41, 171, 135</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Component on bottom layer&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">cbb</span> <span class="o">=</span> <span class="n">comp</span><span class="o">.</span><span class="n">bounding_box</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">cbb</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cbb</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cbb</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cbb</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="n">cbb</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cbb</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">cbb</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">cbb</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+                <span class="n">vertices</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span>
+                <span class="n">codes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">]</span>
+                <span class="n">codes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">79</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">component_color</span>
+                    <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;contour&quot;</span><span class="p">])</span>
+                    <span class="n">n_label</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">&quot;contour&quot;</span><span class="p">])</span>
+                <span class="n">nc</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Plotted </span><span class="si">{}</span><span class="s2"> component(s)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nc</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">paths</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_void</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">net_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">net_name</span>
             <span class="n">layer_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">layer_name</span>
-            <span class="k">if</span> <span class="n">net_name</span> <span class="ow">in</span> <span class="n">nets</span> <span class="ow">and</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
-                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">color_by_net</span><span class="p">:</span>
-                    <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Layer &quot;</span> <span class="o">+</span> <span class="n">layer_name</span>
-                    <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">net_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nets</span> <span class="ow">or</span> <span class="n">layer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">create_label</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">color_by_net</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Layer &quot;</span> <span class="o">+</span> <span class="n">layer_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
                         <span class="n">color</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">GetColor</span><span class="p">()</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">c</span> <span class="o">=</span> <span class="p">(</span>
-                                <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item1</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
-                                <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item2</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
-                                <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item3</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
-                            <span class="p">)</span>
-                            <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
-                        <span class="k">except</span><span class="p">:</span>
-                            <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
-                            <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
-                            <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
-                                <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
-
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Net &quot;</span> <span class="o">+</span> <span class="n">net_name</span>
-                    <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
-                        <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item1</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item2</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item3</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
                         <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
                             <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Net &quot;</span> <span class="o">+</span> <span class="n">net_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                    <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
+                        <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">create_label</span> <span class="ow">and</span> <span class="n">n_label</span> <span class="o">&lt;=</span> <span class="n">max_labels</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
+                <span class="n">n_label</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
 
         <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">polygons</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">poly</span><span class="o">.</span><span class="n">is_void</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">net_name</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">net_name</span>
             <span class="n">layer_name</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">layer_name</span>
-            <span class="k">if</span> <span class="n">net_name</span> <span class="ow">in</span> <span class="n">nets</span> <span class="ow">and</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
-                <span class="n">xt</span><span class="p">,</span> <span class="n">yt</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">xt</span><span class="p">:</span>
-                    <span class="k">continue</span>
-                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">xt</span><span class="p">,</span> <span class="n">yt</span><span class="p">,</span> <span class="n">clockwise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">vertices</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span>
-                <span class="n">codes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">]</span>
-                <span class="n">codes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-                <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">79</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">net_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nets</span> <span class="ow">or</span> <span class="n">layer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">xt</span><span class="p">,</span> <span class="n">yt</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">xt</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">xt</span><span class="p">,</span> <span class="n">yt</span><span class="p">,</span> <span class="n">clockwise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">vertices</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)]</span>
+            <span class="n">codes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">]</span>
+            <span class="n">codes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">79</span><span class="p">)</span>
 
-                <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">poly</span><span class="o">.</span><span class="n">voids</span><span class="p">:</span>
-                    <span class="n">xvt</span><span class="p">,</span> <span class="n">yvt</span> <span class="o">=</span> <span class="n">void</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">xvt</span><span class="p">:</span>
-                        <span class="n">xv</span><span class="p">,</span> <span class="n">yv</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">xvt</span><span class="p">,</span> <span class="n">yvt</span><span class="p">,</span> <span class="n">clockwise</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                        <span class="n">tmpV</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xv</span><span class="p">,</span> <span class="n">yv</span><span class="p">)]</span>
-                        <span class="n">vertices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">tmpV</span><span class="p">)</span>
-                        <span class="n">tmpC</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tmpV</span><span class="p">]</span>
-                        <span class="n">tmpC</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-                        <span class="n">codes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">tmpC</span><span class="p">)</span>
-                        <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
-                        <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">79</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">poly</span><span class="o">.</span><span class="n">voids</span><span class="p">:</span>
+                <span class="n">xvt</span><span class="p">,</span> <span class="n">yvt</span> <span class="o">=</span> <span class="n">void</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">xvt</span><span class="p">:</span>
+                    <span class="n">xv</span><span class="p">,</span> <span class="n">yv</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">orient_polygon</span><span class="p">(</span><span class="n">xvt</span><span class="p">,</span> <span class="n">yvt</span><span class="p">,</span> <span class="n">clockwise</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">tmpV</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">xv</span><span class="p">,</span> <span class="n">yv</span><span class="p">)]</span>
+                    <span class="n">vertices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">tmpV</span><span class="p">)</span>
+                    <span class="n">tmpC</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tmpV</span><span class="p">]</span>
+                    <span class="n">tmpC</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">codes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">tmpC</span><span class="p">)</span>
+                    <span class="n">vertices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                    <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">79</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">color_by_net</span><span class="p">:</span>
-                    <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Layer &quot;</span> <span class="o">+</span> <span class="n">layer_name</span>
-                    <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+            <span class="n">create_label</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">color_by_net</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Layer &quot;</span> <span class="o">+</span> <span class="n">layer_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
                         <span class="n">color</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">GetLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetColor</span><span class="p">()</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">c</span> <span class="o">=</span> <span class="p">(</span>
-                                <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item1</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
-                                <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item2</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
-                                <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item3</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
-                            <span class="p">)</span>
-                            <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
-                        <span class="k">except</span><span class="p">:</span>
-                            <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
-                            <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
-                            <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
-                                <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="c1"># create patch from path</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">])</span>
-
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="c1"># create patch from path</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">])</span>
-
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Net &quot;</span> <span class="o">+</span> <span class="n">net_name</span>
-                    <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
-                        <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item1</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item2</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item3</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
                         <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
                         <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
                             <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
-                        <span class="c1"># create patch from path</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">])</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="c1"># create patch from path</span>
-                        <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">])</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Net &quot;</span> <span class="o">+</span> <span class="n">net_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                    <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
+                        <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">create_label</span> <span class="ow">and</span> <span class="n">n_label</span> <span class="o">&lt;=</span> <span class="n">max_labels</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">])</span>
+                <span class="n">n_label</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">vertices</span><span class="p">,</span> <span class="n">codes</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;path&quot;</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">circle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">circles</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">circle</span><span class="o">.</span><span class="n">is_void</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">net_name</span> <span class="o">=</span> <span class="n">circle</span><span class="o">.</span><span class="n">net_name</span>
+            <span class="n">layer_name</span> <span class="o">=</span> <span class="n">circle</span><span class="o">.</span><span class="n">layer_name</span>
+            <span class="k">if</span> <span class="n">net_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nets</span> <span class="ow">or</span> <span class="n">layer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">circle</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">create_label</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">color_by_net</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Layer &quot;</span> <span class="o">+</span> <span class="n">layer_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="n">circle</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">GetColor</span><span class="p">()</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item1</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item2</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item3</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                        <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
+                            <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Net &quot;</span> <span class="o">+</span> <span class="n">net_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                    <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
+                        <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">create_label</span> <span class="ow">and</span> <span class="n">n_label</span> <span class="o">&lt;=</span> <span class="n">max_labels</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
+                <span class="n">n_label</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">rect</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">rectangles</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rect</span><span class="o">.</span><span class="n">is_void</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">net_name</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">net_name</span>
+            <span class="n">layer_name</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">layer_name</span>
+            <span class="k">if</span> <span class="n">net_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nets</span> <span class="ow">or</span> <span class="n">layer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">points</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">create_label</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">color_by_net</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Layer &quot;</span> <span class="o">+</span> <span class="n">layer_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">color</span> <span class="o">=</span> <span class="n">rect</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">GetColor</span><span class="p">()</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item1</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item2</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">color</span><span class="o">.</span><span class="n">Item3</span> <span class="o">/</span> <span class="mi">255</span><span class="p">),</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                        <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
+                            <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Net &quot;</span> <span class="o">+</span> <span class="n">net_name</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label_colors</span><span class="p">:</span>
+                    <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">color_index</span><span class="p">]</span>
+                    <span class="n">color_index</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">color_index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CSS4_COLORS</span><span class="p">):</span>
+                        <span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">create_label</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">create_label</span> <span class="ow">and</span> <span class="n">n_label</span> <span class="o">&lt;=</span> <span class="n">max_labels</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
+                <span class="n">n_label</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">objects_lists</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label_colors</span><span class="p">[</span><span class="n">label</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="s2">&quot;fill&quot;</span><span class="p">])</span>
+
         <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Nets Point Generation time </span><span class="si">%s</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">end_time</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;PYAEDT_SERVER_AEDT_PATH&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
@@ -605,28 +753,38 @@
         <span class="n">save_plot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">outline</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+        <span class="n">plot_components_on_top</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">plot_components_on_bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot a Net to Matplotlib 2D Chart.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        nets : str, list</span>
-<span class="sd">            Name of the net or list of nets to plot. If `None` all nets will be plotted.</span>
+<span class="sd">            Name of the net or list of nets to plot. If ``None`` all nets will be plotted.</span>
 <span class="sd">        layers : str, list, optional</span>
-<span class="sd">            Name of the layers to include in the plot. If `None` all the signal layers will be considered.</span>
+<span class="sd">            Name of the layers to include in the plot. If ``None`` all the signal layers will be considered.</span>
 <span class="sd">        color_by_net : bool, optional</span>
-<span class="sd">            If `True`  the plot will be colored by net.</span>
-<span class="sd">            If `False` the plot will be colored by layer. (default)</span>
+<span class="sd">            If ``True``  the plot will be colored by net.</span>
+<span class="sd">            If ``False`` the plot will be colored by layer. (default)</span>
 <span class="sd">        show_legend : bool, optional</span>
-<span class="sd">            If `True` the legend is shown in the plot. (default)</span>
-<span class="sd">            If `False` the legend is not shown.</span>
+<span class="sd">            If ``True`` the legend is shown in the plot. (default)</span>
+<span class="sd">            If ``False`` the legend is not shown.</span>
 <span class="sd">        save_plot : str, optional</span>
-<span class="sd">            If `None` the plot will be shown.</span>
+<span class="sd">            If ``None`` the plot will be shown.</span>
 <span class="sd">            If a file path is specified the plot will be saved to such file.</span>
 <span class="sd">        outline : list, optional</span>
 <span class="sd">            List of points of the outline to plot.</span>
 <span class="sd">        size : tuple, optional</span>
 <span class="sd">            Image size in pixel (width, height). Default value is ``(2000, 1000)``</span>
+<span class="sd">        plot_components_on_top : bool, optional</span>
+<span class="sd">            If ``True``  the components placed on top layer are plotted.</span>
+<span class="sd">            If ``False`` the components are not plotted. (default)</span>
+<span class="sd">            If nets and/or layers is specified, only the components belonging to the specified nets/layers are plotted.</span>
+<span class="sd">        plot_components_on_bottom : bool, optional</span>
+<span class="sd">            If ``True``  the components placed on bottom layer are plotted.</span>
+<span class="sd">            If ``False`` the components are not plotted. (default)</span>
+<span class="sd">            If nets and/or layers is specified, only the components belonging to the specified nets/layers are plotted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Plot functionalities are enabled only in CPython.&quot;</span><span class="p">)</span>
@@ -636,6 +794,8 @@
             <span class="n">layers</span><span class="p">,</span>
             <span class="n">color_by_net</span><span class="p">,</span>
             <span class="n">outline</span><span class="p">,</span>
+            <span class="n">plot_components_on_top</span><span class="p">,</span>
+            <span class="n">plot_components_on_bottom</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">plot_matplotlib</span><span class="p">(</span>
             <span class="n">object_lists</span><span class="p">,</span>
