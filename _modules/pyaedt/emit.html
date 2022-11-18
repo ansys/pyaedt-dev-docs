@@ -225,6 +225,196 @@
 <span class="n">mod</span> <span class="o">=</span> <span class="kc">None</span>
 
 
+<span class="k">class</span> <span class="nc">Interaction_Domain</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provides the ``Interaction_Domain`` object.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create an instance of the ``Interaction_Domain`` object.</span>
+
+<span class="sd">    &gt;&gt;&gt; domain = Interaction_Domain()</span>
+<span class="sd">    &gt;&gt;&gt; domain.set_receivers(&quot;Radio&quot;, &quot;Tx-Band&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; interaction = self.aedtapp.results.revisions_list[-1].run(domain)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emit_api</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">EmitApi</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">InteractionDomain</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="p">)))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">InteractionDomain</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;An Emit object must be initialized before an Interaction_Domain object is generated.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_receiver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radioname</span><span class="p">,</span> <span class="n">bandname</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the receiver, with optionality to specify the following:</span>
+<span class="sd">            &gt; radio name</span>
+<span class="sd">            &gt; radio name and a band name</span>
+<span class="sd">            &gt; radio name, band name and a channel frequency</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; domain.set_receiver(&quot;Radio1&quot;, &quot;Rx-Band&quot;, 2000)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">set_receiver</span><span class="p">(</span><span class="n">radioname</span><span class="p">,</span> <span class="n">bandname</span><span class="p">,</span> <span class="n">frequency</span><span class="p">)</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">set_interferers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radionames</span><span class="p">,</span> <span class="n">bandnames</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">frequencies</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the interferers, with optionality to specify the following:</span>
+<span class="sd">            &gt; radio name</span>
+<span class="sd">            &gt; radio name and a band name</span>
+<span class="sd">            &gt; radio name, band name and a channel frequency</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; radios = [&quot;Radio1&quot;, &quot;Radio2&quot;, &quot;Bluetooth&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; bands = [&quot;Rx-Band&quot;, &quot;Rx-Band&quot;, &quot;Rx-Band&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; frequencies = []</span>
+<span class="sd">        &gt;&gt;&gt; domain.set_receiver(radios, bands, frequencies)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">interfer_radio_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">interferer_band_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">interfer_frequencies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">radio</span> <span class="ow">in</span> <span class="n">radionames</span><span class="p">:</span>
+            <span class="n">interfer_radio_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">radio</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bandnames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bandnames</span><span class="p">):</span>
+                    <span class="n">interferer_band_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">interferer_band_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bandnames</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">interferer_band_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">frequencies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">):</span>
+                    <span class="n">interfer_frequencies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">interfer_frequencies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">interfer_frequencies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">set_interferers</span><span class="p">(</span><span class="n">interfer_radio_names</span><span class="p">,</span> <span class="n">interferer_band_names</span><span class="p">,</span> <span class="n">interfer_frequencies</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">receiver_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the receiver name from the ``Interaction_Domain`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        receiver_name : str</span>
+<span class="sd">            Receiver name associated with a domain.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; rx_name = domain.receiver_name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">receiver_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">receiver_band_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the receiver band name from the ``Interaction_Domain`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        receiver_band_name : str</span>
+<span class="sd">            Receiver band name associated with a domain.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; rx_band_name = domain.receiver_band_name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">receiver_band_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">receiver_channel_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the receiver channel frequency from the ``Interaction_Domain`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        receiver_channel_frequency : float</span>
+<span class="sd">            Receiver channel frequency associated with a domain.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; rx_freq = domain.receiver_channel_frequency</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">receiver_channel</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interferer_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the interferer names from the ``Interaction_Domain`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        interferer_names : list(str)</span>
+<span class="sd">            Interferer names associated with a domain.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; tx_names = domain.interferer_names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">interferer_names</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interferer_band_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the interferer band names from the ``Interaction_Domain`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        interferer_band_names : list(str)</span>
+<span class="sd">            Interferer band names associated with a domain.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; tx_band_names = domain.interferer_band_names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">interferer_band_names</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">interferer_channel_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the interferer channel frequencies from the ``Interaction_Domain`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        interferer_channel_frequencies : list(float)</span>
+<span class="sd">            Interferer channel frequencies associated with a domain.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; tx_frequencies = domain.interferer_channel_frequencies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">interferer_channel_frequencies</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">instance_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the instance count from the ``Interaction_Domain`` object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        instance_count: int</span>
+<span class="sd">            Instance count associated with a domain</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; rx_name = domain.instance_count</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj</span><span class="o">.</span><span class="n">instance_count</span><span class="p">()</span>
+
+
 <span class="k">class</span> <span class="nc">Result</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Provides the ``Result`` object.</span>
@@ -243,7 +433,6 @@
 <span class="sd">    &gt;&gt;&gt; radio_RX = aedtapp.results.get_radio_names(mode)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emit_obj</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_result_loaded</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">emit_api</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">EmitApi</span><span class="p">()</span>
@@ -268,27 +457,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_result_loaded</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">interaction_domain</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Get a generic interaction domain.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :class:`InteractionDomain`</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        ----------</span>
-<span class="sd">        &gt;&gt;&gt; domain = Result.interaction_domain()</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">interaction_domain</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">InteractionDomain</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;An Emit object must be initialized before any static member of the Result or Emit class is accessed.&quot;</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="n">interaction_domain</span>
-
-    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">result_mode_error</span><span class="p">():</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Print the function mode error message.</span>
@@ -310,17 +478,18 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`list of str`</span>
+<span class="sd">        radios:class:`list of str`</span>
+<span class="sd">            list of tx or or rx radio names</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        ----------</span>
 <span class="sd">        &gt;&gt;&gt; radios = aedtapp.results.get_radio_names(Emit.tx_rx_mode.rx)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_result_loaded</span><span class="p">():</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_loaded</span><span class="p">:</span>
             <span class="n">radios</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emit_api</span><span class="o">.</span><span class="n">radio_names</span><span class="p">(</span><span class="n">tx_rx</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">radios</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">Emit</span><span class="o">.</span><span class="n">result_mode_error</span><span class="p">()</span>
+            <span class="n">Result</span><span class="o">.</span><span class="n">result_mode_error</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">radios</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -337,17 +506,18 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`list of str`</span>
+<span class="sd">        bands:class:`list of str`</span>
+<span class="sd">            list of tx or or rx radio band names</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        ----------</span>
 <span class="sd">        &gt;&gt;&gt; bands = aedtapp.results.get_band_names(&#39;Bluetooth&#39;, Emit.tx_rx_mode.rx)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_result_loaded</span><span class="p">():</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_loaded</span><span class="p">:</span>
             <span class="n">bands</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emit_api</span><span class="o">.</span><span class="n">band_names</span><span class="p">(</span><span class="n">radio_name</span><span class="p">,</span> <span class="n">tx_rx_mode</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">bands</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">Emit</span><span class="o">.</span><span class="n">result_mode_error</span><span class="p">()</span>
+            <span class="n">Result</span><span class="o">.</span><span class="n">result_mode_error</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">bands</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -365,18 +535,20 @@
 <span class="sd">        tx_rx : tx_rx_mode object</span>
 <span class="sd">            Used for determining whether to get ``rx`` or ``tx`` radio names.</span>
 
+<span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`list of float`</span>
+<span class="sd">        freq:class:`list of float`</span>
+<span class="sd">            list of tx or or rx radio frequencies</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        ----------</span>
 <span class="sd">        &gt;&gt;&gt; bands = aedtapp.results.get_band_names(&#39;Bluetooth&#39;, &#39;Rx - Base Data Rate&#39;, Emit.tx_rx_mode.rx)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_result_loaded</span><span class="p">():</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_loaded</span><span class="p">:</span>
             <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emit_api</span><span class="o">.</span><span class="n">active_frequencies</span><span class="p">(</span><span class="n">radio_name</span><span class="p">,</span> <span class="n">band_name</span><span class="p">,</span> <span class="n">tx_rx_mode</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">freq</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">Emit</span><span class="o">.</span><span class="n">result_mode_error</span><span class="p">()</span>
+            <span class="n">Result</span><span class="o">.</span><span class="n">result_mode_error</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">freq</span>
 
 
@@ -398,11 +570,10 @@
 
 <span class="sd">    &gt;&gt;&gt; aedtapp = Emit()</span>
 <span class="sd">    &gt;&gt;&gt; rev = Revision(aedtapp, &quot;Revision 1&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; domain = Result.interaction_domain()</span>
+<span class="sd">    &gt;&gt;&gt; domain = Interaction_Domain()</span>
 <span class="sd">    &gt;&gt;&gt; rev.run(domain)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emit_obj</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
         <span class="n">subfolder</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">scandir</span><span class="p">(</span><span class="n">emit_obj</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">location</span><span class="p">):</span>
@@ -433,19 +604,51 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`Interaction`</span>
+<span class="sd">        interaction:class: `Interaction`</span>
 <span class="sd">            Interaction object.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        ----------</span>
-<span class="sd">        &gt;&gt;&gt; domain = Result.interaction_domain()</span>
+<span class="sd">        &gt;&gt;&gt; domain = Interaction_Domain()</span>
 <span class="sd">        &gt;&gt;&gt; rev.run(domain)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">emit_obj</span><span class="o">.</span><span class="n">_load_revision</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="n">eng</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emit_obj</span><span class="o">.</span><span class="n">_emit_api</span><span class="o">.</span><span class="n">get_engine</span><span class="p">()</span>
-        <span class="n">interaction</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+        <span class="n">interaction</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">analyze</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">_obj</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">interaction</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get_max_simultaneous_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the number of maximum simultaneous frequencies</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        max_interferers : int</span>
+<span class="sd">            Maximum number of simultaneous interferers associated with engine</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; max_num = aedtapp.results.get_max_simultaneous_frequencies()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">eng</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emit_obj</span><span class="o">.</span><span class="n">_emit_api</span><span class="o">.</span><span class="n">get_engine</span><span class="p">()</span>
+        <span class="n">max_interferers</span> <span class="o">=</span> <span class="n">eng</span><span class="o">.</span><span class="n">max_simultaneous_interferers</span>
+        <span class="k">return</span> <span class="n">max_interferers</span>
+
+    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">set_max_simultaneous_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the number of maximum simultaneous frequencies</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        ----------</span>
+<span class="sd">        &gt;&gt;&gt; max_num = aedtapp.results.get_max_simultaneous_frequencies()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">eng</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emit_obj</span><span class="o">.</span><span class="n">_emit_api</span><span class="o">.</span><span class="n">get_engine</span><span class="p">()</span>
+        <span class="n">eng</span><span class="o">.</span><span class="n">max_simultaneous_interferers</span> <span class="o">=</span> <span class="n">val</span>
 
 
 <div class="viewcode-block" id="Emit"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Emit.html#pyaedt.Emit">[docs]</a><span class="k">class</span> <span class="nc">Emit</span><span class="p">(</span><span class="n">FieldAnalysisEmit</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
@@ -525,7 +728,7 @@
 <span class="sd">    A revision within PyAEDT is analogous to a revision in AEDT. An interaction domain must</span>
 <span class="sd">    be defined and then used as the input to the run command used on that revision.</span>
 
-<span class="sd">    &gt;&gt;&gt; domain = Emit.interaction_domain()</span>
+<span class="sd">    &gt;&gt;&gt; domain = Interaction_Domain()</span>
 <span class="sd">    &gt;&gt;&gt; domain.rx_radio_name = &quot;UE - HandHeld&quot;</span>
 <span class="sd">    &gt;&gt;&gt; interaction = aedtapp.revisions_list[0].run(domain)</span>
 
@@ -593,8 +796,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`pyaedt.modules.Revision`</span>
-<span class="sd">            Revision object.</span>
+<span class="sd">        rev:class:`pyaedt.modules.Revision`</span>
+<span class="sd">            last Revision object which was generated</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        ----------</span>
@@ -608,7 +811,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">revisions_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Revision</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">current_design</span> <span class="o">=</span> <span class="n">design</span><span class="o">.</span><span class="n">getRevision</span><span class="p">()</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;checkpoint - revision generated successfully&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">revisions_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+                <span class="n">domain</span> <span class="o">=</span> <span class="n">Interaction_Domain</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">revisions_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+                <span class="n">rev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">revisions_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">rev</span></div>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">_load_revision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
@@ -620,10 +826,6 @@
 <span class="sd">        path : str</span>
 <span class="sd">            Path to an AEDT result file.</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :class:`NoneType`</span>
-
 <span class="sd">        Examples</span>
 <span class="sd">        ----------</span>
 <span class="sd">        &gt;&gt;&gt; aedtapp._load_revision(path)</span>
@@ -631,7 +833,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__emit_api_enabled</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_emit_api</span><span class="o">.</span><span class="n">load_result</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">set_result_loaded</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">result_loaded</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">result_loaded</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Emit.result_type"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Emit.result_type.html#pyaedt.Emit.result_type">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">result_type</span><span class="p">():</span>
@@ -640,7 +843,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`result_type`</span>
+<span class="sd">        result :class:`result_type`</span>
+<span class="sd">            result type object which can later be assigned a status (emi, sensitivity, desense)</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -662,7 +866,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :class:`tx_rx_mode`</span>
+<span class="sd">        tx_rx :class:`Emit.tx_rx_mode`</span>
+<span class="sd">            mode status which can later be assigned a status (tx, rx)</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -689,7 +894,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        str</span>
+<span class="sd">        ver : str</span>
+<span class="sd">            All of the version information</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>

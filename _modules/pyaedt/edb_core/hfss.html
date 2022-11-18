@@ -217,7 +217,6 @@
 <span class="kn">import</span> <span class="nn">math</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">Excitation</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">ExcitationDifferential</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_netdict_to_pydict</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
@@ -295,15 +294,17 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">excitations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get all excitations.&quot;&quot;&quot;</span>
-        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">GetBoundaryType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">terms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">IsReferenceTerminal</span><span class="p">()]</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">ter</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;BundleTerminal&quot;</span> <span class="ow">in</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetType</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
-                <span class="n">temp</span><span class="p">[</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">ExcitationDifferential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">ter</span><span class="p">,</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">temp</span><span class="p">[</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">Excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">ter</span><span class="p">,</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">temp</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">excitations</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all sources.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">sources</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">probes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all probes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">probes</span>
 
     <span class="k">def</span> <span class="nf">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -756,7 +757,7 @@
             <span class="p">[</span><span class="n">pos_term</span><span class="o">.</span><span class="n">_edb_terminal</span><span class="p">,</span> <span class="n">neg_term</span><span class="o">.</span><span class="n">_edb_terminal</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">Terminal</span>
         <span class="p">)</span>
         <span class="n">_edb_boundle_terminal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Terminal</span><span class="o">.</span><span class="n">BundleTerminal</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="n">edb_list</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">port_name</span><span class="p">,</span> <span class="n">ExcitationDifferential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">_edb_boundle_terminal</span><span class="p">,</span> <span class="n">port_name</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">port_name</span><span class="p">,</span> <span class="n">ExcitationDifferential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="p">,</span> <span class="n">_edb_boundle_terminal</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EdbHfss.create_hfss_ports_on_padstack"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.hfss.EdbHfss.create_hfss_ports_on_padstack.html#pyaedt.edb_core.hfss.EdbHfss.create_hfss_ports_on_padstack">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_hfss_ports_on_padstack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pinpos</span><span class="p">,</span> <span class="n">portname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

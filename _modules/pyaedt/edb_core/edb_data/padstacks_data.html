@@ -901,12 +901,11 @@
 <span class="sd">            ``True`` when successful, ``False`` when failed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">simple_check</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">]</span>
             <span class="n">int_val</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">polygon_data</span><span class="o">.</span><span class="n">PointInPolygon</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
                 <span class="p">)</span>
                 <span class="k">else</span> <span class="mi">0</span>
             <span class="p">)</span>
@@ -1027,6 +1026,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">SetLayerRange</span><span class="p">(</span><span class="n">start_layer</span><span class="p">,</span> <span class="n">layer</span><span class="p">)</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">layer_range_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of all layers to which the padstack instance belongs.&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">start_layer</span><span class="p">,</span> <span class="n">stop_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayerRange</span><span class="p">()</span>
+        <span class="n">started</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">layer_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">started</span><span class="p">:</span>
+                <span class="n">layer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">layer_name</span> <span class="o">==</span> <span class="n">stop_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span>
+                    <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">layer_name</span> <span class="o">==</span> <span class="n">start_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span>
+                <span class="n">started</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">layer_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">layer_name</span> <span class="o">==</span> <span class="n">stop_layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span>
+                    <span class="k">break</span>
+        <span class="k">return</span> <span class="n">layer_list</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">net_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net name.</span>
 
@@ -1068,11 +1085,10 @@
 <span class="sd">        list</span>
 <span class="sd">            List of ``[x, y]``` coordinates for the padstack instance position.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">point_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PointData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb_value</span><span class="p">(</span><span class="mf">0.0</span><span class="p">))</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">()</span>
-
         <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">(),</span> <span class="n">out</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">ToDouble</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="p">[]</span>
 
     <span class="nd">@position</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
@@ -1433,7 +1449,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">Shape</span><span class="p">(</span><span class="s2">&quot;polygon&quot;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">new_rect</span><span class="p">)</span>
             <span class="n">created_polygon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">create_polygon</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">created_polygon</span></div></div>
+            <span class="k">return</span> <span class="n">created_polygon</span></div>
+
+<div class="viewcode-block" id="EDBPadstackInstance.get_connected_object_id_set"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.padstacks_data.EDBPadstackInstance.get_connected_object_id_set.html#pyaedt.edb_core.edb_data.padstacks_data.EDBPadstackInstance.get_connected_object_id_set">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get_connected_object_id_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Produce a list of all geometries physically connected to a given layout object.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            Found connected objects IDs with Layout object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">layoutInst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayoutInstance</span><span class="p">()</span>
+        <span class="n">layoutObjInst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_instance</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">loi</span><span class="o">.</span><span class="n">GetLayoutObj</span><span class="p">()</span><span class="o">.</span><span class="n">GetId</span><span class="p">()</span> <span class="k">for</span> <span class="n">loi</span> <span class="ow">in</span> <span class="n">layoutInst</span><span class="o">.</span><span class="n">GetConnectedObjects</span><span class="p">(</span><span class="n">layoutObjInst</span><span class="p">)</span><span class="o">.</span><span class="n">Items</span><span class="p">]</span></div></div>
 </pre></div>
 
               </article>

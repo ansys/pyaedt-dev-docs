@@ -227,17 +227,19 @@
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">clr</span>
+
+    <span class="n">clr</span><span class="o">.</span><span class="n">AddReference</span><span class="p">(</span><span class="s2">&quot;System.Collections&quot;</span><span class="p">)</span>
     <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">Convert</span>
+    <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
 
     <span class="n">edb_initialized</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="kn">from</span> <span class="nn">System.Collections.Generic</span> <span class="kn">import</span> <span class="n">List</span>
+
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="s2">&quot;The clr is missing. Install PythonNET or use an IronPython version if you want to use the EDB module.&quot;</span>
-        <span class="p">)</span>
-        <span class="n">edb_initialized</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">7</span><span class="p">:</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s2">&quot;The clr is missing. Install PythonNET or use an IronPython version if you want to use the EDB module.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">edb_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">7</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;EDB requires Linux Python 3.7 or later.&quot;</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">pyaedt_logger</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
@@ -250,6 +252,10 @@
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.edb_builder</span> <span class="kn">import</span> <span class="n">EdbBuilder</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.padstacks_data</span> <span class="kn">import</span> <span class="n">EDBPadstackInstance</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">ExcitationDifferential</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">ExcitationPorts</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">ExcitationProbes</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">ExcitationSources</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">SourceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.materials</span> <span class="kn">import</span> <span class="n">Materials</span>
@@ -528,6 +534,31 @@
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edblib</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">excitations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all layout excitations.&quot;&quot;&quot;</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">GetBoundaryType</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">terms</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">IsReferenceTerminal</span><span class="p">()]</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">ter</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;BundleTerminal&quot;</span> <span class="ow">in</span> <span class="n">ter</span><span class="o">.</span><span class="n">GetType</span><span class="p">()</span><span class="o">.</span><span class="n">ToString</span><span class="p">():</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">ExcitationDifferential</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ter</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">temp</span><span class="p">[</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">ExcitationPorts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">temp</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all layout sources.&quot;&quot;&quot;</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">GetBoundaryType</span><span class="p">())</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="n">ExcitationSources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ter</span><span class="p">)</span> <span class="k">for</span> <span class="n">ter</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">probes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get all layout sources.&quot;&quot;&quot;</span>
+        <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="o">.</span><span class="n">Terminals</span><span class="p">)</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">GetBoundaryType</span><span class="p">())</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">8</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">ter</span><span class="o">.</span><span class="n">GetName</span><span class="p">():</span> <span class="n">ExcitationProbes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ter</span><span class="p">)</span> <span class="k">for</span> <span class="n">ter</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">}</span>
 
 <div class="viewcode-block" id="Edb.open_edb"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.open_edb.html#pyaedt.Edb.open_edb">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">open_edb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_dlls</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -1041,7 +1072,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;EDB file release time: </span><span class="si">{0:.2f}</span><span class="s2">ms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elapsed_time</span> <span class="o">*</span> <span class="mf">1000.0</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clean_variables</span><span class="p">()</span>
         <span class="n">timeout</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="c1"># TODO check if we can remove this sleep</span>
         <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">while</span> <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">timeout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -1079,7 +1109,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">SaveAs</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edbpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">GetDirectory</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_name</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_global_logger</span><span class="o">.</span><span class="n">remove_file_logger</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_name</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_global_logger</span><span class="o">.</span><span class="n">remove_file_logger</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_name</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_logger</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
@@ -1181,21 +1211,58 @@
         <span class="n">extent_type</span><span class="p">,</span>
         <span class="n">expansion_size</span><span class="p">,</span>
         <span class="n">use_round_corner</span><span class="p">,</span>
+        <span class="n">use_pyaedt_extent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="k">if</span> <span class="n">extent_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Conforming&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
-            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
-            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">use_pyaedt_extent</span><span class="p">:</span>
+                <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_conformal</span><span class="p">(</span><span class="n">net_signals</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                    <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="p">)</span>
         <span class="k">elif</span> <span class="n">extent_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Bounding&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
             <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
                 <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
-            <span class="p">)</span>
-            <span class="n">_poly_list</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">_poly</span><span class="p">])</span>
-            <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">GetConvexHullOfPolygons</span><span class="p">(</span><span class="n">_poly_list</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">use_pyaedt_extent</span><span class="p">:</span>
+                <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_convex_hull</span><span class="p">(</span><span class="n">net_signals</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">GetExpandedExtentFromNets</span><span class="p">(</span>
+                    <span class="n">net_signals</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="mi">1</span>
+                <span class="p">)</span>
+                <span class="n">_poly_list</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">_poly</span><span class="p">])</span>
+                <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">GetConvexHullOfPolygons</span><span class="p">(</span><span class="n">_poly_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_poly</span>
+
+    <span class="k">def</span> <span class="nf">_create_conformal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_signals</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span> <span class="n">round_corner</span><span class="p">,</span> <span class="n">round_extension</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">_polys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">net_signals</span><span class="p">:</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prim</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                <span class="n">_polys</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="nb">list</span><span class="p">(</span>
+                        <span class="n">prim</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span><span class="o">.</span><span class="n">Expand</span><span class="p">(</span>
+                            <span class="n">expansion_size</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span> <span class="n">round_corner</span><span class="p">,</span> <span class="n">round_extension</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+        <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">Unite</span><span class="p">(</span><span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">_polys</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">_poly</span>
+
+    <span class="k">def</span> <span class="nf">_create_convex_hull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_signals</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span> <span class="n">round_corner</span><span class="p">,</span> <span class="n">round_extension</span><span class="p">):</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">_polys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">net_signals</span><span class="p">:</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prim</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                <span class="n">_polys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prim</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">())</span>
+        <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">GetConvexHullOfPolygons</span><span class="p">(</span><span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">_polys</span><span class="p">))</span>
+        <span class="n">_poly</span> <span class="o">=</span> <span class="n">_poly</span><span class="o">.</span><span class="n">Expand</span><span class="p">(</span><span class="n">expansion_size</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">,</span> <span class="n">round_corner</span><span class="p">,</span> <span class="n">round_extension</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">_poly</span>
 
 <div class="viewcode-block" id="Edb.create_cutout"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.create_cutout.html#pyaedt.Edb.create_cutout">[docs]</a>    <span class="k">def</span> <span class="nf">create_cutout</span><span class="p">(</span>
@@ -1207,6 +1274,7 @@
         <span class="n">use_round_corner</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">open_cutout_at_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">use_pyaedt_extent_computing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout and save it to a new AEDB file.</span>
 
@@ -1228,6 +1296,8 @@
 <span class="sd">        open_cutout_at_end : bool, optional</span>
 <span class="sd">            Whether to open the cutout at the end. The default</span>
 <span class="sd">            is ``True``.</span>
+<span class="sd">        use_pyaedt_extent_computing : bool, optional</span>
+<span class="sd">            Whether to use pyaedt extent computing (experimental).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1251,6 +1321,7 @@
             <span class="n">extent_type</span><span class="p">,</span>
             <span class="n">expansion_size</span><span class="p">,</span>
             <span class="n">use_round_corner</span><span class="p">,</span>
+            <span class="n">use_pyaedt_extent_computing</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Create new cutout cell/design</span>
@@ -1328,6 +1399,7 @@
         <span class="n">custom_extent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_single_pin_components</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">use_pyaedt_extent_computing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout using an approach entirely based on pyaedt.</span>
 <span class="sd">        It does in sequence:</span>
@@ -1360,6 +1432,8 @@
 <span class="sd">            Full path and name for the new AEDB file. If None, then current aedb will be cutout.</span>
 <span class="sd">        remove_single_pin_components : bool, optional</span>
 <span class="sd">            Remove all Single Pin RLC after the cutout is completed. Default is `False`.</span>
+<span class="sd">        use_pyaedt_extent_computing : bool, optional</span>
+<span class="sd">            Whether to use pyaedt extent computing (experimental).</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1425,10 +1499,7 @@
                 <span class="p">[</span><span class="n">net</span> <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">active_layout</span><span class="o">.</span><span class="n">Nets</span><span class="p">)</span> <span class="k">if</span> <span class="n">net</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">signal_list</span><span class="p">]</span>
             <span class="p">)</span>
             <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_extent</span><span class="p">(</span>
-                <span class="n">net_signals</span><span class="p">,</span>
-                <span class="n">extent_type</span><span class="p">,</span>
-                <span class="n">expansion_size</span><span class="p">,</span>
-                <span class="n">use_round_corner</span><span class="p">,</span>
+                <span class="n">net_signals</span><span class="p">,</span> <span class="n">extent_type</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="n">use_pyaedt_extent_computing</span>
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Expanded Net Polygon Creation&quot;</span><span class="p">)</span>
@@ -1457,7 +1528,7 @@
                 <span class="k">if</span> <span class="n">int_data</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">prims_to_delete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prim_1</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">int_data</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">list_poly</span> <span class="o">=</span> <span class="n">intersect</span><span class="p">(</span><span class="n">_poly</span><span class="p">,</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">prim_1</span><span class="p">))</span>
+                    <span class="n">list_poly</span> <span class="o">=</span> <span class="n">intersect</span><span class="p">(</span><span class="n">_poly</span><span class="p">,</span> <span class="n">pdata</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">list_poly</span><span class="p">:</span>
                         <span class="n">voids</span> <span class="o">=</span> <span class="n">prim_1</span><span class="o">.</span><span class="n">voids</span>
                         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">list_poly</span><span class="p">:</span>
@@ -1468,10 +1539,10 @@
                             <span class="k">if</span> <span class="n">voids</span><span class="p">:</span>
                                 <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">voids</span><span class="p">:</span>
                                     <span class="n">void_pdata</span> <span class="o">=</span> <span class="n">get_polygon_data</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
-                                    <span class="n">int_data</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
-                                    <span class="k">if</span> <span class="n">int_data</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                                    <span class="n">int_data2</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">GetIntersectionType</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
+                                    <span class="k">if</span> <span class="n">int_data2</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
                                         <span class="n">void_to_subtract</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
-                                    <span class="k">elif</span> <span class="n">int_data</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                                    <span class="k">elif</span> <span class="n">int_data2</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                                         <span class="n">list_void</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">void_pdata</span><span class="p">)</span>
                                 <span class="k">if</span> <span class="n">void_to_subtract</span><span class="p">:</span>
                                     <span class="n">polys_cleans</span> <span class="o">=</span> <span class="n">subtract</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">void_to_subtract</span><span class="p">)</span>
@@ -2302,7 +2373,48 @@
 <span class="sd">        -------</span>
 <span class="sd">        EDBStatistics object from the loaded layout.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">get_layout_statistics</span><span class="p">(</span><span class="n">evaluate_area</span><span class="o">=</span><span class="n">compute_area</span><span class="p">,</span> <span class="n">net_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">get_layout_statistics</span><span class="p">(</span><span class="n">evaluate_area</span><span class="o">=</span><span class="n">compute_area</span><span class="p">,</span> <span class="n">net_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Edb.are_port_reference_terminals_connected"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Edb.are_port_reference_terminals_connected.html#pyaedt.Edb.are_port_reference_terminals_connected">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">are_port_reference_terminals_connected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">common_reference</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if all terminal references in design are connected.</span>
+<span class="sd">        If the reference nets are different, there is no hope for the terminal references to be connected.</span>
+<span class="sd">        After we have identified a common reference net we need to loop the terminals again to get</span>
+<span class="sd">        the correct reference terminals that uses that net.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        common_reference : str, optional</span>
+<span class="sd">            Common Reference name. If ``None`` it will be searched in ports terminal.</span>
+<span class="sd">            If a string is passed then all excitations must have such reference assigned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            Either if the ports are connected to reference_name or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">common_reference</span><span class="p">:</span>
+            <span class="n">common_reference</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">set</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">reference_net_name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">reference_net_name</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">common_reference</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;More than 1 reference found.&quot;</span><span class="p">)</span>
+            <span class="n">common_reference</span> <span class="o">=</span> <span class="n">common_reference</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">setList</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">reference_object</span><span class="o">.</span><span class="n">get_connected_object_id_set</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">excitations</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">reference_net_name</span> <span class="o">==</span> <span class="n">common_reference</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Get the set intersections for all the ID sets.</span>
+        <span class="n">iDintersection</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="o">*</span><span class="n">setList</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span>
+            <span class="s2">&quot;Terminal reference primitive IDs total intersections = </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">iDintersection</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="c1"># If the intersections are non-zero, the termimal references are connected.</span>
+        <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">iDintersection</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">False</span></div></div>
 </pre></div>
 
               </article>
