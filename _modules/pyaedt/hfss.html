@@ -237,6 +237,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">BoundaryObject</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">FarFieldSetup</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">NativeComponentObject</span>
+<span class="kn">from</span> <span class="nn">pyaedt.modules.Boundary</span> <span class="kn">import</span> <span class="n">NearFieldSetup</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modules.solutions</span> <span class="kn">import</span> <span class="n">FfdSolutionData</span>
 
 
@@ -403,11 +404,21 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        List of :class:`pyaedt.modules.Boundary.FarFieldSetup`</span>
+<span class="sd">        List of :class:`pyaedt.modules.Boundary.FarFieldSetup` and :class:`pyaedt.modules.Boundary.NearFieldSetup`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field_setups</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_field_setups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_rad_fields</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field_setups</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">field_setup_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;List of AEDT radiation field names.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List of str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">odesign</span><span class="o">.</span><span class="n">GetChildObject</span><span class="p">(</span><span class="s2">&quot;Radiation&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">GetChildNames</span><span class="p">()</span>
 
     <span class="k">class</span> <span class="nc">BoundaryType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Creates and manages boundaries.&quot;&quot;&quot;</span>
@@ -474,11 +485,24 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;RadField&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FarFieldSetups&quot;</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">][</span><span class="s2">&quot;FarFieldSetups&quot;</span><span class="p">]:</span>
-                <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">][</span><span class="s2">&quot;FarFieldSetups&quot;</span><span class="p">][</span><span class="n">val</span><span class="p">]</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">))</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Infinite Sphere&quot;</span><span class="p">:</span>
-                    <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FarFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;FarFieldSphere&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;RadField&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FarFieldSetups&quot;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">][</span><span class="s2">&quot;FarFieldSetups&quot;</span><span class="p">]:</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">][</span><span class="s2">&quot;FarFieldSetups&quot;</span><span class="p">][</span><span class="n">val</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">))</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;Infinite Sphere&quot;</span><span class="p">:</span>
+                        <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FarFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;FarFieldSphere&quot;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;NearFieldSetups&quot;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">][</span><span class="s2">&quot;NearFieldSetups&quot;</span><span class="p">]:</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;RadField&quot;</span><span class="p">][</span><span class="s2">&quot;NearFieldSetups&quot;</span><span class="p">][</span><span class="n">val</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Near Rectangle&quot;</span><span class="p">:</span>
+                            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;NearFieldRectangle&quot;</span><span class="p">))</span>
+                        <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Near Line&quot;</span><span class="p">:</span>
+                            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;NearFieldLine&quot;</span><span class="p">))</span>
+                        <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Near Box&quot;</span><span class="p">:</span>
+                            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;NearFieldBox&quot;</span><span class="p">))</span>
+                        <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="s2">&quot;Type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Near Sphere&quot;</span><span class="p">:</span>
+                            <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="s2">&quot;NearFieldSphere&quot;</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">fields</span>
 
     <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
@@ -5216,7 +5240,7 @@
         <span class="sd">&quot;&quot;&quot;Create an infinite sphere.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">           This method is not supported by all HFSS ``EigenMode`` and ``CharacteristicMode`` solution types.</span>
+<span class="sd">           This method is not supported by HFSS ``EigenMode`` and ``CharacteristicMode`` solution types.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -5288,6 +5312,279 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CoordSystem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="n">bound</span> <span class="o">=</span> <span class="n">FarFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;FarFieldSphere&quot;</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_setups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bound</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss.insert_near_field_sphere"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.insert_near_field_sphere.html#pyaedt.Hfss.insert_near_field_sphere">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">insert_near_field_sphere</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">radius</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">radius_units</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+        <span class="n">x_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">x_stop</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span>
+        <span class="n">x_step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">y_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">y_stop</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span>
+        <span class="n">y_step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">angle_units</span><span class="o">=</span><span class="s2">&quot;deg&quot;</span><span class="p">,</span>
+        <span class="n">custom_radiation_faces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">custom_coordinate_system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a near field sphere.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           This method is not supported by HFSS ``EigenMode`` and ``CharacteristicMode`` solution types.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        radius : float, str, optional</span>
+<span class="sd">            Sphere radius. The default is ``20``.</span>
+<span class="sd">        radius_units : str</span>
+<span class="sd">            Radius units. The default is ``&quot;mm&quot;``.</span>
+<span class="sd">        x_start : float, str, optional</span>
+<span class="sd">            First angle start value. The default is ``0``.</span>
+<span class="sd">        x_stop : float, str, optional</span>
+<span class="sd">            First angle stop value. The default is ``180``.</span>
+<span class="sd">        x_step : float, str, optional</span>
+<span class="sd">            First angle step value. The default is ``10``.</span>
+<span class="sd">        y_start : float, str, optional</span>
+<span class="sd">            Second angle start value. The default is ``0``.</span>
+<span class="sd">        y_stop : float, str, optional</span>
+<span class="sd">            Second angle stop value. The default is ``180``.</span>
+<span class="sd">        y_step : float, str, optional</span>
+<span class="sd">            Second angle step value. The default is ``10``.</span>
+<span class="sd">        angle_units : str</span>
+<span class="sd">            Angle units. The default is ``&quot;deg&quot;``.</span>
+<span class="sd">        custom_radiation_faces : str, optional</span>
+<span class="sd">            List of radiation faces to use for far field computation. The default is ``None``.</span>
+<span class="sd">        custom_coordinate_system : str, optional</span>
+<span class="sd">            Local coordinate system to use for far field computation. The default is ``None``.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the sphere. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.NearFieldSetup`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">oradfield</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Radiation Field not available in this solution.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Sphere&quot;</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;UseCustomRadiationSurface&quot;</span><span class="p">:</span> <span class="n">custom_radiation_faces</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">custom_radiation_faces</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_radiation_faces</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius_units</span><span class="p">)</span>
+
+        <span class="n">defs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ThetaStart&quot;</span><span class="p">,</span> <span class="s2">&quot;ThetaStop&quot;</span><span class="p">,</span> <span class="s2">&quot;ThetaStep&quot;</span><span class="p">,</span> <span class="s2">&quot;PhiStart&quot;</span><span class="p">,</span> <span class="s2">&quot;PhiStop&quot;</span><span class="p">,</span> <span class="s2">&quot;PhiStep&quot;</span><span class="p">]</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">x_start</span><span class="p">,</span> <span class="n">angle_units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">x_stop</span><span class="p">,</span> <span class="n">angle_units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">x_step</span><span class="p">,</span> <span class="n">angle_units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">y_start</span><span class="p">,</span> <span class="n">angle_units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">y_stop</span><span class="p">,</span> <span class="n">angle_units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">y_step</span><span class="p">,</span> <span class="n">angle_units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;UseLocalCS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_coordinate_system</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">custom_coordinate_system</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CoordSystem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_coordinate_system</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CoordSystem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;NearFieldSphere&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_setups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bound</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss.insert_near_field_box"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.insert_near_field_box.html#pyaedt.Hfss.insert_near_field_box">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">insert_near_field_box</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">u_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">u_samples</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+        <span class="n">v_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">v_samples</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+        <span class="n">w_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">w_samples</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+        <span class="n">custom_radiation_faces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">custom_coordinate_system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a near field box.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           This method is not supported by HFSS ``EigenMode`` and ``CharacteristicMode`` solution types.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        u_length : float, str, optional</span>
+<span class="sd">            U axis length. The default is ``20``.</span>
+<span class="sd">        u_samples : float, str, optional</span>
+<span class="sd">            U axis samples. The default is ``21``.</span>
+<span class="sd">        v_length : float, str, optional</span>
+<span class="sd">            V axis length. The default is ``20``.</span>
+<span class="sd">        v_samples : float, str, optional</span>
+<span class="sd">            V axis samples. The default is ``21``.</span>
+<span class="sd">        w_length : float, str, optional</span>
+<span class="sd">            W axis length. The default is ``20``.</span>
+<span class="sd">        w_samples : float, str, optional</span>
+<span class="sd">            W axis samples. The default is ``21``.</span>
+<span class="sd">        units : str</span>
+<span class="sd">            Length units. The default is ``&quot;mm&quot;``.</span>
+<span class="sd">        custom_radiation_faces : str, optional</span>
+<span class="sd">            List of radiation faces to use for far field computation. The default is ``None``.</span>
+<span class="sd">        custom_coordinate_system : str, optional</span>
+<span class="sd">            Local coordinate system to use for far field computation. The default is ``None``.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the sphere. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.NearFieldSetup`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">oradfield</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Radiation Field not available in this solution.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Box&quot;</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;UseCustomRadiationSurface&quot;</span><span class="p">:</span> <span class="n">custom_radiation_faces</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">custom_radiation_faces</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_radiation_faces</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">defs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;U Size&quot;</span><span class="p">,</span> <span class="s2">&quot;V Size&quot;</span><span class="p">,</span> <span class="s2">&quot;W Size&quot;</span><span class="p">,</span> <span class="s2">&quot;U Samples&quot;</span><span class="p">,</span> <span class="s2">&quot;V Samples&quot;</span><span class="p">,</span> <span class="s2">&quot;W Samples&quot;</span><span class="p">]</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">u_length</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">v_length</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">w_length</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">u_samples</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">4</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">v_samples</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">w_samples</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">custom_coordinate_system</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CoordSystem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_coordinate_system</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CoordSystem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Global&quot;</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;NearFieldBox&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_setups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bound</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss.insert_near_field_rectangle"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.insert_near_field_rectangle.html#pyaedt.Hfss.insert_near_field_rectangle">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">insert_near_field_rectangle</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">u_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">u_samples</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+        <span class="n">v_length</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+        <span class="n">v_samples</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span>
+        <span class="n">custom_radiation_faces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">custom_coordinate_system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a near field rectangle.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           This method is not supported by HFSS ``EigenMode`` and ``CharacteristicMode`` solution types.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        u_length : float, str, optional</span>
+<span class="sd">            U axis length. The default is ``20``.</span>
+<span class="sd">        u_samples : float, str, optional</span>
+<span class="sd">            U axis samples. The default is ``21``.</span>
+<span class="sd">        v_length : float, str, optional</span>
+<span class="sd">            V axis length. The default is ``20``.</span>
+<span class="sd">        v_samples : float, str, optional</span>
+<span class="sd">            V axis samples. The default is ``21``.</span>
+<span class="sd">        units : str</span>
+<span class="sd">            Length units. The default is ``&quot;mm&quot;``.</span>
+<span class="sd">        custom_radiation_faces : str, optional</span>
+<span class="sd">            List of radiation faces to use for far field computation. The default is ``None``.</span>
+<span class="sd">        custom_coordinate_system : str, optional</span>
+<span class="sd">            Local coordinate system to use for far field computation. The default is ``None``.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the sphere. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.NearFieldSetup`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">oradfield</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Radiation Field not available in this solution.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Rectangle&quot;</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;UseCustomRadiationSurface&quot;</span><span class="p">:</span> <span class="n">custom_radiation_faces</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">custom_radiation_faces</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_radiation_faces</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">defs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Length&quot;</span><span class="p">,</span> <span class="s2">&quot;Width&quot;</span><span class="p">,</span> <span class="s2">&quot;LengthSamples&quot;</span><span class="p">,</span> <span class="s2">&quot;WidthSamples&quot;</span><span class="p">]</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">u_length</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">_arg_with_dim</span><span class="p">(</span><span class="n">v_length</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">u_samples</span>
+        <span class="n">props</span><span class="p">[</span><span class="n">defs</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="n">v_samples</span>
+
+        <span class="k">if</span> <span class="n">custom_coordinate_system</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CoordSystem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_coordinate_system</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CoordSystem&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Global&quot;</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;NearFieldRectangle&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_setups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">bound</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Hfss.insert_near_field_line"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Hfss.insert_near_field_line.html#pyaedt.Hfss.insert_near_field_line">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">insert_near_field_line</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">line</span><span class="p">,</span>
+        <span class="n">points</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+        <span class="n">custom_radiation_faces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a near field line.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           This method is not supported by HFSS ``EigenMode`` and ``CharacteristicMode`` solution types.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        line : str</span>
+<span class="sd">            Polyline name.</span>
+<span class="sd">        points : float, str, optional</span>
+<span class="sd">            Number of points. The default value is ``1000``.</span>
+<span class="sd">        custom_radiation_faces : str, optional</span>
+<span class="sd">            List of radiation faces to use for far field computation. The default is ``None``.</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Name of the sphere. The default is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.NearFieldSetup`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">oradfield</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Radiation Field not available in this solution.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Line&quot;</span><span class="p">)</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;UseCustomRadiationSurface&quot;</span><span class="p">:</span> <span class="n">custom_radiation_faces</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">custom_radiation_faces</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">custom_radiation_faces</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;CustomRadiationSurface&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;NumPts&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Line&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span>
+
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">NearFieldSetup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;NearFieldLine&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">field_setups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">bound</span>
