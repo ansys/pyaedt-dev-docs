@@ -2111,7 +2111,130 @@
                 <span class="n">conduction_paths</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oboundary</span><span class="o">.</span><span class="n">GetConductionPathObjects</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">conduction_paths</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">conduction_paths</span></div></div>
+            <span class="k">return</span> <span class="n">conduction_paths</span></div>
+
+<div class="viewcode-block" id="Maxwell3d.assign_master_slave"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell3d.assign_master_slave.html#pyaedt.Maxwell3d.assign_master_slave">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">assign_master_slave</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">master_entity</span><span class="p">,</span>
+        <span class="n">slave_entity</span><span class="p">,</span>
+        <span class="n">u_vector_origin_coordinates_master</span><span class="p">,</span>
+        <span class="n">u_vector_pos_coordinates_master</span><span class="p">,</span>
+        <span class="n">u_vector_origin_coordinates_slave</span><span class="p">,</span>
+        <span class="n">u_vector_pos_coordinates_slave</span><span class="p">,</span>
+        <span class="n">reverse_master</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">reverse_slave</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">same_as_master</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">bound_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Assign master and slave boundary conditions to two faces of the same object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        master_entity : int</span>
+<span class="sd">            ID of the master entity.</span>
+<span class="sd">        slave_entity : int</span>
+<span class="sd">            ID of the slave entity.</span>
+<span class="sd">        u_vector_origin_coordinates_master : list</span>
+<span class="sd">            Master&#39;s list of U vector origin coordinates.</span>
+<span class="sd">        u_vector_pos_coordinates_master : list</span>
+<span class="sd">            Master&#39;s list of U vector position coordinates.</span>
+<span class="sd">        u_vector_origin_coordinates_slave : list</span>
+<span class="sd">            Slave&#39;s list of U vector origin coordinates.</span>
+<span class="sd">        u_vector_pos_coordinates_slave : list</span>
+<span class="sd">            Slave&#39;s list of U vector position coordinates.</span>
+<span class="sd">        reverse_master : bool, optional</span>
+<span class="sd">            Whether to reverse the master edge to the V direction. The default is ``False``.</span>
+<span class="sd">        reverse_slave : bool, optional</span>
+<span class="sd">            Whether to reverse the master edge to the U direction. The default is ``False``.</span>
+<span class="sd">        same_as_master : bool, optional</span>
+<span class="sd">            Whether the B-Field of the slave edge and master edge are the same. The default is ``True``.</span>
+<span class="sd">        bound_name : str, optional</span>
+<span class="sd">            Name of the master boundary. The default is ``None``, in which case the default name</span>
+<span class="sd">            is used. The name of the slave boundary has a ``_dep`` suffix.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`, :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Master and slave objects.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.AssignIndependent</span>
+<span class="sd">        &gt;&gt;&gt; oModule.AssignDependent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">master_entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">master_entity</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="n">slave_entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">convert_to_selections</span><span class="p">(</span><span class="n">slave_entity</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">bound_name</span><span class="p">:</span>
+                <span class="n">bound_name_m</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Independent&quot;</span><span class="p">)</span>
+                <span class="n">bound_name_s</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Dependent&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bound_name_m</span> <span class="o">=</span> <span class="n">bound_name</span>
+                <span class="n">bound_name_s</span> <span class="o">=</span> <span class="n">bound_name</span> <span class="o">+</span> <span class="s2">&quot;_dep&quot;</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_vector_origin_coordinates_master</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_vector_origin_coordinates_slave</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_vector_pos_coordinates_master</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+                <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_vector_pos_coordinates_slave</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please provide a list of coordinates for U vectors.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u_vector_origin_coordinates_master</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Elements of coordinates system must be strings in the form of ``value+unit``.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u_vector_origin_coordinates_slave</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Elements of coordinates system must be strings in the form of ``value+unit``.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u_vector_pos_coordinates_master</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Elements of coordinates system must be strings in the form of ``value+unit``.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">u_vector_pos_coordinates_slave</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">str</span><span class="p">)]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Elements of coordinates system must be strings in the form of ``value+unit``.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_vector_origin_coordinates_master</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Vector must contain 3 elements for x, y and z coordinates.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_vector_origin_coordinates_slave</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Vector must contain 3 elements for x, y and z coordinates.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_vector_pos_coordinates_master</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Vector must contain 3 elements for x, y and z coordinates.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">u_vector_pos_coordinates_slave</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Vector must contain 3 elements for x, y and z coordinates.&quot;</span><span class="p">)</span>
+            <span class="n">u_master_vector_coordinates</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;Coordinate System&quot;</span><span class="p">:</span> <span class="s2">&quot;Global&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;Origin&quot;</span><span class="p">:</span> <span class="n">u_vector_origin_coordinates_master</span><span class="p">,</span>
+                    <span class="s2">&quot;UPos&quot;</span><span class="p">:</span> <span class="n">u_vector_pos_coordinates_master</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+            <span class="n">props2</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;Faces&quot;</span><span class="p">:</span> <span class="n">master_entity</span><span class="p">,</span> <span class="s2">&quot;CoordSysVector&quot;</span><span class="p">:</span> <span class="n">u_master_vector_coordinates</span><span class="p">,</span> <span class="s2">&quot;ReverseV&quot;</span><span class="p">:</span> <span class="n">reverse_master</span><span class="p">}</span>
+            <span class="p">)</span>
+            <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound_name_m</span><span class="p">,</span> <span class="n">props2</span><span class="p">,</span> <span class="s2">&quot;Independent&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+
+                <span class="n">u_slave_vector_coordinates</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;Coordinate System&quot;</span><span class="p">:</span> <span class="s2">&quot;Global&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;Origin&quot;</span><span class="p">:</span> <span class="n">u_vector_origin_coordinates_slave</span><span class="p">,</span>
+                        <span class="s2">&quot;UPos&quot;</span><span class="p">:</span> <span class="n">u_vector_pos_coordinates_slave</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+
+                <span class="n">props2</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;Faces&quot;</span><span class="p">:</span> <span class="n">slave_entity</span><span class="p">,</span>
+                        <span class="s2">&quot;CoordSysVector&quot;</span><span class="p">:</span> <span class="n">u_slave_vector_coordinates</span><span class="p">,</span>
+                        <span class="s2">&quot;ReverseU&quot;</span><span class="p">:</span> <span class="n">reverse_slave</span><span class="p">,</span>
+                        <span class="s2">&quot;Independent&quot;</span><span class="p">:</span> <span class="n">bound_name_m</span><span class="p">,</span>
+                        <span class="s2">&quot;RelationIsSame&quot;</span><span class="p">:</span> <span class="n">same_as_master</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+                <span class="n">bound2</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bound_name_s</span><span class="p">,</span> <span class="n">props2</span><span class="p">,</span> <span class="s2">&quot;Dependent&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">bound2</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound2</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">bound</span><span class="p">,</span> <span class="n">bound2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">bound</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span></div></div>
 
 
 <div class="viewcode-block" id="Maxwell2d"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Maxwell2d.html#pyaedt.Maxwell2d">[docs]</a><span class="k">class</span> <span class="nc">Maxwell2d</span><span class="p">(</span><span class="n">Maxwell</span><span class="p">,</span> <span class="n">FieldAnalysis3D</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
@@ -2443,7 +2566,6 @@
 
 <span class="sd">        References</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        &gt;&gt;&gt; oModule.AssignIndependent</span>
 <span class="sd">        &gt;&gt;&gt; oModule.AssignDependent</span>
 <span class="sd">        &quot;&quot;&quot;</span>
