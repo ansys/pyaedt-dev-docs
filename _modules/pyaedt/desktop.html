@@ -224,7 +224,6 @@
 
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">gc</span>
-<span class="kn">import</span> <span class="nn">getpass</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pkgutil</span>
@@ -257,6 +256,7 @@
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">_pythonver</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">com_active_sessions</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">grpc_active_sessions</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">inside_desktop</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
@@ -286,9 +286,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Clr Module not found. Forcing Aedt Grpc&quot;</span><span class="p">)</span>
         <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">_com</span> <span class="o">=</span> <span class="s2">&quot;pythonnet_v3&quot;</span>
+        <span class="n">_com</span> <span class="o">=</span> <span class="s2">&quot;gprc_v3&quot;</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="n">_com</span> <span class="o">=</span> <span class="s2">&quot;pythonnet_v3&quot;</span>
+    <span class="n">_com</span> <span class="o">=</span> <span class="s2">&quot;gprc_v3&quot;</span>
     <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="o">=</span> <span class="kc">True</span>
 
 
@@ -597,6 +597,9 @@
             <span class="k">if</span> <span class="n">_com</span> <span class="o">==</span> <span class="s2">&quot;ironpython&quot;</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching PyAEDT outside AEDT with IronPython.&quot;</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_ironpython</span><span class="p">(</span><span class="n">non_graphical</span><span class="p">,</span> <span class="n">new_desktop_session</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">_com</span> <span class="o">==</span> <span class="s2">&quot;grpc_v3&quot;</span> <span class="ow">or</span> <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
+                <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_init_cpython_new</span><span class="p">(</span><span class="n">non_graphical</span><span class="p">,</span> <span class="n">new_desktop_session</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">student_version</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">_com</span> <span class="o">==</span> <span class="s2">&quot;pythonnet_v3&quot;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">version_key</span> <span class="o">&lt;</span> <span class="s2">&quot;2022.2&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;posix&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching PyAEDT outside AEDT with CPython and PythonNET.&quot;</span><span class="p">)</span>
@@ -608,9 +611,6 @@
                         <span class="n">version_key</span><span class="p">,</span>
                         <span class="n">aedt_process_id</span><span class="p">,</span>
                     <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">settings</span><span class="o">.</span><span class="n">use_grpc_api</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_init_cpython_new</span><span class="p">(</span><span class="n">non_graphical</span><span class="p">,</span> <span class="n">new_desktop_session</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">student_version</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">oAnsoftApp</span> <span class="o">=</span> <span class="n">win32com</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">Dispatch</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">oDesktop</span> <span class="o">=</span> <span class="n">oAnsoftApp</span><span class="o">.</span><span class="n">GetAppDesktop</span><span class="p">()</span>
@@ -795,27 +795,7 @@
 
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">_get_tasks_list_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">student_version</span><span class="p">):</span>
-        <span class="n">processID2</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">username</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">student_version</span><span class="p">:</span>
-            <span class="n">process</span> <span class="o">=</span> <span class="s2">&quot;ansysedtsv.exe&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">process</span> <span class="o">=</span> <span class="s2">&quot;ansysedt.exe&quot;</span>
-
-        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s1">&#39;tasklist /FI &quot;IMAGENAME eq </span><span class="si">{}</span><span class="s1">&quot; /v&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">process</span><span class="p">),</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
-
-        <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;(?i)^(?:</span><span class="si">{}</span><span class="s2">)\s+?(\d+)\s+.+[\s|</span><span class="se">\\</span><span class="s2">](?:</span><span class="si">{}</span><span class="s2">)\s+&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">process</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">output</span><span class="p">:</span>
-            <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
-                <span class="n">processID2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">processID2</span>
-
     <span class="k">def</span> <span class="nf">_run_student</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
         <span class="n">DETACHED_PROCESS</span> <span class="o">=</span> <span class="mh">0x00000008</span>
         <span class="n">pid</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
             <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">sDesktopinstallDirectory</span><span class="p">,</span> <span class="s2">&quot;ansysedtsv.exe&quot;</span><span class="p">)],</span> <span class="n">creationflags</span><span class="o">=</span><span class="n">DETACHED_PROCESS</span>
@@ -853,7 +833,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Launching AEDT with module PythonNET.&quot;</span><span class="p">)</span>
         <span class="n">processID</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">IsWindows</span><span class="p">:</span>
-            <span class="n">processID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tasks_list_windows</span><span class="p">(</span><span class="n">student_version</span><span class="p">)</span>
+            <span class="n">processID</span> <span class="o">=</span> <span class="n">com_active_sessions</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">student_version</span><span class="p">,</span> <span class="n">non_graphical</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">student_version</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">processID</span><span class="p">:</span>  <span class="c1"># Opens an instance if processID is an empty list</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_run_student</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">non_graphical</span> <span class="ow">or</span> <span class="n">new_aedt_session</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">processID</span><span class="p">:</span>
@@ -865,7 +845,7 @@
             <span class="n">settings</span><span class="o">.</span><span class="n">enable_desktop_logs</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">processID2</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">IsWindows</span><span class="p">:</span>
-            <span class="n">processID2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_tasks_list_windows</span><span class="p">(</span><span class="n">student_version</span><span class="p">)</span>
+            <span class="n">processID2</span> <span class="o">=</span> <span class="n">com_active_sessions</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">student_version</span><span class="p">,</span> <span class="n">non_graphical</span><span class="p">)</span>
         <span class="n">proc</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">processID2</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">processID</span><span class="p">]</span>  <span class="c1"># Looking for the &quot;new&quot; process</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="ow">not</span> <span class="n">proc</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">new_aedt_session</span><span class="p">)</span> <span class="ow">and</span> <span class="n">aedt_process_id</span>
@@ -924,26 +904,41 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">settings</span><span class="o">.</span><span class="n">remote_api</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">new_aedt_session</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">:</span>
-            <span class="n">sessions</span> <span class="o">=</span> <span class="n">grpc_active_sessions</span><span class="p">(</span>
-                <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="n">student_version</span><span class="p">,</span> <span class="n">non_graphical</span><span class="o">=</span><span class="n">non_graphical</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">sessions</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">sessions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sessions</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found active gRPC session on port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Multiple AEDT gRPC sessions are found. Setting the active session on port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span>
-                    <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;New Session of AEDT cannot be started on remote machine from Desktop Class.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either use port argument or start an rpc session to start AEDT on remote machine.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Use client = pyaedt.common_rpc.client(machinename) to start a remote session.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Use client.aedt(port) to start aedt on remote machine before connecting.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">new_aedt_session</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">_find_free_port</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New AEDT session is starting on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">new_aedt_session</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sessions</span> <span class="o">=</span> <span class="n">grpc_active_sessions</span><span class="p">(</span>
+                    <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">student_version</span><span class="o">=</span><span class="n">student_version</span><span class="p">,</span> <span class="n">non_graphical</span><span class="o">=</span><span class="n">non_graphical</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">sessions</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">sessions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sessions</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found active gRPC session on port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s2">&quot;Multiple AEDT gRPC sessions are found. Setting the active session on port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span>
+                        <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">_find_free_port</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New AEDT session is starting on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">new_aedt_session</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_check_grpc_port</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New AEDT session is starting on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">new_aedt_session</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;New Session of AEDT cannot be started on specified port because occupied.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">_find_free_port</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New AEDT session is starting on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">_check_grpc_port</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Connecting to AEDT session on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;AEDT session is starting on gRPC port </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
+            <span class="n">new_aedt_session</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="n">ScriptEnv</span><span class="o">.</span><span class="n">_doInitialize</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">new_aedt_session</span><span class="p">,</span> <span class="n">non_graphical</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">)</span>
 
@@ -953,10 +948,11 @@
             <span class="n">_proc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">oDesktop</span><span class="o">.</span><span class="n">GetProcessID</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">non_graphical</span><span class="p">:</span>
                 <span class="n">settings</span><span class="o">.</span><span class="n">enable_desktop_logs</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="n">student_version</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Student version started with process ID </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">_proc</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Started with process ID </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">_proc</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">new_aedt_session</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> version started with process ID </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">version</span><span class="p">,</span> <span class="s2">&quot;Student&quot;</span> <span class="k">if</span> <span class="n">student_version</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">_proc</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The gRPC plugin is not supported in AEDT versions earlier than 2022 R2.&quot;</span><span class="p">)</span>

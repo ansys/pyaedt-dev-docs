@@ -1400,6 +1400,7 @@
         <span class="n">output_aedb_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_single_pin_components</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">use_pyaedt_extent_computing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">extent_defeature</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a cutout using an approach entirely based on pyaedt.</span>
 <span class="sd">        It does in sequence:</span>
@@ -1434,6 +1435,9 @@
 <span class="sd">            Remove all Single Pin RLC after the cutout is completed. Default is `False`.</span>
 <span class="sd">        use_pyaedt_extent_computing : bool, optional</span>
 <span class="sd">            Whether to use pyaedt extent computing (experimental).</span>
+<span class="sd">        extent_defeature : float, optional</span>
+<span class="sd">            Defeature the cutout before applying it to produce simpler geometry for mesh (Experimental).</span>
+<span class="sd">            It applies only to Conforming bounding box. Default value is ``0`` which disable it.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1501,6 +1505,8 @@
             <span class="n">_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_extent</span><span class="p">(</span>
                 <span class="n">net_signals</span><span class="p">,</span> <span class="n">extent_type</span><span class="p">,</span> <span class="n">expansion_size</span><span class="p">,</span> <span class="n">use_round_corner</span><span class="p">,</span> <span class="n">use_pyaedt_extent_computing</span>
             <span class="p">)</span>
+            <span class="k">if</span> <span class="n">extent_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Conforming&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">ExtentType</span><span class="o">.</span><span class="n">Conforming</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">extent_defeature</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">_poly</span> <span class="o">=</span> <span class="n">_poly</span><span class="o">.</span><span class="n">Defeature</span><span class="p">(</span><span class="n">extent_defeature</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Expanded Net Polygon Creation&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
