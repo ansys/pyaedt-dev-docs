@@ -1696,7 +1696,9 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Q3d.assign_source_to_sheet"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.assign_source_to_sheet.html#pyaedt.Q3d.assign_source_to_sheet">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">assign_source_to_sheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sheetname</span><span class="p">,</span> <span class="n">objectname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sourcename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">assign_source_to_sheet</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sheetname</span><span class="p">,</span> <span class="n">objectname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sourcename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">terminal_type</span><span class="o">=</span><span class="s2">&quot;voltage&quot;</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate a source on a sheet.</span>
 
 <span class="sd">        Parameters</span>
@@ -1709,6 +1711,8 @@
 <span class="sd">            Name of the net. The default is ``None``.</span>
 <span class="sd">        sourcename : str,  optional</span>
 <span class="sd">            Name of the source. The default is ``None``.</span>
+<span class="sd">        terminal_type : str</span>
+<span class="sd">            Type of the terminal. Options are ``voltage`` and ``current``. The default is ``voltage``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1726,10 +1730,16 @@
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">sheetname</span><span class="p">]})</span>
         <span class="k">if</span> <span class="n">objectname</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ParentBndID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">objectname</span>
-        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;TerminalType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ConstantVoltage&quot;</span>
+
+        <span class="k">if</span> <span class="n">terminal_type</span> <span class="o">==</span> <span class="s2">&quot;current&quot;</span><span class="p">:</span>
+            <span class="n">terminal_str</span> <span class="o">=</span> <span class="s2">&quot;UniformCurrent&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">terminal_str</span> <span class="o">=</span> <span class="s2">&quot;ConstantVoltage&quot;</span>
+
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;TerminalType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">terminal_str</span>
         <span class="k">if</span> <span class="n">netname</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Net&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">netname</span>
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">sheetname</span><span class="p">,</span> <span class="s2">&quot;TerminalType&quot;</span><span class="p">:</span> <span class="s2">&quot;ConstantVoltage&quot;</span><span class="p">,</span> <span class="s2">&quot;Net&quot;</span><span class="p">:</span> <span class="n">netname</span><span class="p">})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">sheetname</span><span class="p">,</span> <span class="s2">&quot;TerminalType&quot;</span><span class="p">:</span> <span class="n">terminal_str</span><span class="p">,</span> <span class="s2">&quot;Net&quot;</span><span class="p">:</span> <span class="n">netname</span><span class="p">})</span>
         <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sourcename</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Source&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
@@ -1785,7 +1795,7 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="Q3d.assign_sink_to_sheet"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.Q3d.assign_sink_to_sheet.html#pyaedt.Q3d.assign_sink_to_sheet">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">assign_sink_to_sheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sheetname</span><span class="p">,</span> <span class="n">objectname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sinkname</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">assign_sink_to_sheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sheetname</span><span class="p">,</span> <span class="n">objectname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">netname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sinkname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">terminal_type</span><span class="o">=</span><span class="s2">&quot;voltage&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generate a sink on a sheet.</span>
 
 <span class="sd">        Parameters</span>
@@ -1798,6 +1808,8 @@
 <span class="sd">            Name of the net. The default is ``None``.</span>
 <span class="sd">        sinkname : str, optional</span>
 <span class="sd">            Name of the sink. The default is ``None``.</span>
+<span class="sd">        terminal_type : str</span>
+<span class="sd">            Type of the terminal. Options are ``voltage`` and ``current``. The default is ``voltage``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -1815,11 +1827,18 @@
         <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">sheetname</span><span class="p">]})</span>
         <span class="k">if</span> <span class="n">objectname</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;ParentBndID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">objectname</span>
-        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;TerminalType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;ConstantVoltage&quot;</span>
+
+        <span class="k">if</span> <span class="n">terminal_type</span> <span class="o">==</span> <span class="s2">&quot;current&quot;</span><span class="p">:</span>
+            <span class="n">terminal_str</span> <span class="o">=</span> <span class="s2">&quot;UniformCurrent&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">terminal_str</span> <span class="o">=</span> <span class="s2">&quot;ConstantVoltage&quot;</span>
+
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;TerminalType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">terminal_str</span>
+
         <span class="k">if</span> <span class="n">netname</span><span class="p">:</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;Net&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">netname</span>
 
-        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">sheetname</span><span class="p">,</span> <span class="s2">&quot;TerminalType&quot;</span><span class="p">:</span> <span class="s2">&quot;ConstantVoltage&quot;</span><span class="p">,</span> <span class="s2">&quot;Net&quot;</span><span class="p">:</span> <span class="n">netname</span><span class="p">})</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;Objects&quot;</span><span class="p">:</span> <span class="n">sheetname</span><span class="p">,</span> <span class="s2">&quot;TerminalType&quot;</span><span class="p">:</span> <span class="n">terminal_str</span><span class="p">,</span> <span class="s2">&quot;Net&quot;</span><span class="p">:</span> <span class="n">netname</span><span class="p">})</span>
         <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sinkname</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Sink&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
