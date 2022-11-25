@@ -217,9 +217,7 @@
 <span class="kn">import</span> <span class="nn">codecs</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">_retry_ntimes</span>
 <span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
@@ -230,19 +228,12 @@
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.sources</span> <span class="kn">import</span> <span class="n">SourceType</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.padstack</span> <span class="kn">import</span> <span class="n">EdbPadstacks</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.clr_module</span> <span class="kn">import</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.clr_module</span> <span class="kn">import</span> <span class="n">_clr</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">get_filename_without_extension</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">clr</span>
-
-    <span class="n">clr</span><span class="o">.</span><span class="n">AddReference</span><span class="p">(</span><span class="s2">&quot;System&quot;</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">System</span> <span class="kn">import</span> <span class="n">String</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;posix&quot;</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This module requires PythonNet.&quot;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">resistor_value_parser</span><span class="p">(</span><span class="n">RValue</span><span class="p">):</span>
@@ -1391,6 +1382,7 @@
         <span class="n">new_cmp</span><span class="o">.</span><span class="n">SetPlacementLayer</span><span class="p">(</span><span class="n">new_cmp_placement_layer</span><span class="p">)</span>
         <span class="c1"># cmp_transform = System.Activator.CreateInstance(self._edb.Utility.)</span>
         <span class="c1"># new_cmp.SetTransform(cmp_transform)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cmp</span><span class="p">[</span><span class="n">new_cmp</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">EDBComponent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_cmp</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_cmp</span></div>
         <span class="c1"># except:</span>
         <span class="c1">#    return (False, None)</span>
@@ -2074,7 +2066,7 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span> <span class="n">EDBPadstackInstance</span><span class="p">):</span>
             <span class="n">pin</span> <span class="o">=</span> <span class="n">pin</span><span class="o">.</span><span class="n">_edb_padstackinstance</span>
         <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">clr</span><span class="o">.</span><span class="n">Reference</span><span class="p">[</span><span class="n">String</span><span class="p">]()</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">_clr</span><span class="o">.</span><span class="n">Reference</span><span class="p">[</span><span class="n">String</span><span class="p">]()</span>
             <span class="n">pin</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>

@@ -233,16 +233,15 @@
 <span class="n">pd</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">is_ironpython</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
         <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
             <span class="s2">&quot;The Pandas module is required to run some functionalities.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="s2">&quot;Install with </span><span class="se">\n\n</span><span class="s2">pip install pandas</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">clr</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This module requires the PythonNET package.&quot;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">pyaedt.generic.clr_module</span> <span class="kn">import</span> <span class="n">_clr</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -741,10 +740,10 @@
         <span class="n">inner_layer_thickness</span><span class="o">=</span><span class="s2">&quot;17um&quot;</span><span class="p">,</span>
         <span class="n">outer_layer_thickness</span><span class="o">=</span><span class="s2">&quot;50um&quot;</span><span class="p">,</span>
         <span class="n">dielectric_thickness</span><span class="o">=</span><span class="s2">&quot;100um&quot;</span><span class="p">,</span>
-        <span class="n">dielectric_material</span><span class="o">=</span><span class="s2">&quot;FR4_epoxy&quot;</span><span class="p">,</span>
+        <span class="n">dielectric_material</span><span class="o">=</span><span class="s2">&quot;fr4_epoxy&quot;</span><span class="p">,</span>
         <span class="n">soldermask</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">soldermask_thickness</span><span class="o">=</span><span class="s2">&quot;20um&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
+    <span class="p">):</span>  <span class="c1"># pragma: no cover</span>
         <span class="sd">&quot;&quot;&quot;Create a symmetric stackup.</span>
 
 <span class="sd">        Parameters</span>
@@ -770,73 +769,87 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">layer_count</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_conductor_material</span><span class="p">(</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="mf">5.8e7</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_dielectric_material</span><span class="p">(</span><span class="s2">&quot;FR4_epoxy&quot;</span><span class="p">,</span> <span class="n">permittivity</span><span class="o">=</span><span class="mf">4.3</span><span class="p">,</span> <span class="n">loss_tangent</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_dielectric_material</span><span class="p">(</span><span class="s2">&quot;SolderMask&quot;</span><span class="p">,</span> <span class="n">permittivity</span><span class="o">=</span><span class="mf">3.1</span><span class="p">,</span> <span class="n">loss_tangent</span><span class="o">=</span><span class="mf">0.035</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_dielectric_material</span><span class="p">(</span><span class="s2">&quot;Air&quot;</span><span class="p">,</span> <span class="n">permittivity</span><span class="o">=</span><span class="mf">1.0006</span><span class="p">,</span> <span class="n">loss_tangent</span><span class="o">=</span><span class="mf">1.0000004</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">soldermask</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
-                <span class="s2">&quot;SMB&quot;</span><span class="p">,</span>
-                <span class="kc">None</span><span class="p">,</span>
-                <span class="s2">&quot;SolderMask&quot;</span><span class="p">,</span>
-                <span class="n">thickness</span><span class="o">=</span><span class="n">soldermask_thickness</span><span class="p">,</span>
-                <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
-                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">layer_name</span> <span class="o">=</span> <span class="s2">&quot;BOTTOM&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="s2">&quot;SMB&quot;</span><span class="p">,</span> <span class="n">fillMaterial</span><span class="o">=</span><span class="s2">&quot;SolderMask&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="n">outer_layer_thickness</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">layer_name</span> <span class="o">=</span> <span class="s2">&quot;BOTTOM&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">fillMaterial</span><span class="o">=</span><span class="s2">&quot;Air&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="n">outer_layer_thickness</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">layer_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">new_layer_name</span> <span class="o">=</span> <span class="s2">&quot;D&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">layer</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
-                <span class="n">new_layer_name</span><span class="p">,</span>
-                <span class="n">layer_name</span><span class="p">,</span>
-                <span class="n">material</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
-                <span class="n">thickness</span><span class="o">=</span><span class="n">dielectric_thickness</span><span class="p">,</span>
-                <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
-                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">layer_name</span> <span class="o">=</span> <span class="n">new_layer_name</span>
-            <span class="n">new_layer_name</span> <span class="o">=</span> <span class="s2">&quot;L&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">layer</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
-                <span class="n">new_layer_name</span><span class="p">,</span>
-                <span class="n">layer_name</span><span class="p">,</span>
-                <span class="n">material</span><span class="o">=</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span>
-                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
-                <span class="n">thickness</span><span class="o">=</span><span class="n">inner_layer_thickness</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="n">layer_name</span> <span class="o">=</span> <span class="n">new_layer_name</span>
-
-        <span class="n">new_layer_name</span> <span class="o">=</span> <span class="s2">&quot;D1&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
-            <span class="n">new_layer_name</span><span class="p">,</span>
-            <span class="n">layer_name</span><span class="p">,</span>
-            <span class="n">material</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+            <span class="s2">&quot;BOT&quot;</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">material</span><span class="o">=</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span>
+            <span class="n">thickness</span><span class="o">=</span><span class="n">outer_layer_thickness</span><span class="p">,</span>
+            <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+            <span class="s2">&quot;D&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">layer_count</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">material</span><span class="o">=</span><span class="s2">&quot;fr4_epoxy&quot;</span><span class="p">,</span>
             <span class="n">thickness</span><span class="o">=</span><span class="n">dielectric_thickness</span><span class="p">,</span>
             <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
             <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">layer_name</span> <span class="o">=</span> <span class="n">new_layer_name</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+            <span class="s2">&quot;TOP&quot;</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">material</span><span class="o">=</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span>
+            <span class="n">thickness</span><span class="o">=</span><span class="n">outer_layer_thickness</span><span class="p">,</span>
+            <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">soldermask</span><span class="p">:</span>
-            <span class="n">new_layer_name</span> <span class="o">=</span> <span class="s2">&quot;TOP&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">new_layer_name</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">fillMaterial</span><span class="o">=</span><span class="s2">&quot;SolderMask&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="n">outer_layer_thickness</span><span class="p">)</span>
-            <span class="n">layer_name</span> <span class="o">=</span> <span class="n">new_layer_name</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
                 <span class="s2">&quot;SMT&quot;</span><span class="p">,</span>
-                <span class="n">layer_name</span><span class="p">,</span>
-                <span class="n">material</span><span class="o">=</span><span class="s2">&quot;SolderMask&quot;</span><span class="p">,</span>
+                <span class="kc">None</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="s2">&quot;solder_mask&quot;</span><span class="p">,</span>
                 <span class="n">thickness</span><span class="o">=</span><span class="n">soldermask_thickness</span><span class="p">,</span>
                 <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
                 <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
             <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">new_layer_name</span> <span class="o">=</span> <span class="s2">&quot;TOP&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="n">new_layer_name</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">fillMaterial</span><span class="o">=</span><span class="s2">&quot;Air&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="n">outer_layer_thickness</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+                <span class="s2">&quot;SMB&quot;</span><span class="p">,</span>
+                <span class="kc">None</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="s2">&quot;solder_mask&quot;</span><span class="p">,</span>
+                <span class="n">thickness</span><span class="o">=</span><span class="n">soldermask_thickness</span><span class="p">,</span>
+                <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
+                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="s2">&quot;add_on_bottom&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">[</span><span class="s2">&quot;TOP&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dielectric_fill</span> <span class="o">=</span> <span class="s2">&quot;solder_mask&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="p">[</span><span class="s2">&quot;BOT&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dielectric_fill</span> <span class="o">=</span> <span class="s2">&quot;solder_mask&quot;</span>
+
+        <span class="k">for</span> <span class="n">layer_num</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">layer_count</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># Generate upper half</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+                <span class="s2">&quot;L&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">layer_num</span><span class="p">),</span>
+                <span class="s2">&quot;TOP&quot;</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span>
+                <span class="n">thickness</span><span class="o">=</span><span class="n">inner_layer_thickness</span><span class="p">,</span>
+                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="s2">&quot;insert_below&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+                <span class="s2">&quot;D&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">layer_num</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="s2">&quot;TOP&quot;</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+                <span class="n">thickness</span><span class="o">=</span><span class="n">dielectric_thickness</span><span class="p">,</span>
+                <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
+                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="s2">&quot;insert_below&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Generate lower half</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+                <span class="s2">&quot;L&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">layer_count</span> <span class="o">-</span> <span class="n">layer_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="s2">&quot;BOT&quot;</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span>
+                <span class="n">thickness</span><span class="o">=</span><span class="n">inner_layer_thickness</span><span class="p">,</span>
+                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="s2">&quot;insert_above&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span>
+                <span class="s2">&quot;D&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">layer_count</span> <span class="o">-</span> <span class="n">layer_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="s2">&quot;BOT&quot;</span><span class="p">,</span>
+                <span class="n">material</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+                <span class="n">thickness</span><span class="o">=</span><span class="n">dielectric_thickness</span><span class="p">,</span>
+                <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;dielectric&quot;</span><span class="p">,</span>
+                <span class="n">fillMaterial</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
+                <span class="n">method</span><span class="o">=</span><span class="s2">&quot;insert_above&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
     <span class="nd">@property</span>
@@ -1646,7 +1659,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">original_material</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">MaterialDef</span><span class="o">.</span><span class="n">FindByName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">,</span> <span class="n">material_name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                <span class="n">property_box</span> <span class="o">=</span> <span class="n">clr</span><span class="o">.</span><span class="n">StrongBox</span><span class="p">[</span><span class="nb">float</span><span class="p">]()</span>
+                <span class="n">property_box</span> <span class="o">=</span> <span class="n">_clr</span><span class="o">.</span><span class="n">StrongBox</span><span class="p">[</span><span class="nb">float</span><span class="p">]()</span>
                 <span class="n">original_material</span><span class="o">.</span><span class="n">GetProperty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">material_name_to_id</span><span class="p">(</span><span class="n">property_name</span><span class="p">),</span> <span class="n">property_box</span><span class="p">)</span>
                 <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">property_box</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -2247,11 +2260,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">layer_count</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_conductor_material</span><span class="p">(</span><span class="s2">&quot;copper&quot;</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="mf">5.8e7</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_dielectric_material</span><span class="p">(</span><span class="s2">&quot;FR4_epoxy&quot;</span><span class="p">,</span> <span class="n">permittivity</span><span class="o">=</span><span class="mf">4.3</span><span class="p">,</span> <span class="n">loss_tangent</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_dielectric_material</span><span class="p">(</span><span class="s2">&quot;SolderMask&quot;</span><span class="p">,</span> <span class="n">permittivity</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">loss_tangent</span><span class="o">=</span><span class="mf">0.035</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">add_dielectric_material</span><span class="p">(</span><span class="s2">&quot;Air&quot;</span><span class="p">,</span> <span class="n">permittivity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">loss_tangent</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">soldermask</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">stackup_layers</span><span class="o">.</span><span class="n">add_layer</span><span class="p">(</span><span class="s2">&quot;SMB&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;SolderMask&quot;</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="n">soldermask_thickness</span><span class="p">,</span> <span class="n">layerType</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
