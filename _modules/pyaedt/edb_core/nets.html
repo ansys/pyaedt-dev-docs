@@ -218,6 +218,7 @@
 <span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.nets_data</span> <span class="kn">import</span> <span class="n">EDBNetsData</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.padstacks_data</span> <span class="kn">import</span> <span class="n">EDBPadstackInstance</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">CSS4_COLORS</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
@@ -1105,7 +1106,91 @@
         <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_components</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">component_name</span><span class="p">]</span><span class="o">.</span><span class="n">nets</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">net_name</span> <span class="o">==</span> <span class="n">net</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">return</span> <span class="kc">False</span></div></div>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="EdbNets.find_and_fix_disjoint_nets"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.nets.EdbNets.find_and_fix_disjoint_nets.html#pyaedt.edb_core.nets.EdbNets.find_and_fix_disjoint_nets">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">find_and_fix_disjoint_nets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keep_only_main_net</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">clean_disjoints_less_than</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find and fix disjoint nets from a given netlist.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        net_list : str, list, optional</span>
+<span class="sd">            List of nets on which check disjoints. If `None` is provided then the algorithm will loop on all nets.</span>
+<span class="sd">        keep_only_main_net : bool, optional</span>
+<span class="sd">            Remove all secondary nets other than principal one (the one with more objects in it). Default is `False`.</span>
+<span class="sd">        clean_disjoints_less_than : bool, optional</span>
+<span class="sd">            Clean all disjoint nets with area less than specified area in square meters. Default is `0.0` to disable it.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List</span>
+<span class="sd">            New nets created.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; renamed_nets = edb_core.core_nets.find_and_fix_disjoint_nets([&quot;GND&quot;,&quot;Net2&quot;])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">net_list</span><span class="p">:</span>
+            <span class="n">net_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">net_list</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">net_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">net_list</span><span class="p">]</span>
+        <span class="n">_objects_list</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">_padstacks_list</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_primitives</span><span class="o">.</span><span class="n">primitives</span><span class="p">:</span>
+            <span class="n">n_name</span> <span class="o">=</span> <span class="n">prim</span><span class="o">.</span><span class="n">net_name</span>
+            <span class="k">if</span> <span class="n">n_name</span> <span class="ow">in</span> <span class="n">_objects_list</span><span class="p">:</span>
+                <span class="n">_objects_list</span><span class="p">[</span><span class="n">n_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prim</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_objects_list</span><span class="p">[</span><span class="n">n_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">prim</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">pad</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_padstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">n_name</span> <span class="o">=</span> <span class="n">pad</span><span class="o">.</span><span class="n">net_name</span>
+            <span class="k">if</span> <span class="n">n_name</span> <span class="ow">in</span> <span class="n">_padstacks_list</span><span class="p">:</span>
+                <span class="n">_padstacks_list</span><span class="p">[</span><span class="n">n_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pad</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_padstacks_list</span><span class="p">[</span><span class="n">n_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pad</span><span class="p">]</span>
+        <span class="n">new_nets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">disjoints_objects</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">net_list</span><span class="p">:</span>
+            <span class="n">net_groups</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">obj_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_objects_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">obj_dict</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">_padstacks_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">obj_dict</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">objs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span>
+            <span class="k">while</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">l1</span> <span class="o">=</span> <span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_connected_object_id_set</span><span class="p">()</span>
+                <span class="n">l1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="n">net_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span>
+                <span class="n">objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">objs</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">l1</span><span class="p">]</span>
+                <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">net_groups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">sorted_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">net_groups</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">disjoints</span> <span class="ow">in</span> <span class="n">sorted_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                    <span class="k">if</span> <span class="n">keep_only_main_net</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">geo</span> <span class="ow">in</span> <span class="n">disjoints</span><span class="p">:</span>
+                            <span class="n">obj_dict</span><span class="p">[</span><span class="n">geo</span><span class="p">]</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+                    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">disjoints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj_dict</span><span class="p">[</span><span class="n">disjoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">EDBPadstackInstance</span><span class="p">)</span>
+                        <span class="ow">or</span> <span class="n">clean_disjoints_less_than</span>
+                        <span class="ow">and</span> <span class="n">obj_dict</span><span class="p">[</span><span class="n">disjoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">area</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">clean_disjoints_less_than</span>
+                    <span class="p">):</span>
+                        <span class="n">obj_dict</span><span class="p">[</span><span class="n">disjoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">new_net_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_or_create_net</span><span class="p">(</span><span class="n">new_net_name</span><span class="p">):</span>
+                            <span class="n">new_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_net_name</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">geo</span> <span class="ow">in</span> <span class="n">disjoints</span><span class="p">:</span>
+                                <span class="n">obj_dict</span><span class="p">[</span><span class="n">geo</span><span class="p">]</span><span class="o">.</span><span class="n">net_name</span> <span class="o">=</span> <span class="n">new_net_name</span>
+                            <span class="n">disjoints_objects</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">disjoints</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Disjoint Cleanup Completed.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">{}</span><span class="s2"> objects in </span><span class="si">{}</span><span class="s2"> new nets.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">disjoints_objects</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_nets</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">new_nets</span></div></div>
 </pre></div>
 
               </article>
