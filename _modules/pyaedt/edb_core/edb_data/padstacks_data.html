@@ -214,7 +214,11 @@
 <span></span><span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 
+<span class="kn">from</span> <span class="nn">pyaedt</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.clr_module</span> <span class="kn">import</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.clr_module</span> <span class="kn">import</span> <span class="n">_clr</span>
+<span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
 <span class="kn">from</span> <span class="nn">pyaedt.modeler.GeometryOperators</span> <span class="kn">import</span> <span class="n">GeometryOperators</span>
 
@@ -842,9 +846,9 @@
             <span class="nb">id</span><span class="p">:</span> <span class="n">via</span> <span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">via</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">via</span><span class="o">.</span><span class="n">padstack_definition</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
         <span class="p">}</span>
 
-<div class="viewcode-block" id="EDBPadstack.convert_to_microvias"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.convert_to_microvias.html#pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.convert_to_microvias">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">convert_to_microvias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convert_only_signal_vias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">aspect_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Convert actual padstack instance to microvias with a given aspect ration.</span>
+<div class="viewcode-block" id="EDBPadstack.convert_to_3d_microvias"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.convert_to_3d_microvias.html#pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.convert_to_3d_microvias">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">convert_to_3d_microvias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convert_only_signal_vias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">aspect_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert actual padstack instance to microvias 3D Objects with a given aspect ratio.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -862,10 +866,6 @@
         <span class="n">layout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">_active_layout</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">signal_layers</span>
         <span class="n">layer_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">layer_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span><span class="p">)</span> <span class="o">-</span> <span class="n">layer_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;Microvias cannot be applied when Start and Stop Layers are not adjacent.&quot;</span>
-            <span class="p">)</span>
         <span class="k">if</span> <span class="n">convert_only_signal_vias</span><span class="p">:</span>
             <span class="n">signal_nets</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">signal_nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
         <span class="n">topl</span><span class="p">,</span> <span class="n">topz</span><span class="p">,</span> <span class="n">bottoml</span><span class="p">,</span> <span class="n">bottomz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">stackup_limits</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
@@ -879,14 +879,7 @@
         <span class="k">for</span> <span class="n">via</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">convert_only_signal_vias</span> <span class="ow">and</span> <span class="n">via</span><span class="o">.</span><span class="n">net_name</span> <span class="ow">in</span> <span class="n">signal_nets</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">convert_only_signal_vias</span><span class="p">:</span>
                 <span class="n">pos</span> <span class="o">=</span> <span class="n">via</span><span class="o">.</span><span class="n">position</span>
-                <span class="n">cloned_circle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Circle</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
-                    <span class="n">layout</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span><span class="p">,</span>
-                    <span class="n">via</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">rad1</span><span class="p">),</span>
-                <span class="p">)</span>
+                <span class="n">started</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Polygon</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
                         <span class="n">layout</span><span class="p">,</span>
@@ -903,15 +896,6 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span><span class="p">]</span><span class="o">.</span><span class="n">parameters_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
                     <span class="p">)</span>
-
-                <span class="n">cloned_circle2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Circle</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
-                    <span class="n">layout</span><span class="p">,</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span><span class="p">,</span>
-                    <span class="n">via</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">rad2</span><span class="p">),</span>
-                <span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Polygon</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
                         <span class="n">layout</span><span class="p">,</span>
@@ -928,15 +912,181 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span><span class="p">]</span><span class="o">.</span><span class="n">parameters_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
                     <span class="p">)</span>
-                <span class="n">s3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Structure3D</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="s2">&quot;via3d_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">via</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-                <span class="n">s3d</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">cloned_circle</span><span class="p">)</span>
-                <span class="n">s3d</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">cloned_circle2</span><span class="p">)</span>
-                <span class="n">s3d</span><span class="o">.</span><span class="n">SetMaterial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="p">)</span>
-                <span class="n">s3d</span><span class="o">.</span><span class="n">SetMeshClosureProp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Structure3D</span><span class="o">.</span><span class="n">TClosure</span><span class="o">.</span><span class="n">EndsClosed</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layer_names</span><span class="p">:</span>
+                    <span class="n">stop</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                    <span class="k">if</span> <span class="n">layer_name</span> <span class="o">==</span> <span class="n">via</span><span class="o">.</span><span class="n">start_layer</span> <span class="ow">or</span> <span class="n">started</span><span class="p">:</span>
+                        <span class="n">start</span> <span class="o">=</span> <span class="n">layer_name</span>
+                        <span class="n">stop</span> <span class="o">=</span> <span class="n">layer_names</span><span class="p">[</span><span class="n">layer_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="n">cloned_circle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Circle</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+                            <span class="n">layout</span><span class="p">,</span>
+                            <span class="n">start</span><span class="p">,</span>
+                            <span class="n">via</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">rad1</span><span class="p">),</span>
+                        <span class="p">)</span>
+                        <span class="n">cloned_circle2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Circle</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+                            <span class="n">layout</span><span class="p">,</span>
+                            <span class="n">stop</span><span class="p">,</span>
+                            <span class="n">via</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="n">rad2</span><span class="p">),</span>
+                        <span class="p">)</span>
+                        <span class="n">s3d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Structure3D</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+                            <span class="n">layout</span><span class="p">,</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;via3d_&quot;</span> <span class="o">+</span> <span class="n">via</span><span class="o">.</span><span class="n">aedt_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;via_&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">s3d</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">cloned_circle</span><span class="p">)</span>
+                        <span class="n">s3d</span><span class="o">.</span><span class="n">AddMember</span><span class="p">(</span><span class="n">cloned_circle2</span><span class="p">)</span>
+                        <span class="n">s3d</span><span class="o">.</span><span class="n">SetMaterial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="p">)</span>
+                        <span class="n">s3d</span><span class="o">.</span><span class="n">SetMeshClosureProp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Hierarchy</span><span class="o">.</span><span class="n">Structure3D</span><span class="o">.</span><span class="n">TClosure</span><span class="o">.</span><span class="n">EndsClosed</span><span class="p">)</span>
+                        <span class="n">started</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">stop</span> <span class="o">==</span> <span class="n">via</span><span class="o">.</span><span class="n">stop_layer</span><span class="p">:</span>
+                        <span class="k">break</span>
                 <span class="n">via</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Converted successfully to 3D Objects.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="EDBPadstack.split_to_microvias"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.split_to_microvias.html#pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.split_to_microvias">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">split_to_microvias</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert actual padstack definition to multiple microvias definitions.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List of :class:`pyaedt.edb_core.padstackEDBPadstack`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Microvias cannot be applied when Start and Stop Layers are the same.&quot;</span><span class="p">)</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">_active_layout</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">signal_layers</span>
+        <span class="n">layer_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">layer_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span><span class="p">)</span> <span class="o">-</span> <span class="n">layer_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;Conversion can be applied only if Padstack definition is composed by more than 2 layers.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">started</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span>
+        <span class="n">new_instances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">layer_names</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">layer_name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span> <span class="ow">or</span> <span class="n">started</span><span class="p">:</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">layer_name</span>
+                <span class="n">stop</span> <span class="o">=</span> <span class="n">layer_names</span><span class="p">[</span><span class="n">layer_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">layer_name</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                <span class="n">new_padstack_name</span> <span class="o">=</span> <span class="s2">&quot;MV_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+                <span class="n">included</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">]</span>
+                <span class="n">new_padstack_definition_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDefData</span><span class="o">.</span><span class="n">Create</span><span class="p">()</span>
+                <span class="n">new_padstack_definition_data</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">convert_py_list_to_net_list</span><span class="p">(</span><span class="n">included</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">included</span><span class="p">:</span>
+                    <span class="n">pl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span>
+                    <span class="n">new_padstack_definition_data</span><span class="o">.</span><span class="n">SetPadParameters</span><span class="p">(</span>
+                        <span class="n">layer</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadType</span><span class="o">.</span><span class="n">RegularPad</span><span class="p">,</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">int_to_geometry_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">geometry_type</span><span class="p">),</span>
+                        <span class="nb">list</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                                <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">3</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">5</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="n">pl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">antipad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span>
+                    <span class="n">new_padstack_definition_data</span><span class="o">.</span><span class="n">SetPadParameters</span><span class="p">(</span>
+                        <span class="n">layer</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadType</span><span class="o">.</span><span class="n">AntiPad</span><span class="p">,</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">int_to_geometry_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">geometry_type</span><span class="p">),</span>
+                        <span class="nb">list</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                                <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">3</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">5</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="n">pl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thermalpad_by_layer</span><span class="p">[</span><span class="n">layer</span><span class="p">]</span>
+                    <span class="n">new_padstack_definition_data</span><span class="o">.</span><span class="n">SetPadParameters</span><span class="p">(</span>
+                        <span class="n">layer</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadType</span><span class="o">.</span><span class="n">ThermalPad</span><span class="p">,</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">int_to_geometry_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">geometry_type</span><span class="p">),</span>
+                        <span class="nb">list</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                                <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">2</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">3</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="n">pl</span><span class="o">.</span><span class="n">_edb_padstack</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetPadParametersValue</span><span class="p">(</span>
+                            <span class="n">pl</span><span class="o">.</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">int_to_pad_type</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">pad_type</span><span class="p">)</span>
+                        <span class="p">)[</span><span class="mi">5</span><span class="p">],</span>
+                    <span class="p">)</span>
+                <span class="n">new_padstack_definition_data</span><span class="o">.</span><span class="n">SetHoleParameters</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hole_type</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hole_parameters</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_offset_x</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_offset_y</span><span class="p">),</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_rotation</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="n">new_padstack_definition_data</span><span class="o">.</span><span class="n">SetMaterial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">material</span><span class="p">)</span>
+                <span class="n">new_padstack_definition_data</span><span class="o">.</span><span class="n">SetHolePlatingPercentage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_edb_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hole_plating_ratio</span><span class="p">))</span>
+                <span class="n">padstack_definition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Definition</span><span class="o">.</span><span class="n">PadstackDef</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">db</span><span class="p">,</span> <span class="n">new_padstack_name</span>
+                <span class="p">)</span>
+                <span class="n">padstack_definition</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">new_padstack_definition_data</span><span class="p">)</span>
+                <span class="n">new_instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">EDBPadstack</span><span class="p">(</span><span class="n">padstack_definition</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="p">))</span>
+                <span class="n">started</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span> <span class="o">==</span> <span class="n">stop</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">via</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">padstack_instances</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="k">for</span> <span class="n">inst</span> <span class="ow">in</span> <span class="n">new_instances</span><span class="p">:</span>
+                <span class="n">instance</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">edb_padstack</span>
+                <span class="n">from_layer</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">l</span>
+                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">_edb_layer_list</span>
+                    <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">to_layer</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">l</span>
+                    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">_edb_layer_list</span>
+                    <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="o">==</span> <span class="nb">list</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">GetData</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayerNames</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">padstack_instance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">PadstackInstance</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span>
+                    <span class="n">layout</span><span class="p">,</span>
+                    <span class="n">via</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetNet</span><span class="p">(),</span>
+                    <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">GetName</span><span class="p">()),</span>
+                    <span class="n">instance</span><span class="p">,</span>
+                    <span class="n">via</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">via</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetPositionAndRotationValue</span><span class="p">()[</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="n">from_layer</span><span class="p">,</span>
+                    <span class="n">to_layer</span><span class="p">,</span>
+                    <span class="kc">None</span><span class="p">,</span>
+                    <span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">padstack_instance</span><span class="o">.</span><span class="n">SetIsLayoutPin</span><span class="p">(</span><span class="n">via</span><span class="o">.</span><span class="n">is_pin</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">via</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created </span><span class="si">{}</span><span class="s2"> new microvias.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">new_instances</span></div></div>
 
 
 <div class="viewcode-block" id="EDBPadstackInstance"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.padstacks_data.EDBPadstackInstance.html#pyaedt.edb_core.edb_data.padstacks_data.EDBPadstackInstance">[docs]</a><span class="k">class</span> <span class="nc">EDBPadstackInstance</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1290,6 +1440,35 @@
     <span class="k">def</span> <span class="nf">pin_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get pin number.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">aedt_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the pin name that is shown in AEDT.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">           To obtain the EDB core pin name, use `pin.GetName()`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the pin in AEDT.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
+<span class="sd">        &gt;&gt;&gt; edbapp = Edb(&quot;myaedbfolder&quot;, &quot;project name&quot;, &quot;release version&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; edbapp.core_padstack.padstack_instances[111].get_aedt_pin_name()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">is_ironpython</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">_clr</span><span class="o">.</span><span class="n">Reference</span><span class="p">[</span><span class="n">String</span><span class="p">]()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_padstackinstance</span><span class="o">.</span><span class="n">GetProductProperty</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">ProductId</span><span class="o">.</span><span class="n">Designer</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">name</span>
 
 <div class="viewcode-block" id="EDBPadstackInstance.parametrize_position"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.padstacks_data.EDBPadstackInstance.parametrize_position.html#pyaedt.edb_core.edb_data.padstacks_data.EDBPadstackInstance.parametrize_position">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">parametrize_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
