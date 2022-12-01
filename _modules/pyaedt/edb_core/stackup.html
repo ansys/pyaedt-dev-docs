@@ -225,7 +225,6 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.layer_data</span> <span class="kn">import</span> <span class="n">EDBLayers</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">pyaedt_function_handler</span>
@@ -1886,62 +1885,6 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to set 3D transform on a3dcomp cell instance&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="k">return</span> <span class="kc">True</span></div>
-
-<div class="viewcode-block" id="Stackup.set_etching_layers"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.Stackup.set_etching_layers.html#pyaedt.edb_core.stackup.Stackup.set_etching_layers">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">set_etching_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_setup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the etching layer parameters for a layout stackup.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        simulation_setup : EDB_DATA_SimulationConfiguration object</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation_setup</span><span class="p">,</span> <span class="n">SimulationConfiguration</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="n">cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">builder</span><span class="o">.</span><span class="n">cell</span>
-        <span class="n">this_lc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span><span class="o">.</span><span class="n">GetLayerCollection</span><span class="p">())</span>
-        <span class="n">all_layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">this_lc</span><span class="o">.</span><span class="n">Layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerTypeSet</span><span class="o">.</span><span class="n">AllLayerSet</span><span class="p">))</span>
-
-        <span class="n">signal_layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">lay</span> <span class="k">for</span> <span class="n">lay</span> <span class="ow">in</span> <span class="n">all_layers</span> <span class="k">if</span> <span class="n">lay</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span><span class="p">]</span>
-
-        <span class="n">new_layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_layers</span><span class="o">.</span><span class="n">Where</span><span class="p">(</span><span class="k">lambda</span> <span class="n">lyr</span><span class="p">:</span> <span class="n">lyr</span><span class="o">.</span><span class="n">GetLayerType</span><span class="p">()</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerType</span><span class="o">.</span><span class="n">SignalLayer</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_layer_etching_instances</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">signal_layers</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="ow">in</span> <span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_layer_etching_instances</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                        <span class="s2">&quot;Signal layer </span><span class="si">{0}</span><span class="s2"> is not found in the etching layers specified in the cfg, &quot;</span>
-                        <span class="s2">&quot;skipping the etching factor assignment&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-                    <span class="p">)</span>
-                    <span class="n">new_signal_lay</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">new_signal_lay</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">Clone</span><span class="p">()</span>
-                    <span class="n">new_signal_lay</span><span class="o">.</span><span class="n">SetEtchFactorEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                    <span class="n">etching_factor</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
-                        <span class="n">simulation_setup</span><span class="o">.</span><span class="n">etching_factor_instances</span><span class="p">[</span>
-                            <span class="n">simulation_setup</span><span class="o">.</span><span class="n">signal_layer_etching_instances</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-                        <span class="p">]</span>
-                    <span class="p">)</span>
-                    <span class="n">new_signal_lay</span><span class="o">.</span><span class="n">SetEtchFactor</span><span class="p">(</span><span class="n">etching_factor</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="s2">&quot;Setting etching factor </span><span class="si">{0}</span><span class="s2"> on layer </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">etching_factor</span><span class="p">),</span> <span class="n">layer</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
-                    <span class="p">)</span>
-
-                <span class="n">new_layers</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">new_signal_lay</span><span class="p">)</span>
-
-            <span class="n">layers_with_etching</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">LayerCollection</span><span class="p">()</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">layers_with_etching</span><span class="o">.</span><span class="n">AddLayers</span><span class="p">(</span><span class="n">new_layers</span><span class="p">):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">cell</span><span class="o">.</span><span class="n">GetLayout</span><span class="p">()</span><span class="o">.</span><span class="n">SetLayerCollection</span><span class="p">(</span><span class="n">layers_with_etching</span><span class="p">):</span>
-                <span class="k">return</span> <span class="kc">False</span>
-
-            <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">True</span></div></div>
 
 
@@ -2615,27 +2558,7 @@
             <span class="n">dielectric_material</span><span class="o">=</span><span class="n">dielectric_material</span><span class="p">,</span>
             <span class="n">soldermask</span><span class="o">=</span><span class="n">soldermask</span><span class="p">,</span>
             <span class="n">soldermask_thickness</span><span class="o">=</span><span class="n">soldermask_thickness</span><span class="p">,</span>
-        <span class="p">)</span></div>
-
-<div class="viewcode-block" id="EdbStackup.set_etching_layers"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.stackup.EdbStackup.set_etching_layers.html#pyaedt.edb_core.stackup.EdbStackup.set_etching_layers">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">set_etching_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation_setup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set the etching layer parameters for a layout stackup.</span>
-
-<span class="sd">        .. deprecated:: 0.6.27</span>
-<span class="sd">           Use :func:`Edb.stackup.create_symmetric_stackup` function instead.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        simulation_setup : EDB_DATA_SimulationConfiguration object</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Use `Edb.stackup.set_etching_layers` function instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">set_etching_layers</span><span class="p">(</span><span class="n">simulation_setup</span><span class="o">=</span><span class="n">simulation_setup</span><span class="p">)</span></div></div>
+        <span class="p">)</span></div></div>
 </pre></div>
 
               </article>

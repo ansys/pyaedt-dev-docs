@@ -847,15 +847,18 @@
         <span class="p">}</span>
 
 <div class="viewcode-block" id="EDBPadstack.convert_to_3d_microvias"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.convert_to_3d_microvias.html#pyaedt.edb_core.edb_data.padstacks_data.EDBPadstack.convert_to_3d_microvias">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">convert_to_3d_microvias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convert_only_signal_vias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">aspect_ratio</span><span class="o">=</span><span class="mf">0.75</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">convert_to_3d_microvias</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convert_only_signal_vias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">hole_wall_angle</span><span class="o">=</span><span class="mi">15</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Convert actual padstack instance to microvias 3D Objects with a given aspect ratio.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        convert_only_signal_vias : bool, optional</span>
 <span class="sd">            Either to convert only vias belonging to signal nets or all vias. Defaults is ``True``.</span>
-<span class="sd">        aspect_ratio : float, optional</span>
-<span class="sd">            Ratio between top and bottom face of trapezoid. The default value is ``0.75``.</span>
+<span class="sd">        hole_wall_angle : float, optional</span>
+<span class="sd">            Angle of laser penetration in deg. It will define the bottom hole diameter with the following formula:</span>
+<span class="sd">            HoleDiameter -2*tan(laser_angle* Hole depth). Hole depth is the height of the via (dielectric thickness).</span>
+<span class="sd">            The default value is ``15``.</span>
+<span class="sd">            The bottom hole will be ``0.75*HoleDepth/HoleDiam``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -870,9 +873,10 @@
             <span class="n">signal_nets</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">core_nets</span><span class="o">.</span><span class="n">signal_nets</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span>
         <span class="n">topl</span><span class="p">,</span> <span class="n">topz</span><span class="p">,</span> <span class="n">bottoml</span><span class="p">,</span> <span class="n">bottomz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ppadstack</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">stackup</span><span class="o">.</span><span class="n">stackup_limits</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">start_elevation</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">via_start_layer</span><span class="p">]</span><span class="o">.</span><span class="n">lower_elevation</span>
-
+        <span class="n">diel_thick</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">start_elevation</span> <span class="o">-</span> <span class="n">layers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">via_stop_layer</span><span class="p">]</span><span class="o">.</span><span class="n">upper_elevation</span><span class="p">)</span>
         <span class="n">rad1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_properties</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
-        <span class="n">rad2</span> <span class="o">=</span> <span class="n">rad1</span> <span class="o">*</span> <span class="n">aspect_ratio</span>
+        <span class="n">rad2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hole_properties</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">hole_wall_angle</span> <span class="o">*</span> <span class="n">diel_thick</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">start_elevation</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">topz</span> <span class="o">+</span> <span class="n">bottomz</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">rad1</span><span class="p">,</span> <span class="n">rad2</span> <span class="o">=</span> <span class="n">rad2</span><span class="p">,</span> <span class="n">rad1</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>

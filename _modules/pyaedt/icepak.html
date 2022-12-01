@@ -2879,87 +2879,6 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">materials</span><span class="o">.</span><span class="n">surface_material_keys</span><span class="p">[</span><span class="n">mat</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="n">sm</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="Icepak.create_two_resistor_network_block"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.icepak.Icepak.create_two_resistor_network_block.html#pyaedt.icepak.Icepak.create_two_resistor_network_block">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">create_two_resistor_network_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">rjb</span><span class="p">,</span> <span class="n">rjc</span><span class="p">,</span> <span class="n">placement</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Function to create 2-Resistor network object.</span>
-<span class="sd">        This method is going to replace create_network_block method.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        object_name : str</span>
-<span class="sd">            name of the object (3D block primitive) on which 2-R network is to be created</span>
-<span class="sd">        power : float</span>
-<span class="sd">            junction power in [W]</span>
-<span class="sd">        rjb : float</span>
-<span class="sd">            Junction to board thermal resistance in [K/W]</span>
-<span class="sd">        rjc : float</span>
-<span class="sd">            Junction to case thermal resistance in [K/W]</span>
-<span class="sd">        placement : str</span>
-<span class="sd">            Acceptable entries are &quot;top&quot; or &quot;bottom&quot;</span>
-<span class="sd">            &quot;top&quot; : network block is placed on top of board</span>
-<span class="sd">            &quot;bottom&quot; : network block is placed on bottom of board</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
-<span class="sd">            Boundary object.</span>
-
-<span class="sd">        References</span>
-<span class="sd">        ----------</span>
-
-<span class="sd">        &gt;&gt;&gt; oModule.AssignNetworkBoundary</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        --------</span>
-
-<span class="sd">        &gt;&gt;&gt; box = icepak.modeler.create_box([4, 5, 6], [5, 5, 5], &quot;NetworkBox1&quot;, &quot;copper&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; block = icepak.create_two_resistor_network_block(&quot;NetworkBox1&quot;, &quot;2W&quot;, 20, 10, &quot;top&quot;)</span>
-<span class="sd">        &gt;&gt;&gt; block.props[&quot;Nodes&quot;][&quot;Internal&quot;][0]</span>
-<span class="sd">        &#39;2W&#39;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">object_handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_from_name</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span>
-        <span class="n">placement</span> <span class="o">=</span> <span class="n">placement</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">placement</span> <span class="o">==</span> <span class="s2">&quot;top&quot;</span><span class="p">:</span>
-            <span class="n">board_face_id</span> <span class="o">=</span> <span class="n">object_handle</span><span class="o">.</span><span class="n">top_face_z</span><span class="o">.</span><span class="n">id</span>
-            <span class="n">case_face_id</span> <span class="o">=</span> <span class="n">object_handle</span><span class="o">.</span><span class="n">bottom_face_z</span><span class="o">.</span><span class="n">id</span>
-            <span class="n">board_side</span> <span class="o">=</span> <span class="s2">&quot;bottom&quot;</span>
-            <span class="n">case_side</span> <span class="o">=</span> <span class="s2">&quot;top&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">board_face_id</span> <span class="o">=</span> <span class="n">object_handle</span><span class="o">.</span><span class="n">bottom_face_z</span><span class="o">.</span><span class="n">id</span>
-            <span class="n">case_face_id</span> <span class="o">=</span> <span class="n">object_handle</span><span class="o">.</span><span class="n">top_face_z</span><span class="o">.</span><span class="n">id</span>
-            <span class="n">board_side</span> <span class="o">=</span> <span class="s2">&quot;top&quot;</span>
-            <span class="n">case_side</span> <span class="o">=</span> <span class="s2">&quot;bottom&quot;</span>
-
-        <span class="c1"># Define network properties in props directory</span>
-        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;Faces&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">board_face_id</span><span class="p">,</span> <span class="n">case_face_id</span><span class="p">],</span>
-            <span class="s2">&quot;Nodes&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;Case_side(&quot;</span> <span class="o">+</span> <span class="n">case_side</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">case_face_id</span><span class="p">,</span> <span class="s2">&quot;NoResistance&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;Board_side(&quot;</span> <span class="o">+</span> <span class="n">board_side</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">board_face_id</span><span class="p">,</span> <span class="s2">&quot;NoResistance&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;Internal&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">power</span><span class="p">],</span>
-                <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;Links&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
-                <span class="p">{</span>
-                    <span class="s2">&quot;Rjc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Case_side(&quot;</span> <span class="o">+</span> <span class="n">case_side</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span> <span class="s2">&quot;Internal&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rjc</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel_per_w&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;Rjb&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Board_side(&quot;</span> <span class="o">+</span> <span class="n">board_side</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span> <span class="s2">&quot;Internal&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rjb</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel_per_w&quot;</span><span class="p">],</span>
-                <span class="p">}</span>
-            <span class="p">),</span>
-            <span class="s2">&quot;SchematicData&quot;</span><span class="p">:</span> <span class="p">({}),</span>
-        <span class="p">}</span>
-
-        <span class="c1"># Default material is Ceramic Material</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="p">[</span><span class="n">object_name</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="s2">&quot;Ceramic_material&quot;</span>
-
-        <span class="c1"># Create boundary condition and set Solve Inside to No</span>
-        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Network&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">object_name</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">return</span> <span class="n">bound</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
-
 <div class="viewcode-block" id="Icepak.import_idf"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.icepak.Icepak.import_idf.html#pyaedt.icepak.Icepak.import_idf">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">import_idf</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -3145,7 +3064,115 @@
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">add_new_objects</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Icepak.create_two_resistor_network_block"><a class="viewcode-back" href="../../API/_autosummary/pyaedt.icepak.Icepak.create_two_resistor_network_block.html#pyaedt.icepak.Icepak.create_two_resistor_network_block">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">create_two_resistor_network_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">pcb</span><span class="p">,</span> <span class="n">power</span><span class="p">,</span> <span class="n">rjb</span><span class="p">,</span> <span class="n">rjc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Function to create 2-Resistor network object.</span>
+<span class="sd">        This method is going to replace create_network_block method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        object_name : str</span>
+<span class="sd">            name of the object (3D block primitive) on which 2-R network is to be created</span>
+<span class="sd">        pcb : str</span>
+<span class="sd">            name of board touching the network block. If the board is a PCB 3D component, enter name of</span>
+<span class="sd">            3D component instance</span>
+<span class="sd">        power : float</span>
+<span class="sd">            junction power in [W]</span>
+<span class="sd">        rjb : float</span>
+<span class="sd">            Junction to board thermal resistance in [K/W]</span>
+<span class="sd">        rjc : float</span>
+<span class="sd">            Junction to case thermal resistance in [K/W]</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`pyaedt.modules.Boundary.BoundaryObject`</span>
+<span class="sd">            Boundary object.</span>
+
+<span class="sd">        References</span>
+<span class="sd">        ----------</span>
+
+<span class="sd">        &gt;&gt;&gt; oModule.AssignNetworkBoundary</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; board = icepak.modeler.create_box([0, 0, 0], [50, 100, 2], &quot;board&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; box = icepak.modeler.create_box([20, 20, 2], [10, 10, 3], &quot;network_box1&quot;, &quot;copper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; network_block = icepak.create_two_resistor_network_block_new(&quot;network_box1&quot;, &quot;board&quot;, &quot;5W&quot;, 2.5, 5)</span>
+<span class="sd">        &gt;&gt;&gt; network_block.props[&quot;Nodes&quot;][&quot;Internal&quot;][0]</span>
+<span class="sd">        &#39;5W&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">get_face_normal</span><span class="p">(</span><span class="n">obj_face</span><span class="p">):</span>
+            <span class="n">vertex1</span> <span class="o">=</span> <span class="n">obj_face</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">vertex2</span> <span class="o">=</span> <span class="n">obj_face</span><span class="o">.</span><span class="n">vertices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">position</span>
+            <span class="n">fc</span> <span class="o">=</span> <span class="n">obj_face</span><span class="o">.</span><span class="n">center_from_aedt</span>
+            <span class="n">v1</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">j</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vertex1</span><span class="p">,</span> <span class="n">fc</span><span class="p">)]</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">j</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">vertex2</span><span class="p">,</span> <span class="n">fc</span><span class="p">)]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">v_cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+            <span class="n">normalized_n</span> <span class="o">=</span> <span class="n">GeometryOperators</span><span class="o">.</span><span class="n">normalize_vector</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">normalized_n</span>
+
+        <span class="n">net_handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_from_name</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pcb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">user_defined_component_names</span><span class="p">:</span>
+            <span class="n">part_names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_3d_component_object_list</span><span class="p">(</span><span class="n">componentname</span><span class="o">=</span><span class="n">pcb</span><span class="p">))</span>
+            <span class="n">pcb_layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">part_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">part_names</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">pcb_layers</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_from_name</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span><span class="o">.</span><span class="n">get_touching_faces</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">x</span><span class="p">:</span>
+                    <span class="n">board_side</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">board_side_normal</span> <span class="o">=</span> <span class="n">get_face_normal</span><span class="p">(</span><span class="n">board_side</span><span class="p">)</span>
+                    <span class="n">pcb_handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_from_name</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+            <span class="n">pcb_faces</span> <span class="o">=</span> <span class="n">pcb_handle</span><span class="o">.</span><span class="n">faces_by_area</span><span class="p">(</span><span class="n">area</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">area_filter</span><span class="o">=</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">pcb_faces</span><span class="p">:</span>
+                <span class="n">pcb_normal</span> <span class="o">=</span> <span class="n">get_face_normal</span><span class="p">(</span><span class="n">face</span><span class="p">)</span>
+                <span class="n">dot_product</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">board_side_normal</span><span class="p">,</span> <span class="n">pcb_normal</span><span class="p">)]))</span>
+                <span class="k">if</span> <span class="n">dot_product</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">pcb_face</span> <span class="o">=</span> <span class="n">face</span>
+            <span class="n">pcb_face_normal</span> <span class="o">=</span> <span class="n">get_face_normal</span><span class="p">(</span><span class="n">pcb_face</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pcb_handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_from_name</span><span class="p">(</span><span class="n">pcb</span><span class="p">)</span>
+            <span class="n">board_side</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">get_object_from_name</span><span class="p">(</span><span class="n">object_name</span><span class="p">)</span><span class="o">.</span><span class="n">get_touching_faces</span><span class="p">(</span><span class="n">pcb</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">board_side_normal</span> <span class="o">=</span> <span class="n">get_face_normal</span><span class="p">(</span><span class="n">board_side</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">pcb_handle</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+                <span class="n">pcb_normal</span> <span class="o">=</span> <span class="n">get_face_normal</span><span class="p">(</span><span class="n">face</span><span class="p">)</span>
+                <span class="n">dot_product</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">board_side_normal</span><span class="p">,</span> <span class="n">pcb_normal</span><span class="p">)]))</span>
+                <span class="k">if</span> <span class="n">dot_product</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">pcb_face</span> <span class="o">=</span> <span class="n">face</span>
+            <span class="n">pcb_face_normal</span> <span class="o">=</span> <span class="n">get_face_normal</span><span class="p">(</span><span class="n">pcb_face</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">net_handle</span><span class="o">.</span><span class="n">faces</span><span class="p">:</span>
+            <span class="n">net_face_normal</span> <span class="o">=</span> <span class="n">get_face_normal</span><span class="p">(</span><span class="n">face</span><span class="p">)</span>
+            <span class="n">dot_product</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">net_face_normal</span><span class="p">,</span> <span class="n">pcb_face_normal</span><span class="p">)]))</span>
+            <span class="k">if</span> <span class="n">dot_product</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">case_side</span> <span class="o">=</span> <span class="n">face</span>
+
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Faces&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">board_side</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">case_side</span><span class="o">.</span><span class="n">id</span><span class="p">],</span>
+            <span class="s2">&quot;Nodes&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;Case_side(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">case_side</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">case_side</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">&quot;NoResistance&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;Board_side(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">board_side</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">board_side</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">&quot;NoResistance&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;Internal&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">power</span><span class="p">],</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;Links&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;Rjc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Case_side(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">case_side</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span> <span class="s2">&quot;Internal&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rjc</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel_per_w&quot;</span><span class="p">],</span>
+                    <span class="s2">&quot;Rjb&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Board_side(&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">board_side</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span> <span class="s2">&quot;Internal&quot;</span><span class="p">,</span> <span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rjb</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;cel_per_w&quot;</span><span class="p">],</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+            <span class="s2">&quot;SchematicData&quot;</span><span class="p">:</span> <span class="p">({}),</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">object_name</span><span class="p">]</span><span class="o">.</span><span class="n">material_name</span> <span class="o">=</span> <span class="s2">&quot;Ceramic_material&quot;</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="n">BoundaryObject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_name</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="s2">&quot;Network&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bound</span><span class="o">.</span><span class="n">create</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bound</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">primitives</span><span class="p">[</span><span class="n">object_name</span><span class="p">]</span><span class="o">.</span><span class="n">solve_inside</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="n">bound</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
 </pre></div>
 
               </article>
