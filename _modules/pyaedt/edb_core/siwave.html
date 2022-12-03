@@ -219,7 +219,6 @@
 <span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SimulationConfiguration</span>
-<span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SiwaveDCSetupTemplate</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.simulation_configuration</span> <span class="kn">import</span> <span class="n">SourceType</span>
 
 <span class="c1"># from pyaedt.edb_core.edb_data.sources import SourceType</span>
@@ -255,11 +254,6 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_edb</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span> <span class="o">=</span> <span class="n">p_edb</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_siwave_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;SIwave setup.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">edblib</span><span class="o">.</span><span class="n">SIwave</span><span class="o">.</span><span class="n">SiwaveSimulationSetupMethods</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_builder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -900,8 +894,8 @@
 
         <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="EdbSiwave.add_siwave_ac_analysis"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.add_siwave_ac_analysis.html#pyaedt.edb_core.siwave.EdbSiwave.add_siwave_ac_analysis">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">add_siwave_ac_analysis</span><span class="p">(</span>
+<div class="viewcode-block" id="EdbSiwave.add_siwave_syz_analysis"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.add_siwave_syz_analysis.html#pyaedt.edb_core.siwave.EdbSiwave.add_siwave_syz_analysis">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">add_siwave_syz_analysis</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">accuracy_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
         <span class="n">decade_count</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
@@ -916,11 +910,17 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        accuracy_level : int, optional</span>
-<span class="sd">           Level of accuracy. The default is ``1``.</span>
+<span class="sd">           Level of accuracy of SI slider. The default is ``1``.</span>
 <span class="sd">        decade_count : int</span>
-<span class="sd">            The default is ``10``.</span>
+<span class="sd">            The default is ``10``. The value for this parameter is used for these sweep types:</span>
+<span class="sd">            linear count and decade count.</span>
+<span class="sd">            This parameter is alternative to ``step_freq``, which is used for a linear scale sweep.</span>
 <span class="sd">        sweeptype : int, optional</span>
-<span class="sd">            Type of the sweep. The default is ``1``.</span>
+<span class="sd">            Type of the sweep. The default is ``1``. Options are:</span>
+
+<span class="sd">            - ``0``: linear count</span>
+<span class="sd">            - ``1``: linear scale</span>
+<span class="sd">            - ``2``: loc scale</span>
 <span class="sd">        start_freq : float, optional</span>
 <span class="sd">            Starting frequency. The default is ``1``.</span>
 <span class="sd">        stop_freq : float, optional</span>
@@ -932,84 +932,37 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        :class:`pyaedt.edb_core.edb_data.siwave_simulation_setup_data.SiwaveSYZSimulationSetup`</span>
+<span class="sd">            Setup object class.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_siwave_setup</span><span class="o">.</span><span class="n">AddACSimSetup</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="p">,</span>
-            <span class="n">accuracy_level</span><span class="p">,</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">decade_count</span><span class="p">),</span>
-            <span class="n">sweeptype</span><span class="p">,</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">start_freq</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">stop_freq</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">step_freq</span><span class="p">),</span>
-            <span class="n">discrete_sweep</span><span class="p">,</span>
+        <span class="n">setup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">create_siwave_syz_setup</span><span class="p">()</span>
+        <span class="n">sweep</span> <span class="o">=</span> <span class="s2">&quot;linear count&quot;</span>
+        <span class="k">if</span> <span class="n">sweeptype</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">sweep</span> <span class="o">=</span> <span class="s2">&quot;log scale&quot;</span>
+        <span class="k">elif</span> <span class="n">sweeptype</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sweep</span> <span class="o">=</span> <span class="s2">&quot;linear scale&quot;</span>
+        <span class="n">start_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">start_freq</span><span class="p">,</span> <span class="s2">&quot;Hz&quot;</span><span class="p">)</span>
+        <span class="n">stop_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">stop_freq</span><span class="p">,</span> <span class="s2">&quot;Hz&quot;</span><span class="p">)</span>
+        <span class="n">third_arg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">decade_count</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sweeptype</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">third_arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">arg_with_dim</span><span class="p">(</span><span class="n">step_freq</span><span class="p">,</span> <span class="s2">&quot;Hz&quot;</span><span class="p">)</span>
+        <span class="n">setup</span><span class="o">.</span><span class="n">si_slider_postion</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">accuracy_level</span><span class="p">)</span>
+        <span class="n">sweep</span> <span class="o">=</span> <span class="n">setup</span><span class="o">.</span><span class="n">add_frequency_sweep</span><span class="p">(</span>
+            <span class="n">frequency_sweep</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">[</span><span class="n">sweep</span><span class="p">,</span> <span class="n">start_freq</span><span class="p">,</span> <span class="n">stop_freq</span><span class="p">,</span> <span class="n">third_arg</span><span class="p">],</span>
+            <span class="p">]</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_ac</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">discrete_sweep</span><span class="p">:</span>
+            <span class="n">sweep</span><span class="o">.</span><span class="n">freq_sweep_type</span> <span class="o">=</span> <span class="s2">&quot;kDiscreteSweep&quot;</span>
 
-<div class="viewcode-block" id="EdbSiwave.add_siwave_syz_analysis"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.add_siwave_syz_analysis.html#pyaedt.edb_core.siwave.EdbSiwave.add_siwave_syz_analysis">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">add_siwave_syz_analysis</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">accuracy_level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">decade_count</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-        <span class="n">sweeptype</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">start_freq</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-        <span class="n">stop_freq</span><span class="o">=</span><span class="mf">1e9</span><span class="p">,</span>
-        <span class="n">step_freq</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span>
-        <span class="n">discrete_sweep</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Add a SIwave SYZ analysis.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        accuracy_level : int, optional</span>
-<span class="sd">           Level of accuracy. The default is ``1``.</span>
-<span class="sd">        decade_count : int, optional</span>
-<span class="sd">            Number of points to calculate in each decade. The default is ``10``.</span>
-<span class="sd">        sweeptype : int, optional</span>
-<span class="sd">            Type of the sweep. The default is ``1``.</span>
-<span class="sd">        start_freq : float, optional</span>
-<span class="sd">            Starting frequency. The default is ``1``.</span>
-<span class="sd">        stop_freq : float, optional</span>
-<span class="sd">            Stopping frequency. The default is ``1e9``.</span>
-<span class="sd">        step_freq : float, optional</span>
-<span class="sd">            Frequency size of the step. The default is ``1e6``.</span>
-<span class="sd">        discrete_sweep : bool, optional</span>
-<span class="sd">            Whether the sweep is discrete. The default is ``False``.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_siwave_setup</span><span class="o">.</span><span class="n">AddSYZSimSetup</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="p">,</span>
-            <span class="n">accuracy_level</span><span class="p">,</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">decade_count</span><span class="p">),</span>
-            <span class="n">sweeptype</span><span class="p">,</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">start_freq</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">stop_freq</span><span class="p">),</span>
-            <span class="nb">str</span><span class="p">(</span><span class="n">step_freq</span><span class="p">),</span>
-            <span class="n">discrete_sweep</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_syz</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="EdbSiwave.get_siwave_dc_setup_template"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.get_siwave_dc_setup_template.html#pyaedt.edb_core.siwave.EdbSiwave.get_siwave_dc_setup_template">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">get_siwave_dc_setup_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get the siwave dc template.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        pyaedt.edb_core.edb_data.simulation_configuration.SiwaveDCSetupTemplate</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">SiwaveDCSetupTemplate</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_ac</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">setup</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.add_siwave_dc_analysis"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.add_siwave_dc_analysis.html#pyaedt.edb_core.siwave.EdbSiwave.add_siwave_dc_analysis">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">add_siwave_dc_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setup_settings</span><span class="o">=</span><span class="n">SiwaveDCSetupTemplate</span><span class="p">()):</span>
-        <span class="sd">&quot;&quot;&quot;Create a Siwave DC Analysis in EDB.</span>
+    <span class="k">def</span> <span class="nf">add_siwave_dc_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a Siwave DC analysis in EDB.</span>
 
-<span class="sd">        If Setup is present it will be deleted and replaced by new</span>
+<span class="sd">        If a setup is present, it is deleted and replaced with</span>
 <span class="sd">        actual settings.</span>
 
 <span class="sd">        .. note::</span>
@@ -1017,66 +970,25 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        setup_settings : pyaedt.edb_core.edb_data.simulation_configuration.SiwaveDCSetupTemplate</span>
+<span class="sd">        name : str, optional</span>
+<span class="sd">            Setup name.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        bool</span>
-<span class="sd">            ``True`` when successful, ``False`` when failed.</span>
+<span class="sd">        :class:`pyaedt.edb_core.edb_data.siwave_simulation_setup_data.SiwaveDCSimulationSetup`</span>
+<span class="sd">            Setup object class.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from pyaedt import Edb</span>
 <span class="sd">        &gt;&gt;&gt; edb = Edb(&quot;pathtoaedb&quot;, edbversion=&quot;2021.2&quot;)</span>
 <span class="sd">        &gt;&gt;&gt; edb.core_siwave.add_siwave_ac_analysis()</span>
-<span class="sd">        &gt;&gt;&gt; settings = edb.core_siwave.get_siwave_dc_setup_template()</span>
-<span class="sd">        &gt;&gt;&gt; settings.accuracy_level = 0</span>
-<span class="sd">        &gt;&gt;&gt; settings.use_dc_custom_settings  = True</span>
-<span class="sd">        &gt;&gt;&gt; settings.name = &quot;myDCIR_3&quot;</span>
-<span class="sd">        &gt;&gt;&gt; settings.pos_term_to_ground = &quot;I1&quot;</span>
-<span class="sd">        &gt;&gt;&gt; settings.neg_term_to_ground = &quot;V1&quot;</span>
-<span class="sd">        &gt;&gt;&gt; edb.core_siwave.add_siwave_dc_analysis2(settings)</span>
+<span class="sd">        &gt;&gt;&gt; edb.core_siwave.add_siwave_dc_analysis2(&quot;my_setup&quot;)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">sim_setup_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SimSetupInfo</span><span class="p">[</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SIwave</span><span class="o">.</span><span class="n">SIWDCIRSimulationSettings</span>
-        <span class="p">]()</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">DCReportShowActiveDevices</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">setup_settings</span><span class="o">.</span><span class="n">dcreport_show_active_devices</span>
-        <span class="p">)</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">ExportDCThermalData</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">export_dcthermal_data</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">FullDCReportPath</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">full_dcreport_path</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">UseLoopResForPerPin</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">use_loopres_forperpin</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">ViaReportPath</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">via_report_path</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">ComputeInductance</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">compute_inductance</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">DCSliderPos</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">accuracy_level</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">PlotJV</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">plotjv</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MinNumPasses</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">min_passes</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MaxNumPasses</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">max_passes</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">PercentLocalRefinement</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">setup_settings</span><span class="o">.</span><span class="n">percent_localrefinement</span>
-        <span class="p">)</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">EnergyError</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">energy_error</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">RefineBws</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">refine_bondwires</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">RefineVias</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">refine_vias</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">NumViaSides</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">num_via_sides</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">NumBwSides</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">num_bondwire_sides</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MeshBws</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">mesh_bondwires</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">MeshVias</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">mesh_vias</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="o">.</span><span class="n">PerformAdaptiveRefinement</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">setup_settings</span><span class="o">.</span><span class="n">perform_adaptive_refinement</span>
-        <span class="p">)</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="o">.</span><span class="n">UseDCCustomSettings</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">use_dc_custom_settings</span>
-        <span class="n">sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">SourceTermsToGround</span> <span class="o">=</span> <span class="n">setup_settings</span><span class="o">.</span><span class="n">source_terms_to_ground</span>
-        <span class="n">simulationSetup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Utility</span><span class="o">.</span><span class="n">SIWaveDCIRSimulationSetup</span><span class="p">(</span><span class="n">sim_setup_info</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">AddSimulationSetup</span><span class="p">(</span><span class="n">simulationSetup</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_dc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">DeleteSimulationSetup</span><span class="p">(</span><span class="n">setup_settings</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">AddSimulationSetup</span><span class="p">(</span><span class="n">simulationSetup</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_dc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">False</span></div>
+        <span class="n">setup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pedb</span><span class="o">.</span><span class="n">create_siwave_dc_setup</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_exec_file</span><span class="p">(</span><span class="n">add_dc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">setup</span></div>
 
 <div class="viewcode-block" id="EdbSiwave.create_pin_group_terminal"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_terminal.html#pyaedt.edb_core.siwave.EdbSiwave.create_pin_group_terminal">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
     <span class="k">def</span> <span class="nf">create_pin_group_terminal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
@@ -1458,8 +1370,12 @@
         <span class="n">pos_terminal</span> <span class="o">=</span> <span class="n">pos_pin_group</span><span class="o">.</span><span class="n">create_current_source_terminal</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;isource&quot;</span><span class="p">)</span>
+            <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">neg_pin_group_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_groups</span><span class="p">[</span><span class="n">neg_pin_group_name</span><span class="p">]</span>
         <span class="n">neg_terminal</span> <span class="o">=</span> <span class="n">neg_pin_group_name</span><span class="o">.</span><span class="n">create_current_source_terminal</span><span class="p">()</span>
+        <span class="n">neg_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_ref&quot;</span><span class="p">)</span>
         <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_terminal</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
@@ -1487,8 +1403,12 @@
         <span class="n">pos_terminal</span> <span class="o">=</span> <span class="n">pos_pin_group</span><span class="o">.</span><span class="n">create_voltage_source_terminal</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;vsource&quot;</span><span class="p">)</span>
+            <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">neg_pin_group_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pin_groups</span><span class="p">[</span><span class="n">neg_pin_group_name</span><span class="p">]</span>
         <span class="n">neg_terminal</span> <span class="o">=</span> <span class="n">neg_pin_group_name</span><span class="o">.</span><span class="n">create_voltage_source_terminal</span><span class="p">(</span><span class="n">magnitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+        <span class="n">neg_terminal</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_ref&quot;</span><span class="p">)</span>
         <span class="n">pos_terminal</span><span class="o">.</span><span class="n">SetReferenceTerminal</span><span class="p">(</span><span class="n">neg_terminal</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div></div>
 </pre></div>
