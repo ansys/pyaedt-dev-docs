@@ -901,12 +901,12 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edb</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edb_siwave_sim_setup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span> <span class="o">=</span> <span class="n">edb</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sweep_data_list</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SimSetupInfo</span><span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SIwave</span><span class="o">.</span><span class="n">SIWSimulationSettings</span>
+        <span class="p">]()</span>
         <span class="k">if</span> <span class="n">edb_siwave_sim_setup</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="n">edb_siwave_sim_setup</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="n">_get_edb_setup_info</span><span class="p">(</span><span class="n">edb_siwave_sim_setup</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SimSetupInfo</span><span class="p">[</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SIwave</span><span class="o">.</span><span class="n">SIWSimulationSettings</span>
-            <span class="p">]()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;siwave&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -955,8 +955,11 @@
     <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set name of the setup.&quot;&quot;&quot;</span>
+        <span class="n">legacy_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="o">.</span><span class="n">Name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_setup</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">legacy_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">setups</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">_setups</span><span class="p">[</span><span class="n">legacy_name</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1044,19 +1047,96 @@
         <span class="k">return</span> <span class="n">sweep</span></div></div>
 
 
+<span class="k">def</span> <span class="nf">_parse_value</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    v :</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#  duck typing parse of the value &#39;v&#39;</span>
+    <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">elif</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;false&quot;</span><span class="p">:</span>
+        <span class="n">pv</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pv</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">pv</span> <span class="o">=</span> <span class="n">v</span>
+    <span class="k">return</span> <span class="n">pv</span>
+
+
+<span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">_get_edb_setup_info</span><span class="p">(</span><span class="n">edb_siwave_sim_setup</span><span class="p">,</span> <span class="n">edb_sim_setup_info</span><span class="p">):</span>
+    <span class="n">string</span> <span class="o">=</span> <span class="n">edb_siwave_sim_setup</span><span class="o">.</span><span class="n">ToString</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">string</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="s2">&quot;SourceTermsToGround&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">string</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">))</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="s2">&quot;SourceTermsToGround&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">string</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;SourceTermsToGround()&quot;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="k">elif</span> <span class="s2">&quot;SourceTermsToGround&quot;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;SourceTermsToGround(&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span>
+                <span class="n">sources</span><span class="p">[</span><span class="n">source</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">source</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span><span class="o">.</span><span class="n">SourceTermsToGround</span> <span class="o">=</span> <span class="n">convert_pydict_to_netdict</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+            <span class="k">break</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">_parse_value</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">)])</span>
+        <span class="n">setter</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="p">):</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">AdvancedSettings</span><span class="p">):</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">AdvancedSettings</span>
+
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span><span class="p">):</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCAdvancedSettings</span>
+        <span class="k">elif</span> <span class="s2">&quot;DCIRSettings&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="p">)</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span>
+            <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span>
+        <span class="p">):</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCIRSettings</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span><span class="p">):</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">DCSettings</span>
+        <span class="k">elif</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">AdvancedSettings</span><span class="p">):</span>
+            <span class="n">setter</span> <span class="o">=</span> <span class="n">edb_sim_setup_info</span><span class="o">.</span><span class="n">SimulationSettings</span><span class="o">.</span><span class="n">AdvancedSettings</span>
+        <span class="k">if</span> <span class="n">setter</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">setter</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">setter</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+
 <div class="viewcode-block" id="SiwaveDCSimulationSetup"><a class="viewcode-back" href="../../../../API/_autosummary/pyaedt.edb_core.edb_data.siwave_simulation_setup_data.SiwaveDCSimulationSetup.html#pyaedt.edb_core.edb_data.siwave_simulation_setup_data.SiwaveDCSimulationSetup">[docs]</a><span class="k">class</span> <span class="nc">SiwaveDCSimulationSetup</span><span class="p">(</span><span class="n">SiwaveDCAdvancedSettings</span><span class="p">,</span> <span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manages EDB methods for HFSS simulation setup.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edb</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">edb_siwave_sim_setup</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span> <span class="o">=</span> <span class="n">edb</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mesh_operations</span> <span class="o">=</span> <span class="p">{}</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SimSetupInfo</span><span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SIwave</span><span class="o">.</span><span class="n">SIWDCIRSimulationSettings</span>
+        <span class="p">]()</span>
         <span class="k">if</span> <span class="n">edb_siwave_sim_setup</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="n">edb_siwave_sim_setup</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="n">_get_edb_setup_info</span><span class="p">(</span><span class="n">edb_siwave_sim_setup</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SimSetupInfo</span><span class="p">[</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">simsetupdata</span><span class="o">.</span><span class="n">SIwave</span><span class="o">.</span><span class="n">SIWDCIRSimulationSettings</span>
-            <span class="p">]()</span>
+
             <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;siwave&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1085,8 +1165,11 @@
     <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set name of the setup.&quot;&quot;&quot;</span>
+        <span class="n">legacy_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="o">.</span><span class="n">Name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_edb_sim_setup_info</span><span class="o">.</span><span class="n">Name</span> <span class="o">=</span> <span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_setup</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">legacy_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">setups</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">_setups</span><span class="p">[</span><span class="n">legacy_name</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
