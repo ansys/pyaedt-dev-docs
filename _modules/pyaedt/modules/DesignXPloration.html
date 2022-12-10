@@ -149,6 +149,7 @@
     </nav>
     
     
+    
         <div class="container-xl">
     <div class="row">
         <div class="col-12 col-md-3" id="breadcrumbs-spacer"></div>
@@ -212,6 +213,7 @@
                 
   <h1>Source code for pyaedt.modules.DesignXPloration</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyaedt.generic.DataHandlers</span> <span class="kn">import</span> <span class="n">_arg2dict</span>
@@ -255,6 +257,10 @@
 
         <span class="k">if</span> <span class="n">optimtype</span> <span class="o">==</span> <span class="s2">&quot;OptiParametric&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">SetupProps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputd</span> <span class="ow">or</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">defaultparametricSetup</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">inputd</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_type</span> <span class="o">==</span> <span class="s2">&quot;Icepak&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;ProdOptiSetupDataV2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;SaveFields&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;FastOptimetrics&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;SolveWithCopiedMeshOnly&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+                <span class="p">)</span>
         <span class="k">if</span> <span class="n">optimtype</span> <span class="o">==</span> <span class="s2">&quot;OptiDesignExplorer&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">SetupProps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputd</span> <span class="ow">or</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">defaultdxSetup</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">optimtype</span> <span class="o">==</span> <span class="s2">&quot;OptiOptimization&quot;</span><span class="p">:</span>
@@ -452,6 +458,12 @@
 
         <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
         <span class="n">_dict2arg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">soltype</span> <span class="o">==</span> <span class="s2">&quot;OptiParametric&quot;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">arg</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:Sweep Operations&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">variation</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sweep Operations&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="n">arg</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;add:=&quot;</span><span class="p">)</span>
+                <span class="n">arg</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variation</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">omodule</span><span class="o">.</span><span class="n">EditSetup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
@@ -1281,9 +1293,60 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">parametricname</span><span class="p">:</span>
             <span class="n">parametricname</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;Parametric&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">optimodule</span><span class="o">.</span><span class="n">ImportSetup</span><span class="p">(</span><span class="s2">&quot;OptiParametric&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">parametricname</span><span class="p">,</span> <span class="n">filename</span><span class="p">])</span>
         <span class="n">setup</span> <span class="o">=</span> <span class="n">SetupParam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">,</span> <span class="n">parametricname</span><span class="p">,</span> <span class="n">optim_type</span><span class="o">=</span><span class="s2">&quot;OptiParametric&quot;</span><span class="p">)</span>
         <span class="n">setup</span><span class="o">.</span><span class="n">auto_update</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">setup</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sim. Setups&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">setup_defined</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">setup_defined</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">setups</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+            <span class="n">csvreader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">)</span>
+            <span class="n">first_data_line</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">csvreader</span><span class="p">)</span>
+            <span class="n">setup</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sweeps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;SweepDefinition&quot;</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">()}</span>
+            <span class="n">sweep_definition</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">csvreader</span><span class="o">.</span><span class="n">fieldnames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">var_name</span> <span class="o">!=</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+                    <span class="n">sweep_definition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">OrderedDict</span><span class="p">(</span>
+                            <span class="p">{</span>
+                                <span class="s2">&quot;Variable&quot;</span><span class="p">:</span> <span class="n">var_name</span><span class="p">,</span>
+                                <span class="s2">&quot;Data&quot;</span><span class="p">:</span> <span class="n">first_data_line</span><span class="p">[</span><span class="n">var_name</span><span class="p">],</span>
+                                <span class="s2">&quot;OffsetF1&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                                <span class="s2">&quot;Synchronize&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                            <span class="p">}</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+            <span class="n">setup</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sweeps&quot;</span><span class="p">][</span><span class="s2">&quot;SweepDefinition&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sweep_definition</span>
+
+            <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="n">parametricname</span><span class="p">]</span>
+            <span class="n">_dict2arg</span><span class="p">(</span><span class="n">setup</span><span class="o">.</span><span class="n">props</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+
+            <span class="n">setup</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sweep Operations&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">({</span><span class="s2">&quot;add&quot;</span><span class="p">:</span> <span class="p">[]})</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">csvreader</span><span class="o">.</span><span class="n">fieldnames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">var_name</span> <span class="o">!=</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+                    <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">first_data_line</span><span class="p">[</span><span class="n">var_name</span><span class="p">])</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">csvreader</span><span class="p">:</span>
+                <span class="n">table_line</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">csvreader</span><span class="o">.</span><span class="n">fieldnames</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">var_name</span> <span class="o">!=</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+                        <span class="n">table_line</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="n">var_name</span><span class="p">])</span>
+                <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table_line</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+                <span class="n">setup</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sweep Operations&quot;</span><span class="p">][</span><span class="s2">&quot;add&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="p">)</span>
+
+        <span class="n">cont</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;NAME:Sweep Operations&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">args</span><span class="p">[</span><span class="n">cont</span><span class="p">]</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="s2">&quot;NAME:Sweep Operations&quot;</span><span class="p">])</span>
+                <span class="k">break</span>
+            <span class="n">cont</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">variation</span> <span class="ow">in</span> <span class="n">setup</span><span class="o">.</span><span class="n">props</span><span class="p">[</span><span class="s2">&quot;Sweep Operations&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;add:=&quot;</span><span class="p">)</span>
+            <span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variation</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimodule</span><span class="o">.</span><span class="n">InsertSetup</span><span class="p">(</span><span class="s2">&quot;OptiParametric&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">setup</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div></div>
 

@@ -149,6 +149,7 @@
     </nav>
     
     
+    
         <div class="container-xl">
     <div class="row">
         <div class="col-12 col-md-3" id="breadcrumbs-spacer"></div>
@@ -1160,7 +1161,8 @@
                 <span class="n">_padstacks_list</span><span class="p">[</span><span class="n">n_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pad</span><span class="p">]</span>
         <span class="n">new_nets</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">disjoints_objects</span> <span class="o">=</span> <span class="p">[]</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Found objects&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">net_list</span><span class="p">:</span>
             <span class="n">net_groups</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">obj_dict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1176,6 +1178,8 @@
                 <span class="n">net_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span>
                 <span class="n">objs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">objs</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">l1</span><span class="p">]</span>
                 <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Got connected objects&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">reset_timer</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">net_groups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">sorted_list</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">net_groups</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">disjoints</span> <span class="ow">in</span> <span class="n">sorted_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
@@ -1195,12 +1199,13 @@
                         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                             <span class="k">pass</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">new_net_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_or_create_net</span><span class="p">(</span><span class="n">new_net_name</span><span class="p">):</span>
-                            <span class="n">new_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_net_name</span><span class="p">)</span>
+                        <span class="n">new_net_name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+                        <span class="n">net_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_or_create_net</span><span class="p">(</span><span class="n">new_net_name</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">net_obj</span><span class="p">:</span>
+                            <span class="n">new_nets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">net_obj</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
                             <span class="k">for</span> <span class="n">geo</span> <span class="ow">in</span> <span class="n">disjoints</span><span class="p">:</span>
                                 <span class="k">try</span><span class="p">:</span>
-                                    <span class="n">obj_dict</span><span class="p">[</span><span class="n">geo</span><span class="p">]</span><span class="o">.</span><span class="n">net_name</span> <span class="o">=</span> <span class="n">new_net_name</span>
+                                    <span class="n">obj_dict</span><span class="p">[</span><span class="n">geo</span><span class="p">]</span><span class="o">.</span><span class="n">net_name</span> <span class="o">=</span> <span class="n">net_obj</span>
                                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                                     <span class="k">pass</span>
                             <span class="n">disjoints_objects</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">disjoints</span><span class="p">)</span>
