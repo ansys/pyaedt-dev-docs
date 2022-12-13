@@ -278,6 +278,15 @@
         <span class="n">boundaries_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">excitation_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">included_cs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_encrypted</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">allow_edit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">security_message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">edit_password</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">password_type</span><span class="o">=</span><span class="s2">&quot;UserSuppliedPassword&quot;</span><span class="p">,</span>
+        <span class="n">hide_contents</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">replace_names</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">component_outline</span><span class="o">=</span><span class="s2">&quot;BoundingBox&quot;</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a 3D component file.</span>
 
@@ -299,6 +308,32 @@
 <span class="sd">            List of Excitation names to export. The default is all excitations</span>
 <span class="sd">        included_cs : list, optional</span>
 <span class="sd">            List of Coordinate Systems to export. The default is all coordinate systems</span>
+<span class="sd">        is_encrypted : bool, optional</span>
+<span class="sd">            Whether the component has encrypted protection. The default is ``False``.</span>
+<span class="sd">        allow_edit : bool, optional</span>
+<span class="sd">            Whether the component is editable with encrypted protection.</span>
+<span class="sd">            The default is ``False``.</span>
+<span class="sd">        security_message : str, optional</span>
+<span class="sd">            Security message to display when component is inserted.</span>
+<span class="sd">            The default value is an empty string.</span>
+<span class="sd">        password : str, optional</span>
+<span class="sd">            Security password needed when adding the component.</span>
+<span class="sd">            The default value is an empty string.</span>
+<span class="sd">        edit_password : str, optional</span>
+<span class="sd">            Edit password.</span>
+<span class="sd">            The default value is an empty string.</span>
+<span class="sd">        password_type : str, optional</span>
+<span class="sd">            Password type. Value can either be ``UserSuppliedPassword`` or ``InternalPassword``.</span>
+<span class="sd">            The default value is ``UserSuppliedPassword``.</span>
+<span class="sd">        hide_contents : bool, optionale</span>
+<span class="sd">            Whether to hide contents.</span>
+<span class="sd">            The default is ``False``.</span>
+<span class="sd">        replace_names : bool, optional</span>
+<span class="sd">            Whether to replace objects and materials names.</span>
+<span class="sd">            The default is ``False``.</span>
+<span class="sd">        component_outline : str, optional</span>
+<span class="sd">            Component outline. Value can either be ``BoundingBox`` or ``None``.</span>
+<span class="sd">            The default is ``BoundingBox``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -315,6 +350,10 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">component_name</span><span class="p">:</span>
             <span class="n">component_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_name</span>
         <span class="n">dt_string</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%H:%M:%S %p %b </span><span class="si">%d</span><span class="s2">, %Y&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">password_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;UserSuppliedPassword&quot;</span><span class="p">,</span> <span class="s2">&quot;InternalPassword&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">component_outline</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;BoundingBox&quot;</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="n">arg</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;NAME:CreateData&quot;</span><span class="p">,</span>
             <span class="s2">&quot;ComponentName:=&quot;</span><span class="p">,</span>
@@ -342,23 +381,23 @@
             <span class="s2">&quot;HasLabel:=&quot;</span><span class="p">,</span>
             <span class="kc">False</span><span class="p">,</span>
             <span class="s2">&quot;IsEncrypted:=&quot;</span><span class="p">,</span>
-            <span class="kc">False</span><span class="p">,</span>
+            <span class="n">is_encrypted</span><span class="p">,</span>
             <span class="s2">&quot;AllowEdit:=&quot;</span><span class="p">,</span>
-            <span class="kc">False</span><span class="p">,</span>
+            <span class="n">allow_edit</span><span class="p">,</span>
             <span class="s2">&quot;SecurityMessage:=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">security_message</span><span class="p">,</span>
             <span class="s2">&quot;Password:=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">password</span><span class="p">,</span>
             <span class="s2">&quot;EditPassword:=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">edit_password</span><span class="p">,</span>
             <span class="s2">&quot;PasswordType:=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;UnknownPassword&quot;</span><span class="p">,</span>
+            <span class="n">password_type</span><span class="p">,</span>
             <span class="s2">&quot;HideContents:=&quot;</span><span class="p">,</span>
-            <span class="kc">True</span><span class="p">,</span>
+            <span class="n">hide_contents</span><span class="p">,</span>
             <span class="s2">&quot;ReplaceNames:=&quot;</span><span class="p">,</span>
-            <span class="kc">True</span><span class="p">,</span>
+            <span class="n">replace_names</span><span class="p">,</span>
             <span class="s2">&quot;ComponentOutline:=&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;None&quot;</span><span class="p">,</span>
+            <span class="n">component_outline</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="n">object_list</span><span class="p">:</span>
             <span class="n">objs</span> <span class="o">=</span> <span class="n">object_list</span>

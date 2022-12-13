@@ -220,6 +220,7 @@
 
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.nets_data</span> <span class="kn">import</span> <span class="n">EDBNetsData</span>
 <span class="kn">from</span> <span class="nn">pyaedt.edb_core.edb_data.padstacks_data</span> <span class="kn">import</span> <span class="n">EDBPadstackInstance</span>
+<span class="kn">from</span> <span class="nn">pyaedt.edb_core.general</span> <span class="kn">import</span> <span class="n">convert_py_list_to_net_list</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.constants</span> <span class="kn">import</span> <span class="n">CSS4_COLORS</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">generate_unique_name</span>
 <span class="kn">from</span> <span class="nn">pyaedt.generic.general_methods</span> <span class="kn">import</span> <span class="n">is_ironpython</span>
@@ -1211,7 +1212,57 @@
                             <span class="n">disjoints_objects</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">disjoints</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info_timer</span><span class="p">(</span><span class="s2">&quot;Disjoint Cleanup Completed.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">{}</span><span class="s2"> objects in </span><span class="si">{}</span><span class="s2"> new nets.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">disjoints_objects</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_nets</span><span class="p">)))</span>
-        <span class="k">return</span> <span class="n">new_nets</span></div></div>
+        <span class="k">return</span> <span class="n">new_nets</span></div>
+
+<div class="viewcode-block" id="EdbNets.merge_nets_polygons"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.edb_core.nets.EdbNets.merge_nets_polygons.html#pyaedt.edb_core.nets.EdbNets.merge_nets_polygons">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">merge_nets_polygons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">net_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert paths from net into polygons, evaluate all connected polygons and perform the merge.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        net_list : str or list[str]</span>
+<span class="sd">            net name of list of net name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">            list of merged polygons.</span>
+
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">net_list</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">net_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">net_list</span><span class="p">]</span>
+        <span class="n">returned_poly</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">net</span> <span class="ow">in</span> <span class="n">net_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">:</span>
+                <span class="n">net_rtree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">RTree</span><span class="p">()</span>
+                <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">prim</span> <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">prim</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Path&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+                    <span class="n">path</span><span class="o">.</span><span class="n">convert_to_polygon</span><span class="p">()</span>
+                <span class="n">polygons</span> <span class="o">=</span> <span class="p">[</span><span class="n">prim</span> <span class="k">for</span> <span class="n">prim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nets</span><span class="p">[</span><span class="n">net</span><span class="p">]</span><span class="o">.</span><span class="n">primitives</span> <span class="k">if</span> <span class="n">prim</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">polygon</span> <span class="ow">in</span> <span class="n">polygons</span><span class="p">:</span>
+                    <span class="n">polygon_data</span> <span class="o">=</span> <span class="n">polygon</span><span class="o">.</span><span class="n">primitive_object</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">()</span>
+                    <span class="n">rtree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">RTreeObj</span><span class="p">(</span><span class="n">polygon_data</span><span class="p">,</span> <span class="n">polygon</span><span class="o">.</span><span class="n">primitive_object</span><span class="p">)</span>
+                    <span class="n">net_rtree</span><span class="o">.</span><span class="n">Insert</span><span class="p">(</span><span class="n">rtree</span><span class="p">)</span>
+                <span class="n">connected_polygons</span> <span class="o">=</span> <span class="n">net_rtree</span><span class="o">.</span><span class="n">GetConnectedGeometrySets</span><span class="p">()</span>
+                <span class="n">void_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">pp</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">connected_polygons</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">pp</span><span class="p">):</span>
+                        <span class="n">_voids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_pp</span><span class="o">.</span><span class="n">Obj</span><span class="o">.</span><span class="n">Voids</span><span class="p">)</span>
+                        <span class="n">void_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_pp</span><span class="o">.</span><span class="n">Obj</span><span class="o">.</span><span class="n">Voids</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">poly_list</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">connected_polygons</span><span class="p">):</span>
+                    <span class="n">layer</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Obj</span><span class="o">.</span><span class="n">GetLayer</span><span class="p">()</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+                    <span class="n">net</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly_list</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Obj</span><span class="o">.</span><span class="n">GetNet</span><span class="p">()</span>
+                    <span class="n">_poly_list</span> <span class="o">=</span> <span class="n">convert_py_list_to_net_list</span><span class="p">([</span><span class="n">obj</span><span class="o">.</span><span class="n">Poly</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">poly_list</span><span class="p">)])</span>
+                    <span class="n">merged_polygon</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">PolygonData</span><span class="o">.</span><span class="n">Unite</span><span class="p">(</span><span class="n">_poly_list</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">merged_polygon</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">void</span> <span class="ow">in</span> <span class="n">void_list</span><span class="p">:</span>
+                            <span class="n">poly</span><span class="o">.</span><span class="n">AddHole</span><span class="p">(</span><span class="n">void</span><span class="o">.</span><span class="n">GetPolygonData</span><span class="p">())</span>
+                        <span class="n">_new_poly</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_edb</span><span class="o">.</span><span class="n">Cell</span><span class="o">.</span><span class="n">Primitive</span><span class="o">.</span><span class="n">Polygon</span><span class="o">.</span><span class="n">Create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_active_layout</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">poly</span><span class="p">)</span>
+                        <span class="n">returned_poly</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_new_poly</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">init_poly</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">connected_polygons</span><span class="p">)):</span>
+                    <span class="k">for</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">init_poly</span><span class="p">):</span>
+                        <span class="n">_pp</span><span class="o">.</span><span class="n">Obj</span><span class="o">.</span><span class="n">Delete</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">returned_poly</span></div></div>
 </pre></div>
 
               </article>

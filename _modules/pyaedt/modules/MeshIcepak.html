@@ -239,7 +239,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_oeditor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">oeditor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">global_mesh_region</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MeshRegion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omeshmodule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingdimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">global_mesh_region</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MeshRegion</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">omeshmodule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingdimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meshoperations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_design_mesh_operations</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meshregions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_design_mesh_regions</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_priorities_args</span> <span class="o">=</span> <span class="p">[]</span>
@@ -258,7 +260,7 @@
     <span class="k">class</span> <span class="nc">MeshRegion</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Manages Icepak mesh region settings.&quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshmodule</span><span class="p">,</span> <span class="n">dimension</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">meshmodule</span><span class="p">,</span> <span class="n">dimension</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">app</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Settings&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">meshmodule</span> <span class="o">=</span> <span class="n">meshmodule</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model_units</span> <span class="o">=</span> <span class="n">units</span>
@@ -299,6 +301,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxY</span> <span class="o">=</span> <span class="s2">&quot;0mm&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxZ</span> <span class="o">=</span> <span class="s2">&quot;0mm&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">CoordCS</span> <span class="o">=</span> <span class="s2">&quot;Global&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">virtual_region</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
 
         <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
         <span class="k">def</span> <span class="nf">_dim_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
@@ -332,25 +336,32 @@
                     <span class="s2">&quot;Enforce2dot5DCutCell:=&quot;</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">Enforce2dot5DCutCell</span><span class="p">,</span>
                 <span class="p">]</span>
-            <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">aedt_version</span> <span class="o">&gt;=</span> <span class="s2">&quot;2022.2&quot;</span><span class="p">:</span>
-                <span class="n">arg</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-                    <span class="p">[</span>
-                        <span class="s2">&quot;SlackMinX:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">SlackMinX</span><span class="p">,</span>
-                        <span class="s2">&quot;SlackMinY:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">SlackMinY</span><span class="p">,</span>
-                        <span class="s2">&quot;SlackMinZ:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">SlackMinZ</span><span class="p">,</span>
-                        <span class="s2">&quot;SlackMaxX:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxX</span><span class="p">,</span>
-                        <span class="s2">&quot;SlackMaxY:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxY</span><span class="p">,</span>
-                        <span class="s2">&quot;SlackMaxZ:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxZ</span><span class="p">,</span>
-                        <span class="s2">&quot;CoordCS:=&quot;</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">CoordCS</span><span class="p">,</span>
-                    <span class="p">]</span>
-                <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">virtual_region</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">check_beta_option_enabled</span><span class="p">(</span><span class="s2">&quot;S544753_ICEPAK_VIRTUALMESHREGION_PARADIGM&quot;</span><span class="p">):</span>
+                    <span class="n">arg</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="s2">&quot;SlackMinX:=&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">SlackMinX</span><span class="p">,</span>
+                            <span class="s2">&quot;SlackMinY:=&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">SlackMinY</span><span class="p">,</span>
+                            <span class="s2">&quot;SlackMinZ:=&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">SlackMinZ</span><span class="p">,</span>
+                            <span class="s2">&quot;SlackMaxX:=&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxX</span><span class="p">,</span>
+                            <span class="s2">&quot;SlackMaxY:=&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxY</span><span class="p">,</span>
+                            <span class="s2">&quot;SlackMaxZ:=&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">SlackMaxZ</span><span class="p">,</span>
+                            <span class="s2">&quot;CoordCS:=&quot;</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">CoordCS</span><span class="p">,</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">aedt_version</span> <span class="o">&lt;</span> <span class="s2">&quot;2022.2&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Virtual Mesh Region feature is not available in this version.&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Virtual Mesh Region beta feature is enabled.&quot;</span><span class="p">)</span>
+
             <span class="k">return</span> <span class="n">arg</span>
 
         <span class="nd">@property</span>
@@ -483,6 +494,7 @@
 <span class="sd">            ----------</span>
 
 <span class="sd">            &gt;&gt;&gt; oModule.AssignMeshRegion</span>
+<span class="sd">            &gt;&gt;&gt; oModule.AssignVirtualMeshRegion</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;Settings&quot;</span><span class="p">,</span> <span class="s2">&quot;Cannot create a new mesh region with this Name&quot;</span>
             <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NAME:&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Enable:=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Enable</span><span class="p">]</span>
@@ -490,7 +502,10 @@
                 <span class="n">args</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">manualsettings</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">args</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">autosettings</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">meshmodule</span><span class="o">.</span><span class="n">AssignMeshRegion</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">virtual_region</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">check_beta_option_enabled</span><span class="p">(</span><span class="s2">&quot;S544753_ICEPAK_VIRTUALMESHREGION_PARADIGM&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">meshmodule</span><span class="o">.</span><span class="n">AssignVirtualMeshRegion</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">meshmodule</span><span class="o">.</span><span class="n">AssignMeshRegion</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
@@ -528,7 +543,9 @@
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshRegion&quot;</span><span class="p">][</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshRegions&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">],</span> <span class="p">(</span><span class="n">OrderedDict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
                 <span class="p">):</span>
-                    <span class="n">meshop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MeshRegion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omeshmodule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingdimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
+                    <span class="n">meshop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MeshRegion</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">omeshmodule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingdimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span>
+                    <span class="p">)</span>
                     <span class="n">dict_prop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">design_properties</span><span class="p">[</span><span class="s2">&quot;MeshRegion&quot;</span><span class="p">][</span><span class="s2">&quot;MeshSetup&quot;</span><span class="p">][</span><span class="s2">&quot;MeshRegions&quot;</span><span class="p">][</span><span class="n">ds</span><span class="p">]</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ds</span>
                     <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">dict_prop</span><span class="p">:</span>
@@ -760,7 +777,7 @@
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="IcepakMesh.assign_mesh_region"><a class="viewcode-back" href="../../../API/_autosummary/pyaedt.modules.MeshIcepak.IcepakMesh.assign_mesh_region.html#pyaedt.modules.MeshIcepak.IcepakMesh.assign_mesh_region">[docs]</a>    <span class="nd">@pyaedt_function_handler</span><span class="p">()</span>
-    <span class="k">def</span> <span class="nf">assign_mesh_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectlist</span><span class="o">=</span><span class="p">[],</span> <span class="n">level</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">is_submodel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">assign_mesh_region</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objectlist</span><span class="o">=</span><span class="p">[],</span> <span class="n">level</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">is_submodel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">virtual_region</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Assign a predefined surface mesh level to an object.</span>
 
 <span class="sd">        Parameters</span>
@@ -775,6 +792,8 @@
 <span class="sd">            Define if the object list is made by component models</span>
 <span class="sd">        name : str, optional</span>
 <span class="sd">            Name of the mesh region. The default is ``&quot;MeshRegion1&quot;``.</span>
+<span class="sd">        virtual_region : bool, optional</span>
+<span class="sd">            Whether to use the virtual mesh region beta feature (available from version 22.2). The default is ``False``.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -787,10 +806,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">generate_unique_name</span><span class="p">(</span><span class="s2">&quot;MeshRegion&quot;</span><span class="p">)</span>
-        <span class="n">meshregion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MeshRegion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omeshmodule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingdimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span><span class="p">)</span>
+        <span class="n">meshregion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MeshRegion</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">omeshmodule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundingdimension</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">model_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">)</span>
         <span class="n">meshregion</span><span class="o">.</span><span class="n">UserSpecifiedSettings</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">meshregion</span><span class="o">.</span><span class="n">Level</span> <span class="o">=</span> <span class="n">level</span>
         <span class="n">meshregion</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">meshregion</span><span class="o">.</span><span class="n">virtual_region</span> <span class="o">=</span> <span class="n">virtual_region</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">objectlist</span><span class="p">:</span>
             <span class="n">objectlist</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeler</span><span class="o">.</span><span class="n">object_names</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">is_submodel</span><span class="p">:</span>
